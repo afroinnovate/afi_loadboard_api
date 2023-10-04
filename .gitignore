@@ -1,0 +1,130 @@
+## .NET Core
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# VS Code directories
+.vscode/
+*.code-workspace
+
+# Rider directories
+.idea/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Installer logs
+*.log
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Rider IDE
+.idea/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Tye
+.tye/
+
+# Rider
+.idea/
+
+# ASP.NET Core
+appsettings.json
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Rider
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# .NET Core
+*.pfx
+*.usersecrets
+*.local
+*.dbmdl
+local.settings.json
+
+# Rider
+.idea/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Visual Studio for Mac
+.vscode/
+.vscode/
+
+# Rider
+.idea/
+
+# .NET Core
+*.pfx
+*.usersecrets
+*.local
+*.dbmdl
+
+# Rider
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# .NET Core
+*.usersecrets
+
+# Rider
+.idea/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# JetBrains Rider
+.idea/
+
+# ASP.NET Core
+appsettings.Development.json
+
+# .NET Core
+*.usersecrets
+
+# Rider
+.idea/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# JetBrains Rider
+.idea/
