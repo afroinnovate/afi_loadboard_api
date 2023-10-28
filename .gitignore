@@ -12,11 +12,12 @@ ehthumbs.db
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+**/UserPrefs.xml
 
 # VS Code directories
 .vscode/
 *.code-workspace
-
+.vs/
 # Rider directories
 .idea/
 
