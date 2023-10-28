@@ -20,6 +20,13 @@ $RECYCLE.BIN/
 .vs/
 # Rider directories
 .idea/
+*.sln.iml
+*.ipr
+*.DS_Store
+
+# build directories
+**/bin/
+**/obj/
 
 # Windows image file caches
 Thumbs.db

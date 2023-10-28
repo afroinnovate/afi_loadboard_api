@@ -1,4 +1,4 @@
-# AFI_TMS_API
+# afi_loadboad_api
 
 Welcome to the AFI Transportation Management Service API. This project is built using .NET Core with C# 8, leverages a microservices architecture, and utilizes PostgreSQL as its primary database, interfaced with the Dapper ORM.
 
@@ -14,7 +14,8 @@ Welcome to the AFI Transportation Management Service API. This project is built 
 
 This API has the following core dependencies:
 
-- `.NET Core SDK`: The software development kit for .NET Core.
+- `.NET Core SDK 3.1`: The software development kit for .NET Core.
+- `.NET 7`: 
 - `Dapper`: A micro ORM for .NET. It simplifies data access and is highly performant.
 - `Npgsql`: .NET data provider for PostgreSQL.
 - ... _(Include other specific packages or libraries as necessary)_
@@ -23,35 +24,14 @@ This API has the following core dependencies:
 
 1. **Clone the Repository**
     ```bash
-    git clone https://github.com/<your-github-username>/afi_tms_api.git
+    git clone https://github.com/<your-github-username>/afi_loadboad_api.git
     ```
 
 2. **Navigate to the Project Directory**
     ```bash
-    cd afi_tms_api
+    cd afi_loadboad_api
     ```
 
-3. **Restore the .NET Packages**
-    ```bash
-    dotnet restore
-    ```
-
-4. **Run the API**
-    ```bash
-    dotnet run
-    ```
-
-The API should now be running at `http://localhost:5000`.
-
-## Database Setup
-
-This API uses PostgreSQL. To set it up:
-
-1. **Install PostgreSQL** if not already installed.
-   
-2. **Create a Database** named 'afi_tms'.
-   
-3. **Update Connection String** in `appsettings.json` to point to your local PostgreSQL instance.
 
 ## Contributing
 
@@ -61,7 +41,7 @@ We value and appreciate your contributions. To contribute:
    
 2. **Clone** your forked repository:
     ```bash
-    git clone https://github.com/<your-github-username>/afi_tms_api.git
+    git clone https://github.com/afroinnovate/afi_loadboad_api.git
     ```
 
 3. **Create a New Branch** off the `develop` branch:

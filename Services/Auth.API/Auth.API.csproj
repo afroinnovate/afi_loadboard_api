@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishProfile>DefaultContainer</PublishProfile>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0</ContainerBaseImage>
+    <!-- <ContainerRegistry>dockerhub.io</ContainerRegistry> --> <!-- Optional: If not specified, defaults to Docker Hub -->
+    <ContainerImageTags>0.0.1-alpha;latest</ContainerImageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ContainerPort Include="80" Type="tcp"/>
+    <ContainerLabel Include="certification" Value="afroinnovate-certified"/>
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
+</Project>
