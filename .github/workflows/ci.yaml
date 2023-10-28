@@ -29,9 +29,11 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: afi_loadboad_api/Services/Auth.API
 
     - name: Build
       run: dotnet build --no-restore
+      working-directory: afi_loadboad_api/Services/Auth.API
 
     - name: Test
       run: dotnet test --no-build
