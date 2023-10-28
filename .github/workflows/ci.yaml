@@ -43,3 +43,4 @@ jobs:
 
     - name: Run dotnet-format (Linter)
       run: dotnet format --check
+      working-directory: Services/Auth.API
