@@ -1,4 +1,25 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Auth.API.Data;
+using Auth.API.Dtos;
+using Auth.API.Models;
+using Auth.API.Repository;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+//register the sql server connection
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//add identity framework
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// Response
+builder.Services.AddScoped<ResponseDto>();
+
+//Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // add controllers
 builder.Services.AddControllers();
@@ -18,7 +39,22 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map controllers
-app.MapControllers();  
+app.MapControllers();
+
+//apply migration if any exists
+applyMigrations();
 
 app.Run();
 
+// create method that will automatically apply migrations if there's any pending one 
+void applyMigrations()
+{
+    using (var serviceScope = app.Services.CreateScope())
+    {
+        var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
+        if (dbContext?.Database.GetMigrations().Count() > 0)
+        {
+            dbContext.Database.Migrate();
+        }
+    };
+}
