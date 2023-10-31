@@ -3,6 +3,7 @@ using Auth.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Auth.API.Data;
 using Auth.API.Dtos;
+using AutoMapper;
 
 namespace Auth.API.Repository
 {
@@ -14,14 +15,17 @@ namespace Auth.API.Repository
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        //private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMapper _mapper;
 
         public UserRepository(ApplicationDbContext _dbSet, UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
         : base(_dbSet)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -31,44 +35,49 @@ namespace Auth.API.Repository
         /// <returns>An instance of the UserDto representing the user, or null if no user matches the username.</returns>
         public async Task<UserDto> GetByUserNameAsync(string userName)
         {
-            var user = await _dbset.Users
-                                    .Where(u => u.UserName == userName)
-                                    .FirstOrDefaultAsync();
-            if (user != null)
+            try
             {
-                return new UserDto
+                var user = await _dbset.Users
+                                        .Where(u => u.UserName == userName)
+                                        .FirstOrDefaultAsync();
+                if (user != null)
                 {
-                    UserID = user.Id,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    PhoneNumber = user.PhoneNumber,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName
-                };
+                    return _mapper.Map<UserDto>(user);
+                }
+                return new();
             }
-            return new();
+            catch (Exception ex)
+            {
+                // log the exception
+                Console.WriteLine($"An error occurred while getting user by username: {ex.Message}");
+                throw;
+            }
         }
-
         /// <summary>
         /// Asynchronously registers a new user.
         /// </summary>
         /// <param name="registrationRequestDto">The data transfer object containing user registration details.</param>
         /// <returns>A string message indicating the result of the registration process.</returns>
-        public async Task<string> Register(RegistrationRequestDto registrationRequestDto)
+        public async Task<string> Register(ApplicationUser user, string password, string roleName)
         {
-            var user = new ApplicationUser
+            try
             {
-                UserName = string.IsNullOrEmpty(registrationRequestDto.UserName)? registrationRequestDto.UserName : "",
-                Email = registrationRequestDto.Email,
-                DateRegistered = DateTime.Now,
-                FirstName = registrationRequestDto.FirstName,
-                LastName = registrationRequestDto.LastName,
-                MiddleName = string.IsNullOrEmpty(registrationRequestDto.MiddleName)? registrationRequestDto.MiddleName: null,
-                PhoneNumber = string.IsNullOrEmpty(registrationRequestDto.PhoneNumber)? registrationRequestDto.PhoneNumber : ""
-            };
+                user.DateRegistered = DateTime.Now;
+                var result = await _userManager.CreateAsync(user, password);
+                if (result.Succeeded)
+                {
+                    //Assign user to role
+                    await AssignRole(user.Id, roleName);
+                    return  "Registration successful, userId: "+user.Id+" and assigned Role: "+roleName;
+                }
 
-            var result = await _userManager.CreateAsync(user, registrationRequestDto.Password);
-            return result.Succeeded ? "Registration successful" : "Registration failed";
+                return "Registration failed";
+            }
+            catch (Exception ex)
+            {
+                // log the exception
+                return "An error occurred while registering a user: "+ex.Message;
+            }
         }
 
         /// <summary>
@@ -78,19 +87,28 @@ namespace Auth.API.Repository
         /// <returns>An instance of the LoginResponseDto containing the login result and related data.</returns>
         public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
         {
-            var username = string.IsNullOrEmpty(loginRequestDto.UserName) ? loginRequestDto.Email : loginRequestDto.UserName;
-            var result = await _signInManager.PasswordSignInAsync(username, loginRequestDto.Password, false, false);
-
-            if (!result.Succeeded)
+            try
             {
-                return new();
+                var username = string.IsNullOrEmpty(loginRequestDto.UserName) ? loginRequestDto.Email : loginRequestDto.UserName;
+                var result = await _signInManager.PasswordSignInAsync(username, loginRequestDto.Password, false, false);
+
+                if (!result.Succeeded)
+                {
+                    return new();
+                }
+
+                return new LoginResponseDto
+                {
+                    IsLockedOut = result.IsLockedOut,
+                    RequiresTwoFactor = result.RequiresTwoFactor,
+                };
             }
-
-            return new LoginResponseDto
+            catch (Exception ex)
             {
-                IsLockedOut = result.IsLockedOut,
-                RequiresTwoFactor = result.RequiresTwoFactor,
-            };
+                // log the exception
+                Console.WriteLine($"An error occurred while logging in: {ex.Message}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -101,14 +119,59 @@ namespace Auth.API.Repository
         /// <returns>A boolean indicating whether the role was successfully assigned to the user.</returns>
         public async Task<bool> AssignRole(string userId, string roleName)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
+            try
             {
-                var result = await _userManager.AddToRoleAsync(user, roleName);
-                return result.Succeeded;
+                 // find the user first either by email or by id
+                var user = userId.Contains('@') ? _userManager.FindByEmailAsync(userId).GetAwaiter().GetResult(): 
+                                                _userManager.FindByIdAsync(userId).GetAwaiter().GetResult();
+                if (user == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    //Add the role if the role doesn't already exists
+                    if (!_roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
+                    {
+                        //create the role
+                        await _roleManager.CreateAsync(new IdentityRole(roleName));
+                    }
+
+                    // assign the role to the user
+                    await _userManager.AddToRoleAsync(user, roleName);
+                    return true;
+                }
             }
-            return false;
+            catch (Exception e)
+            {
+                throw new Exception($"Error assigning role to user with ID {userId}: {e.Message}");
+            }
         }
 
+        /// <summary>
+        /// Asynchronously retrieves a user role based on ID.
+        /// </summary>  
+        /// <param name="userId">The ID of the user whose role should be retrieved.</param>
+        /// <returns>The name of the user's role.</returns>
+        public async Task<List<string>> GetUserRole(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return new List<string>();
+                }
+                else
+                {
+                    var roles = await _userManager.GetRolesAsync(user);
+                    return roles.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error retrieving user role for user with ID {userId}: {e.Message}");
+            }
+        }
     }
 }

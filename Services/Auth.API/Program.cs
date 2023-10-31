@@ -1,7 +1,11 @@
 ﻿using Auth.API.Data;
 using Auth.API.Dtos;
+using Auth.API.Mappers;
 using Auth.API.Models;
 using Auth.API.Repository;
+using Auth.API.Services;
+using Auth.API.Services.IServices;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +19,25 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+//add mapper configuration
+IMapper mapper = MapperConfig.RegisterMapping().CreateMapper();
+builder.Services.AddSingleton(mapper);
+//use dependency injection to inject the mapping profile
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+//add jwt authentication
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("ApiSettings:JwtOptions"));
+
 // Response
 builder.Services.AddScoped<ResponseDto>();
 
+// Services
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 //Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 
 // add controllers
 builder.Services.AddControllers();
