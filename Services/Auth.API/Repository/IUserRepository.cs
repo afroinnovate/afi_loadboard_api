@@ -21,7 +21,7 @@ namespace Auth.API.Repository
         /// </summary>
         /// <param name="registrationRequestDto">The data transfer object containing user registration details.</param>
         /// <returns>A string message indicating the result of the registration process.</returns>
-        public Task<string> Register(RegistrationRequestDto registrationRequestDto);
+        public Task<string> Register(ApplicationUser user, string password, string roleName);
 
         /// <summary>
         /// Asynchronously logs a user in.
@@ -37,5 +37,12 @@ namespace Auth.API.Repository
         /// <param name="roleName">The name of the role to assign to the user.</param>
         /// <returns>A boolean indicating whether the role was successfully assigned to the user.</returns>
         public Task<bool> AssignRole(string userId, string roleName);
+
+        /// <summary>
+        /// Asynchronously retrieves a user role based on ID.
+        /// </summary>
+        /// <param name="userId">The ID of the user whose role should be retrieved.</param>
+        /// <returns>The name of the user's role.</returns>
+        public Task<List<string>> GetUserRole(string userId);
     }
 }
