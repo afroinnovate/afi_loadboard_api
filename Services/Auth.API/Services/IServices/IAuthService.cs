@@ -12,14 +12,14 @@ namespace Auth.API.Services.IServices
         /// </summary>
         /// <param name="registerationRequestDto">The registration request data transfer object.</param>
         /// <returns>The registered user's ID.</returns>
-        public Task<string> Register(RegistrationRequestDto registerationRequestDto, string roleNames);
+        public Task<ResponseDto> Register(RegistrationRequestDto registerationRequestDto, string roleNames);
 
         /// <summary>
         /// Logs in a user.
         /// </summary>
         /// <param name="loginRequestDto">The login request data transfer object.</param>
         /// <returns>The login response data transfer object.</returns>
-        public Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto);
+        public Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto, string loginType);
 
         /// <summary>
         /// Assigns a role to a user.

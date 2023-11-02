@@ -6,7 +6,7 @@ namespace Auth.API.Models
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public DateTime? DateRegistered { get; set; }
+        public DateTime DateRegistered { get; set; }
         public DateTime? DateLastLoggedIn { get; set; }
         public string? MiddleName { get; set; }
     }

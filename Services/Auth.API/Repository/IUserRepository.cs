@@ -21,7 +21,7 @@ namespace Auth.API.Repository
         /// </summary>
         /// <param name="registrationRequestDto">The data transfer object containing user registration details.</param>
         /// <returns>A string message indicating the result of the registration process.</returns>
-        public Task<string> Register(ApplicationUser user, string password, string roleName);
+        public Task<ResponseDto> Register(ApplicationUser user, string password, string roleName);
 
         /// <summary>
         /// Asynchronously logs a user in.
