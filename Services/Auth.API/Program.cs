@@ -1,4 +1,5 @@
-﻿using Auth.API.Data;
+﻿using System.Text;
+using Auth.API.Data;
 using Auth.API.Dtos;
 using Auth.API.Mappers;
 using Auth.API.Models;
@@ -6,8 +7,12 @@ using Auth.API.Repository;
 using Auth.API.Services;
 using Auth.API.Services.IServices;
 using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +27,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFramework
 //add mapper configuration
 IMapper mapper = MapperConfig.RegisterMapping().CreateMapper();
 builder.Services.AddSingleton(mapper);
+
 //use dependency injection to inject the mapping profile
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+//test the mappers before running the api
+mapper.ConfigurationProvider.AssertConfigurationIsValid();
+
 
 //add jwt authentication
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("ApiSettings:JwtOptions"));
@@ -38,9 +48,34 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 //Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+////setup the controllers to be guarded by a token.
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//}).AddJwtBearer(options =>
+//{
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true,
+//        ValidateAudience = true,
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true,
+//        ValidIssuer = builder.Configuration["ApiSettings:Issuer"],
+//        ValidAudience = builder.Configuration["ApiSettings:Audience"],
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ApiSettings:Secret"]))
+//    };
+//});
 
 // add controllers
 builder.Services.AddControllers();
+
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => {
+        fv.RegisterValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
+        fv.RegisterValidatorsFromAssemblyContaining<RegistrationRequestDtoValidator>();
+        fv.RegisterValidatorsFromAssemblyContaining<RoleRequestValidator>();
+  });
 
 // Configure  Swagger/OpenAPI
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

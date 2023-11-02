@@ -8,5 +8,7 @@ namespace Auth.API.Dtos
         public string? MiddleName { get; set; }
         public string? PhoneNumber { get; set; }
         public string? UserName { get; set; }
+        public DateTime DateRegistered { get; set; }
+        public DateTime DateLoggedIn { get; set; }
     }
 }

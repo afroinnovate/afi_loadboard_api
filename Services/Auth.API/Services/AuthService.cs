@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using Auth.API.Dtos;
 using Auth.API.Models;
 using Auth.API.Repository;
@@ -48,7 +49,7 @@ namespace Auth.API.Services
             }
         }
 
-        public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
+        public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto, string loginType)
         {
             if (loginRequestDto == null)
             {
@@ -59,16 +60,18 @@ namespace Auth.API.Services
             try
             {
                 //Login user
-                var result = await _userRepository.Login(loginRequestDto);
-                if (result == null)
+                var result = _userRepository.Login(loginRequestDto).Result;
+                if (result.User == null)
                 {
                     _logger.LogError($"Error logging in user with username {loginRequestDto.UserName}.");
                     return new LoginResponseDto();
                 }
                 else 
                 {
+
+                    var username = loginType == "username" ? loginRequestDto.UserName : loginRequestDto.Email;
                     //Get the user's role
-                    var roles = await _userRepository.GetUserRole(result.User.Email);
+                    var roles = _userRepository.GetUserRole(username).Result;
                     
                     if (roles.Count == 0)
                     {
@@ -76,8 +79,17 @@ namespace Auth.API.Services
                         return new LoginResponseDto();
                     }
 
-                    //map userDto to applicationUser
-                    var user = _mapper.Map<ApplicationUser>(result.User);
+                    //map userDto to applicationUser mapping doesn't work currently
+                    // var user = _mapper.Map<ApplicationUser>(result.User);
+                    var user  = new ApplicationUser
+                    {
+                        Email = loginType.Equals("username") ? null : username,
+                        FirstName = result.User.FirstName?? null,
+                        LastName = result.User.LastName?? null,
+                        MiddleName = result.User.MiddleName?? null,
+                        PhoneNumber = result.User.PhoneNumber?? null,
+                        UserName = loginType.Equals("email") ? null : username,
+                    };
 
                     //Generate token
                     var token = _jwtTokenGenerator.GenerateToken(user, roles);
@@ -90,12 +102,12 @@ namespace Auth.API.Services
                     //Return login response
                     UserDto userDto = new()
                     {
-                        Email = result.User.Email,
+                        Email = loginType.Equals("username")? null : username,
                         FirstName = result.User.FirstName,
                         LastName = result.User.LastName,
                         MiddleName = result.User.MiddleName,
                         PhoneNumber = result.User.PhoneNumber,
-                        UserName = result.User.UserName
+                        UserName = loginType.Equals("email") ? null : username,
                     };
 
                     _logger.LogInformation($"User with username {loginRequestDto.UserName} logged in successfully.");
@@ -109,26 +121,42 @@ namespace Auth.API.Services
             catch (Exception e)
             {
                 _logger.LogError($"Error logging in user with username {loginRequestDto.UserName}: {e.Message}");
-                return new LoginResponseDto();
+                throw (e);
             }
         }
 
-        public async Task<string> Register(RegistrationRequestDto registerationRequestDto, string roleName)
+        public async Task<ResponseDto> Register(RegistrationRequestDto registerationRequestDto, string roleName)
         {
             if (registerationRequestDto == null || registerationRequestDto.Password == null)
             {
                 _logger.LogError("Registration request data or transfer object is null or password.");
-                return "Error registering user";
+                return new ResponseDto()
+                {
+                    Message = "Registration request data or transfer object is null or password",
+                    IsSuccess = false,
+       
+                };
             }
             try
             {
-                var appUser = _mapper.Map<ApplicationUser>(registerationRequestDto);
+                // var appUserDto = _mapper.Map<ApplicationUser>(registerationRequestDto);
+
+                var appUser = new ApplicationUser
+                {
+                    Email = registerationRequestDto.Email,
+                    FirstName = registerationRequestDto.FirstName,
+                    LastName = registerationRequestDto.LastName,
+                    MiddleName = registerationRequestDto.MiddleName,
+                    PhoneNumber = registerationRequestDto.PhoneNumber,
+                    UserName = registerationRequestDto.UserName
+                };
+                
                 var response = await _userRepository.Register(appUser, registerationRequestDto.Password, roleName);
 
                 const string successMessage = "User with username {0} registered successfully.";
                 const string errorMessage = "Error registering user with username {0}.";
 
-                if (response.Contains("Registration successful"))
+                if (response.IsSuccess)
                 {
                     _logger.LogInformation(successMessage, registerationRequestDto.UserName);
                     return response;
@@ -143,7 +171,7 @@ namespace Auth.API.Services
             catch (Exception e)
             {
                 _logger.LogError($"Error registering user with username {registerationRequestDto.UserName}: {e.Message}");
-                return "Error registering user";
+                throw;
             }
         }
     }

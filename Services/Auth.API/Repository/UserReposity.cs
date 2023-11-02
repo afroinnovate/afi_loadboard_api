@@ -58,25 +58,36 @@ namespace Auth.API.Repository
         /// </summary>
         /// <param name="registrationRequestDto">The data transfer object containing user registration details.</param>
         /// <returns>A string message indicating the result of the registration process.</returns>
-        public async Task<string> Register(ApplicationUser user, string password, string roleName)
+        public async Task<ResponseDto> Register(ApplicationUser user, string password, string roleName)
         {
             try
             {
-                user.DateRegistered = DateTime.Now;
+                user.DateRegistered = DateTime.UtcNow;
                 var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
                     //Assign user to role
                     await AssignRole(user.Id, roleName);
-                    return  "Registration successful, userId: "+user.Id+" and assigned Role: "+roleName;
-                }
 
-                return "Registration failed";
+                    return new ResponseDto()
+                    {
+                        Message = "Registration successful, userId: " + user.Id + " and assigned Role: " + roleName,
+                        IsSuccess = true
+                    };
+                }
+               
+                return new ResponseDto()
+                {
+                    Message = "Registration Failed, userId: "+user.UserName,
+                    IsSuccess = false,
+                    Result = result.Errors
+                };
+                
             }
             catch (Exception ex)
             {
                 // log the exception
-                return "An error occurred while registering a user: "+ex.Message;
+                throw (ex);
             }
         }
 
@@ -97,10 +108,21 @@ namespace Auth.API.Repository
                     return new();
                 }
 
+                var user = username.Contains("@") ? _dbset.ApplicationUsers.FirstOrDefault(user => user.Email == username) :
+                                                    _dbset.ApplicationUsers.FirstOrDefault(user => user.UserName.ToLower() == username);
                 return new LoginResponseDto
                 {
                     IsLockedOut = result.IsLockedOut,
                     RequiresTwoFactor = result.RequiresTwoFactor,
+                    User = new()
+                    {
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        DateRegistered = user.DateRegistered,
+                        DateLoggedIn = user.DateLastLoggedIn?? DateTime.Now
+                    }
                 };
             }
             catch (Exception ex)
@@ -157,7 +179,9 @@ namespace Auth.API.Repository
         {
             try
             {
-                var user = await _userManager.FindByIdAsync(userId);
+
+                var user = userId.Contains('@')? await _userManager.FindByEmailAsync(userId) :
+                                                 await _userManager.FindByNameAsync(userId);
                 if (user == null)
                 {
                     return new List<string>();

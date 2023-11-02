@@ -34,7 +34,7 @@ namespace Auth.API.Services
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                     new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                     new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email?? user.UserName),
                 };
 
                 claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
