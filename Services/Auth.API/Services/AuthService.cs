@@ -26,14 +26,25 @@ namespace Auth.API.Services
         {
             try
             {
-                var user = await _userRepository.GetByIdAsync(userId);
+                var userdto = await _userRepository.GetByUserNameAsync(userId);
+                var user =  new ApplicationUser
+                {
+                    Email = userdto.Email,
+                    FirstName = userdto.FirstName,
+                    LastName = userdto.LastName,
+                    MiddleName = userdto.MiddleName,
+                    PhoneNumber = userdto.PhoneNumber,
+                    UserName = userdto.UserName
+                }; 
+                
+                
                 if (user == null)
                 {
                     _logger.LogError($"User with ID {userId} not found.");
-                    return false;
+                    throw(new ArgumentNullException());
                 }
 
-                var result = await _userRepository.AssignRole(userId, roleName);
+                var result = await _userRepository.AssignRole(user, roleName);
                 if (!result)
                 {
                     _logger.LogError($"Error assigning role {roleName} to user with ID {userId}.");
@@ -45,7 +56,7 @@ namespace Auth.API.Services
             catch (Exception e)
             {
                 _logger.LogError($"Error assigning role to user with ID {userId}: {e.Message}");
-                return false;
+                throw (e);
             }
         }
 
@@ -134,13 +145,11 @@ namespace Auth.API.Services
                 {
                     Message = "Registration request data or transfer object is null or password",
                     IsSuccess = false,
-       
                 };
             }
             try
             {
                 // var appUserDto = _mapper.Map<ApplicationUser>(registerationRequestDto);
-
                 var appUser = new ApplicationUser
                 {
                     Email = registerationRequestDto.Email,

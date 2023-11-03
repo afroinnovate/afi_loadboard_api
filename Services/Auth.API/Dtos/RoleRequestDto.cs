@@ -25,8 +25,7 @@ namespace Auth.API.Dtos
             RuleFor(x => x.RoleName)
                 .NotNull().WithMessage("Role name cannot be null, can be CUS_ADMIN, ADMIN, CARRIER, SHIPPER")
                 .Must(value => value != "string").WithMessage("Invalid value")
-                .When(x => !String.IsNullOrEmpty(x.RoleName))
-                .Must(value => string.IsNullOrEmpty(roles.Find(role => role.ToLower() == value.ToLower()))).WithMessage("Role name can only be, CUS_ADMIN, ADMIN, CARRIER, SHIPPER")
+                .Must(value => roles.Contains(value.ToUpper())).WithMessage("Role name can only be CUS_ADMIN, ADMIN, CARRIER, SHIPPER")
                 .When(x => !String.IsNullOrEmpty(x.RoleName));
         }
     }
