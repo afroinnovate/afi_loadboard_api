@@ -51,7 +51,7 @@ namespace Auth.API.Controllers
 
                 var loginResponse = _authServices.Login(request, loginType).Result;
 
-                if (loginResponse.User == null)
+                if (loginResponse.User == null || string.IsNullOrEmpty(loginResponse.Token))
                 {
 
                     _response.IsSuccess = false;
@@ -125,11 +125,11 @@ namespace Auth.API.Controllers
             }
             try
             {
-                var roleResponse = _authServices.AssignRole(request.Email, request.RoleName).Result;
+                var roleResponse = _authServices.AssignRole(request.Email, request.RoleName.ToUpper()).Result;
 
                 if (!roleResponse)
                 {
-                    _logger.LogError("Somthing was wrong with role assignment");
+                    _logger.LogError("Something was wrong with role assignment");
                     _response.IsSuccess = false;
                     _response.Message = "Somthing was wrong with role assignment";
                     _response.Result = null;
@@ -137,12 +137,12 @@ namespace Auth.API.Controllers
                 }
                 _response.IsSuccess = true;
                 _response.Message = $"You've successfully added the role {request.RoleName} for {request.Email}.";
-                _logger.LogError($"You've successfully added the role {request.RoleName} for {request.Email}.");
+                _logger.LogInformation($"You've successfully added the role {request.RoleName} for {request.Email}.");
                 return Ok(_response);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Something went wrong in the {nameof(addRole)}");
+                _logger.LogError(e, $"Something went wrong in the {e.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }

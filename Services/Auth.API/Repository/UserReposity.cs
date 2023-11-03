@@ -67,7 +67,7 @@ namespace Auth.API.Repository
                 if (result.Succeeded)
                 {
                     //Assign user to role
-                    await AssignRole(user.Id, roleName);
+                    await AssignRole(user, roleName);
 
                     return new ResponseDto()
                     {
@@ -139,34 +139,24 @@ namespace Auth.API.Repository
         /// <param name="userId">The ID of the user to whom the role should be assigned.</param>
         /// <param name="roleName">The name of the role to assign to the user.</param>
         /// <returns>A boolean indicating whether the role was successfully assigned to the user.</returns>
-        public async Task<bool> AssignRole(string userId, string roleName)
+        public async Task<bool> AssignRole(ApplicationUser user, string roleName)
         {
             try
             {
-                 // find the user first either by email or by id
-                var user = userId.Contains('@') ? _userManager.FindByEmailAsync(userId).GetAwaiter().GetResult(): 
-                                                _userManager.FindByIdAsync(userId).GetAwaiter().GetResult();
-                if (user == null)
+                //Add the role if the role doesn't already exists
+                if (!_roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
                 {
-                    return false;
+                    //create the role
+                    await _roleManager.CreateAsync(new IdentityRole(roleName));
                 }
-                else
-                {
-                    //Add the role if the role doesn't already exists
-                    if (!_roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
-                    {
-                        //create the role
-                        await _roleManager.CreateAsync(new IdentityRole(roleName));
-                    }
 
-                    // assign the role to the user
-                    await _userManager.AddToRoleAsync(user, roleName);
-                    return true;
-                }
+                // assign the role to the user
+                await _userManager.AddToRoleAsync(user, roleName);
+                return true;
             }
             catch (Exception e)
             {
-                throw new Exception($"Error assigning role to user with ID {userId}: {e.Message}");
+                throw new Exception($"Error assigning role to user with ID {user.UserName}: {e.Message}");
             }
         }
 

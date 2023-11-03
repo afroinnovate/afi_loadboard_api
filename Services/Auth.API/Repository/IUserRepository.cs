@@ -36,7 +36,7 @@ namespace Auth.API.Repository
         /// <param name="userId">The ID of the user to whom the role should be assigned.</param>
         /// <param name="roleName">The name of the role to assign to the user.</param>
         /// <returns>A boolean indicating whether the role was successfully assigned to the user.</returns>
-        public Task<bool> AssignRole(string userId, string roleName);
+        public Task<bool> AssignRole(ApplicationUser user, string roleName);
 
         /// <summary>
         /// Asynchronously retrieves a user role based on ID.
