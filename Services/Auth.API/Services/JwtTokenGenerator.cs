@@ -16,7 +16,7 @@ namespace Auth.API.Services
         {
             _jwtOptions = jwtOptions.Value;
         }
-       
+
         public string GenerateToken(ApplicationUser user, IEnumerable<string> roles)
         {
             if (user == null)
@@ -49,6 +49,9 @@ namespace Auth.API.Services
                     Audience = _jwtOptions.Audience
                 };
 
+                // Add a slight buffer time to account for any clock skew.
+                tokenDescriptor.NotBefore = tokenDescriptor.NotBefore.Value.AddSeconds(-_jwtOptions.ClockSkew);
+    
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 return tokenHandler.WriteToken(token);
             }

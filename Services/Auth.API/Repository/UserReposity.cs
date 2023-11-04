@@ -1,9 +1,11 @@
+using System.Net.Mime;
 using Microsoft.EntityFrameworkCore;
 using Auth.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Auth.API.Data;
 using Auth.API.Dtos;
 using AutoMapper;
+using System.Security.Claims;
 
 namespace Auth.API.Repository
 {
@@ -13,11 +15,14 @@ namespace Auth.API.Repository
     /// </summary>
     public class UserRepository : BaseRepository<ApplicationUser>, IUserRepository
     {
+    #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
+    #endregion
 
+    #region Constructor
         public UserRepository(ApplicationDbContext _dbSet, UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
         : base(_dbSet)
@@ -28,6 +33,9 @@ namespace Auth.API.Repository
             _mapper = mapper;
         }
 
+    #endregion
+
+    #region GetByUserName
         /// <summary>
         /// Asynchronously retrieves a user based on the username.
         /// </summary>
@@ -53,6 +61,9 @@ namespace Auth.API.Repository
                 throw;
             }
         }
+    #endregion
+
+    #region Register    
         /// <summary>
         /// Asynchronously registers a new user.
         /// </summary>
@@ -75,7 +86,6 @@ namespace Auth.API.Repository
                         IsSuccess = true
                     };
                 }
-               
                 return new ResponseDto()
                 {
                     Message = "Registration Failed, userId: "+user.UserName,
@@ -100,16 +110,23 @@ namespace Auth.API.Repository
         {
             try
             {
-                var username = string.IsNullOrEmpty(loginRequestDto.UserName) ? loginRequestDto.Email : loginRequestDto.UserName;
-                var result = await _signInManager.PasswordSignInAsync(username, loginRequestDto.Password, false, false);
+                ApplicationUser? user = string.IsNullOrEmpty(loginRequestDto.UserName) ?
+                    _dbset.ApplicationUsers.FirstOrDefault(user => user.Email == loginRequestDto.Email) :
+                    _dbset.ApplicationUsers.FirstOrDefault(user => user.UserName == loginRequestDto.UserName);
+
+                if (user == null)
+                {
+                    return new();
+                }
+                
+                // var emailResult = await _userManager.CheckPasswordAsync(new ApplicationUser() { Emi}, loginRequestDto.Password);
+                var result = await _signInManager.PasswordSignInAsync(user, loginRequestDto.Password, false, false);
 
                 if (!result.Succeeded)
                 {
                     return new();
                 }
 
-                var user = username.Contains("@") ? _dbset.ApplicationUsers.FirstOrDefault(user => user.Email == username) :
-                                                    _dbset.ApplicationUsers.FirstOrDefault(user => user.UserName.ToLower() == username);
                 return new LoginResponseDto
                 {
                     IsLockedOut = result.IsLockedOut,
@@ -132,7 +149,30 @@ namespace Auth.API.Repository
                 throw;
             }
         }
+    #endregion
 
+    #region Logout
+        /// <summary>
+        /// Asynchronously logs a user out.
+        /// </summary>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        public async Task Logout()
+        {
+            try
+            {
+                // Sign out the current user
+                await _signInManager.SignOutAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                Console.WriteLine($"An error occurred while logging out: {ex.Message}");
+                throw new Exception(ex.Message);
+            }
+        }
+    #endregion
+
+    #region AssignRole
         /// <summary>
         /// Asynchronously assigns a role to a user.
         /// </summary>
@@ -159,7 +199,41 @@ namespace Auth.API.Repository
                 throw new Exception($"Error assigning role to user with ID {user.UserName}: {e.Message}");
             }
         }
+    #endregion
 
+    #region RemoveRole
+        /// <summary>
+        /// Asynchronously removes a role from a user.
+        /// </summary>
+        /// <param name="user">The user from whom the role should be removed.</param>
+        /// <param name="roleName">The name of the role to remove from the user.</param>
+        /// <returns>A boolean indicating whether the role was successfully removed from the user.</returns>
+        public async Task<bool> RemoveRole(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                // Check if the user has the role
+                if (await _userManager.IsInRoleAsync(user, roleName))
+                {
+                    // Remove the role from the user
+                    var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+
+                    // Return true if the role was successfully removed, otherwise false
+                    return result.Succeeded;
+                }
+
+                // If the user does not have the role, return true as there's nothing to remove
+                return true;
+            }
+            catch (Exception e)
+            {
+                // Log the exception or handle it as needed
+                throw new Exception($"Error removing role from user with ID {user.UserName}: {e.Message}");
+            }
+        }
+    #endregion
+
+    #region GetUserRole
         /// <summary>
         /// Asynchronously retrieves a user role based on ID.
         /// </summary>  
@@ -170,8 +244,7 @@ namespace Auth.API.Repository
             try
             {
 
-                var user = userId.Contains('@')? await _userManager.FindByEmailAsync(userId) :
-                                                 await _userManager.FindByNameAsync(userId);
+                var user = userId.Contains('@')? await _userManager.FindByEmailAsync(userId) : await _userManager.FindByNameAsync(userId);
                 if (user == null)
                 {
                     return new List<string>();
@@ -187,5 +260,69 @@ namespace Auth.API.Repository
                 throw new Exception($"Error retrieving user role for user with ID {userId}: {e.Message}");
             }
         }
+    #endregion
+
+    #region GeneratePasswordResetToken
+        /// <summary>
+        /// Asynchronously generates a password reset token for a user.
+        /// </summary>
+        /// <param name="email">The email of the user to generate a reset token for.</param>
+        /// <returns>A token that can be used to reset the user's password.</returns>
+        public async Task<string> GeneratePasswordResetTokenAsync(string email)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                    throw new InvalidOperationException("User does not exist.");
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                return token;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+    #endregion
+
+    #region ResetPassword
+        /// <summary>
+        /// Asynchronously resets a user's password using a password reset token.
+        /// </summary>
+        /// <param name="email">The email of the user resetting their password.</param>
+        /// <param name="token">The password reset token.</param>
+        /// <param name="newPassword">The new password for the user.</param>
+        /// <returns>A ResponseDto indicating the result of the password reset process.</returns>
+        public async Task<ResponseDto> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new ResponseDto
+                {
+                    Message = "User does not exist.",
+                    IsSuccess = false
+                };
+
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            if (result.Succeeded)
+            {
+                return new ResponseDto
+                {
+                    Message = "Password reset successful.",
+                    IsSuccess = true
+                };
+            }
+            else
+            {
+                return new ResponseDto
+                {
+                    Message = "Password reset failed.",
+                    IsSuccess = false,
+                    Result = result.Errors
+                };
+            }
+        }
+        #endregion
     }
 }
