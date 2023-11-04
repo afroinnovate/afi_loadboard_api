@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,27 +50,54 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 ////setup the controllers to be guarded by a token.
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(options =>
-//{
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuer = true,
-//        ValidateAudience = true,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true,
-//        ValidIssuer = builder.Configuration["ApiSettings:Issuer"],
-//        ValidAudience = builder.Configuration["ApiSettings:Audience"],
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ApiSettings:Secret"]))
-//    };
-//});
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["ApiSettings:JwtOptions:Issuer"],
+        ValidAudience = builder.Configuration["ApiSettings:JwtOptions:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ApiSettings:JwtOptions:Secret"]))
+    };
+});
 
 // add controllers
 builder.Services.AddControllers();
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+//Setup authorization in the openapi
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(option => {
+    option.AddSecurityDefinition(name: "Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the bearer scheme, Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement{
+    {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        new string[]{}
+        }
+    });
+});
+//Setup th fluent request validator
 builder.Services.AddControllers()
     .AddFluentValidation(fv => {
         fv.RegisterValidatorsFromAssemblyContaining<LoginRequestDtoValidator>();
@@ -90,6 +118,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 // Map controllers
 app.MapControllers();

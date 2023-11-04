@@ -1,11 +1,12 @@
 using Auth.API.Dtos;
 using Auth.API.Services;
 using Auth.API.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.API.Controllers
 {
-   
+    
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -72,6 +73,25 @@ namespace Auth.API.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            try
+            {
+                var response = _authServices.logout();
+                _logger.LogInformation($"User {response} logged out successfully.");
+                return Ok("Logged out successfully.");
+                
+            }
+            catch (Exception e)
+            {
+                // ... Log the error
+                _logger.LogError(e, "An error occurred while logging out.");
+                return StatusCode(500, "An error occurred while logging out.");
+            }
+        }
+
         [HttpPost]
         [Route("api/auth/register/{rolenames}")]
         public IActionResult register([FromBody] RegistrationRequestDto request, string? rolenames)
@@ -113,9 +133,9 @@ namespace Auth.API.Controllers
             }
         }
 
-
+        [Authorize(Roles = "ADMIN, CUS_ADMIN")]
         [HttpPost]
-        [Route("api/auth/addroles")]
+        [Route("api/auth/add-roles")]
         public IActionResult addRole([FromBody] RoleRequestDto request)
         {
             // Check ModelState validity first
@@ -138,6 +158,107 @@ namespace Auth.API.Controllers
                 _response.IsSuccess = true;
                 _response.Message = $"You've successfully added the role {request.RoleName} for {request.Email}.";
                 _logger.LogInformation($"You've successfully added the role {request.RoleName} for {request.Email}.");
+                return Ok(_response);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in the {e.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [Authorize(Roles = "ADMIN, CUS_ADMIN")]
+        [HttpDelete]
+        [Route("api/auth/remove-roles")]
+        public IActionResult RemoveRole([FromBody] RoleRequestDto request)
+        {
+            // Check ModelState validity first
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var roleResponse = _authServices.RemoveRole(request.Email, request.RoleName.ToUpper()).Result;
+
+                if (!roleResponse)
+                {
+                    _logger.LogError("Something was wrong with role Removal");
+                    _response.IsSuccess = false;
+                    _response.Message = "Somthing was wrong with role Removal";
+                    _response.Result = null;
+                    return BadRequest(_response);
+                }
+                _response.IsSuccess = true;
+                _response.Message = $"You've successfully remove the role {request.RoleName} from {request.Email}.";
+                _logger.LogInformation($"You've successfully removed the role {request.RoleName.ToUpper()} from user {request.Email}.");
+                return Ok(_response);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in the {e.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost]
+        [Route("api/auth/reset-password")]
+        public IActionResult ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            // Check ModelState validity first
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var resetPasswordResponse = _authServices.ResetPasswordAsync(request.Email, request.Token, request.NewPassword).Result;
+
+                if (!resetPasswordResponse.IsSuccess)
+                {
+                    _logger.LogError("Something was wrong with password reset");
+                    _response.IsSuccess = false;
+                    _response.Message = "Somthing was wrong with password reset";
+                    _response.Result = null;
+                    return BadRequest(_response);
+                }
+                _response.IsSuccess = true;
+                _response.Message = $"You've successfully reset your password.";
+                _logger.LogInformation($"You've successfully reset your password.");
+                return Ok(_response);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in the {e.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet]
+        [Route("api/auth/{email}")]
+        public IActionResult GetResetPasswordToken(string email)
+        {
+            // Check ModelState validity first
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var resetPasswordResponse = _authServices.GeneratePasswordResetTokenAsync(email).Result;
+
+                if (!string.IsNullOrEmpty(resetPasswordResponse))
+                {
+                    _logger.LogError("Something was wrong with password reset");
+                    _response.IsSuccess = false;
+                    _response.Message = "Somthing was wrong with password reset";
+                    _response.Result = null;
+                    return BadRequest(_response);
+                }
+                _response.IsSuccess = true;
+                _response.Message = $"You've successfully reset your password.";
+                _response.Result = resetPasswordResponse;
+                _logger.LogInformation($"You've successfully reset your password.");
                 return Ok(_response);
             }
             catch (Exception e)
