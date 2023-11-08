@@ -12,14 +12,21 @@ Welcome to the AFI Transportation Management Service API. This project is built 
 
 ## Dependencies
 
-This API has the following core dependencies:
+The Auth.API was created off of .NET 7 and has the following core dependencies:
 
 - `.NET Core SDK 3.1`: The software development kit for .NET Core.
 - `.NET 7`: 
-- `Dapper`: A micro ORM for .NET. It simplifies data access and is highly performant.
+- `Entity framework`: A micro ORM for .NET. It simplifies data access and is highly performant.
 - `Npgsql`: .NET data provider for PostgreSQL.
 - ... _(Include other specific packages or libraries as necessary)_
 
+The Auth.Min.API was created off of .NET 8 with minimal API and has the following core dependencies:
+
+- `.NET Core SDK 3.1`: The software development kit for .NET Core.
+- `.NET 8`: 
+- `Entity framework`: A micro ORM for .NET. It simplifies data access and is highly performant.
+- `Npgsql`: .NET data provider for PostgreSQL.
+- ... _(Include other specific packages or libraries as necessary)_
 ## Getting Started
 
 1. **Clone the Repository**
