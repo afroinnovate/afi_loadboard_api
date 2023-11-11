@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop, release/*, hotfix/*, feature/* ]
     paths:
-      - 'afi_loadboad_api/Services/Auth.API/**'
+      - 'afi_loadboad_api/**'
 
   pull_request:
     branches: [ main, develop, feature/*, release/*, hotfix/*]
@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
@@ -29,11 +29,11 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: Services/Auth.API
+      working-directory: ./
 
     - name: Build
       run: dotnet build --no-restore
-      working-directory: Services/Auth.API
+      working-directory: ./
 
     - name: Test
       run: dotnet test --no-build
@@ -41,9 +41,6 @@ jobs:
     - name: Install dotnet-format (Linter)
       run: dotnet tool install -g dotnet-format
 
-    # - name: List directory contents
-    #   run: ls -la Services/Auth.API/
-
-    # - name: Run dotnet-format (Linter)
-    #   run: dotnet format --check
-    #   working-directory: Services/Auth.API
+    - name: Run dotnet-format (Linter)
+      run: dotnet format --check
+      working-directory: ./**
