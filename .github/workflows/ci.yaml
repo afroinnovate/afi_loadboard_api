@@ -45,4 +45,4 @@ jobs:
 
     - name: Run dotnet-format (Linter)
       run: dotnet format --check
-      working-directory: ./**
+      working-directory: ./
