@@ -1,0 +1,40 @@
+﻿using Frieght.Api.Dtos;
+
+namespace Frieght.Api.Entities;
+
+public static class EntityExtensions
+{
+    public static LoadDto asDto(this Load load)
+    {
+        return new LoadDto(
+                   load.Id,
+                   load.UserId,
+                   load.Origin,
+                   load.destination,
+                   load.PickupDate,
+                   load.DeliveryDate,
+                   load.Commodity,
+                   load.Weight,
+                   load.OfferAmount,
+                   load.LoadDetails,
+                   load.LoadStatus
+            );
+    }
+
+    public static CarrierDto asDto(this Carrier carrier)
+    {
+        return new CarrierDto(
+            carrier.Id,
+            carrier.UserId,
+            carrier.CompanyName,
+            carrier.CompanyEmail,
+            carrier.CompanyPhone,
+            carrier.MotorCarrierNumber,
+            carrier.USDOTNumber,
+            carrier.EquipmentType,
+            carrier.AvailableCapacity
+      
+
+            );
+    }
+}
