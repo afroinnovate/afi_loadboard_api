@@ -15,7 +15,7 @@ public static  class DataExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection services, IConfiguration configuration)
     {
-        var connString = configuration.GetConnectionString("FrieghtDbConnection");
+        var connString = configuration.GetConnectionString("DefaultConnection");
         services.AddSqlServer<FrieghtDbContext>(connString)
             .AddScoped<ILoadRepository, LoadRepository>()
             .AddScoped<ICarrierRepository, CarrierRepository>();

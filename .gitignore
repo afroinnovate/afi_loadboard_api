@@ -5,6 +5,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+.env
 
 # Windows image file caches
 Thumbs.db

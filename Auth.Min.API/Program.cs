@@ -103,22 +103,22 @@ app.MapGet("/weatherforecast", () =>
 .WithOpenApi()
 .RequireAuthorization();
 
-applyMigrations();
+// applyMigrations();
 
 app.Run();
 
 // create method that will automatically apply migrations if there's any pending one 
-void applyMigrations()
-{
-    using (var serviceScope = app.Services.CreateScope())
-    {
-        var dbContext = serviceScope.ServiceProvider.GetService<AppDbContext>();
-        if (dbContext?.Database.GetMigrations().Count() > 0)
-        {
-            dbContext.Database.Migrate();
-        }
-    };
-}
+// void applyMigrations()
+// {
+//     using (var serviceScope = app.Services.CreateScope())
+//     {
+//         var dbContext = serviceScope.ServiceProvider.GetService<AppDbContext>();
+//         if (dbContext?.Database.GetMigrations().Count() > 0)
+//         {
+//             dbContext.Database.Migrate();
+//         }
+//     };
+// }
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
