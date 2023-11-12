@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/*.csproj.user
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+Dockerfile*
+docker-compose*
+*.md
+.git
+.gitignore
+.vs
+.vscode
+README.md
+LICENSE

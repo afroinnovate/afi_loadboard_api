@@ -31,13 +31,20 @@ The Auth.Min.API was created off of .NET 8 with minimal API and has the followin
 ## How to run the app using docker.
 ### Dependencies.
     Create .env on the root folder and add  following values to it. filling in appropriate values.
-    DB_PASSWORD=
-    DB_USERNAME=
-    DB_NAME=User
+    DB_PASSWORD="your-server-password"
+    DB_USERNAME="postgres"
+    AUTH_DB_NAME=User
+    FRIEGHT_DB_NAME=LoadBoard
     DB_HOST=host.docker.internal - This is required when you're running on docker
 
-### Run it using docker compose
-- Make sure if you're just starting run the migration - ```dotnet ef migrations Initial``` or if you're not just starting, try to update your local db with an outstanding migration ```dotnet ef database update```
+1. Make sure if you're just starting run the migration - ```dotnet ef migrations add pgInitial -o Infrastructure/Data/Migrations``` - for Freight API
+
+2. 1. Make sure if you're just starting run the migration - ```dotnet ef migrations add pgInitial``` - for Auth API
+
+3. try to update your local db with an outstanding migration for each project ```dotnet ef database update```
+
+**Run the APIs**
+
 1. on the root folder
 2. To build the image ```docker compose build```
 3. run run the api ```docker-compose -f dev-docker-compose.yaml up```
