@@ -1,0 +1,61 @@
+version: '3.4'
+
+services:
+  auth.api:
+    # depends_on: 
+    #   - "auth.db"
+    container_name: auth.api
+    build:
+      context: ./Auth.Min.API/
+      dockerfile: ./dev/Dockerfile
+    # links:
+    #   - "auth.db:database"
+    ports:
+      - "8080:8080"  # Map host port 8080 to container port 8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - http://+:8080
+      - "ConnectionStrings:DefaultConnection=Host=${DB_HOST};Port=5432;Username=${DB_USERNAME};Password=${DB_PASSWORD};Database=${AUTH_DB_NAME};"
+
+  freight.api:
+    container_name: freight.api
+    build:
+      context: ./Frieght.Api/
+      dockerfile: ./dev/Dockerfile
+    ports:
+      - "7070:80"  # Map host port 8080 to container port 8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - http://+:7070
+      - "ConnectionStrings:DefaultConnection=Host=${DB_HOST};Port=5432;Username=${DB_USERNAME};Password=${DB_PASSWORD};Database=${FRIEGHT_DB_NAME};"
+
+
+######## We will use externally hosted DB, just get the connection string from env variables########
+  # auth.db:
+  #   container_name: auth.db
+  #   image: postgres:15.0
+  #   restart: always
+  #   environment:
+  #       POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #       POSTGRES_DB: ${DB_NAME}
+  #       POSTGRES_USER: ${DB_USERNAME}
+  #   ports:
+  #       - 5433:5432
+  #   volumes:
+  #       - 'auth-pg-volum:/var/lib/postgresql/data'
+  #   # networks:
+  #   #   - auth-network 
+    # volumes:
+    #   - ~/.aspnet/https:/root/.aspnet/https:ro
+    #   - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
+    # networks:
+    #   - auth-network
+
+# volumes:
+#   auth-pg-volum:
+
+# networks:
+#   auth-network:
+#     driver: bridge
+
+ 

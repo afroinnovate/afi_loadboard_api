@@ -27,7 +27,47 @@ The Auth.Min.API was created off of .NET 8 with minimal API and has the followin
 - `Entity framework`: A micro ORM for .NET. It simplifies data access and is highly performant.
 - `Npgsql`: .NET data provider for PostgreSQL.
 - ... _(Include other specific packages or libraries as necessary)_
-## Getting Started
+
+## How to run the app using docker.
+### Dependencies.
+    Create .env on the root folder and add  following values to it. filling in appropriate values.
+    DB_PASSWORD="your-server-password"
+    DB_USERNAME="postgres"
+    AUTH_DB_NAME=User
+    FRIEGHT_DB_NAME=LoadBoard
+    DB_HOST=host.docker.internal - This is required when you're running on docker
+
+1. Make sure if you're just starting run the migration - ```dotnet ef migrations add pgInitial -o Infrastructure/Data/Migrations``` - for Freight API
+
+2. 1. Make sure if you're just starting run the migration - ```dotnet ef migrations add pgInitial``` - for Auth API
+
+3. try to update your local db with an outstanding migration for each project ```dotnet ef database update```
+
+**Run the APIs**
+
+1. on the root folder
+2. To build the image ```docker compose build```
+3. run run the api ```docker-compose -f dev-docker-compose.yaml up```
+Access the apis 
+- ```localhost:8080/swagger/index.html``` for Authapi
+- ```localhost:7070/swagger/index.html``` for Load and Carrier API
+
+
+### Run it locally without docker
+- Make sure you create appsettings.json file in the service you're trying to run, example in Auth.Min.API I can fill in the contents like.
+```{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Warning"
+        }
+    },
+    "AllowedHosts": "*",
+    "ConnectionStrings": {
+        "DB_CONNECTION_STRING": "Host=localhost;Database=User;Username=;Password=;"
+    }
+}
+```
+## Getting Started to contribute
 
 1. **Clone the Repository**
     ```bash
@@ -38,7 +78,6 @@ The Auth.Min.API was created off of .NET 8 with minimal API and has the followin
     ```bash
     cd afi_loadboad_api
     ```
-
 
 ## Contributing
 
@@ -66,4 +105,4 @@ Please ensure your code adheres to the project's coding standards.
 
 ## License
 
-[alright reserved by afroinnovate@2023](alright reserved by afroinnovate@2023)
+© 2023 AfroInnovate LoadBoard. All rights reserved.
