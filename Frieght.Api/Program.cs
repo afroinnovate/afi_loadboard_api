@@ -12,20 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Repositories
 builder.Services.AddRepositories(builder.Configuration);
 
-// Configure JWT Authentication
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//     .AddJwtBearer(options =>
-//     {
-//         options.TokenValidationParameters = new TokenValidationParameters
-//         {
-//             ValidateIssuerSigningKey = true,
-//             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("loadboard_secret_key_2023")), // Replace with your key
-//             ValidateIssuer = false,
-//             ValidateAudience = false
-//         };
-//     });
-//add jwt authentication
-// Configuration settings
 var jwtConfig = builder.Configuration.GetSection("ApiSettings:JwtOptions");
 builder.Services.Configure<JwtOptions>(jwtConfig);
 
