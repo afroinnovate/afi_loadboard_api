@@ -1,0 +1,3 @@
+TODO:
+    1. Customize the JWT token in .net 8.0 to be able to be utilized in .net 7, make it pluggable
+    2. Adjust docker-compose file to add in the JWToken configs.
