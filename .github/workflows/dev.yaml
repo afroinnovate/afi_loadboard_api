@@ -37,7 +37,7 @@ jobs:
 
       - name: Use SHA for tag if not main
         if: github.event.inputs.version == '' && github.ref != 'refs/heads/develop'
-        run: echo "RELEASE_TAG=${{ env.REPOSITORY}}:${{ github.sha }}" >> $GITHUB_ENV
+        run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:$(echo ${{ github.sha }} | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set Git Config
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
@@ -87,7 +87,6 @@ jobs:
 
   build:
     needs: [prepare]
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
