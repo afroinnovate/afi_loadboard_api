@@ -46,7 +46,7 @@ The Auth.Min.API was created off of .NET 8 with minimal API and has the followin
 **Run the APIs**
 
 1. on the root folder
-2. To build the image ```docker compose build```
+2. To build the image ```docker compose build``` optional
 3. run run the api ```docker-compose -f dev-docker-compose.yaml up```
 Access the apis 
 - ```localhost:8080/swagger/index.html``` for Authapi
@@ -58,12 +58,22 @@ Access the apis
 ```{
     "Logging": {
         "LogLevel": {
-            "Default": "Warning"
+            "Default": "Information",
+            "Microsoft": "Warning",
+            "Microsoft.Hosting.Lifetime": "Information"
         }
     },
     "AllowedHosts": "*",
     "ConnectionStrings": {
-        "DB_CONNECTION_STRING": "Host=localhost;Database=User;Username=;Password=;"
+        "DefaultConnection": "Host=localhost;Port=5432;Database=Loadboard;Username=postgres;Password=afroinnovate2023;"
+    },
+    "ApiSettings": {
+        "JwtOptions": {
+            "Issuer": "afroinnovate.com",
+            "Audience": "app.loadboard.afroinnovate.com",
+            "SecretKey": "default_secret_key",
+            "ValidFor": "1:00:00"
+        }
     }
 }
 ```
