@@ -112,7 +112,10 @@ jobs:
         continue-on-error: true # Continue even if the pull fails
         run: |
           docker pull ${{env.RELEASE_TAG}} && echo "PULL_SUCCEEDED=true" >> $GITHUB_ENV || echo "PULL_SUCCEEDED=false" >> $GITHUB_ENV
-
+     
+      - name: Display directories
+        run: ls
+        
       - name: Build and push Docker image
         if: env.PULL_SUCCEEDED == 'false'
         run: |
