@@ -22,8 +22,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ORG_GITHUB_TOKEN }}
+        # with:
+        #   token: ${{ secrets.ORG_GITHUB_TOKEN }}
 
       - name: Go to the project directory
         run: cd ${{ github.event.inputs.project }}
