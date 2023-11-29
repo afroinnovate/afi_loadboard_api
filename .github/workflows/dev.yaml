@@ -144,6 +144,47 @@ jobs:
     outputs:
       release_tag: ${{ env.RELEASE_TAG}}
 
-  
+  deploy:
+    needs: [checkout_tag, prepare]
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v4
 
-    
+      - name: Display and set Tag
+        run: |
+          if [-z "${{needs.checkout_tag.outputs.release_tag}}" ]; then
+            echo "Release doesn't exist"
+            exit 1
+          else
+            echo "RELEASE_TAG=${{needs.checkout_tag.outputs.release_tag}}" >> $GITHUB_ENV
+            echo "Retrieved the docker image tag: ${{ env.RELEASE_TAG }}"
+          fi
+
+      # Step to check if doctl is already installed
+      - name: Check if doctl is installed
+        run: |
+          echo "checking if doctl is installed"
+          if command -v doctl &> /dev/null; then
+            echo "doctl is already installed"
+            doctl version
+          else
+            echo "doctl is not installed"
+          fi
+
+      # Step to install doctl
+      - name: Install doctl
+        run: |
+          if ! command -v doctl &> /dev/null; then
+            curl -s https://api.github.com/repos/digitalocean/doctl/releases/latest \
+            | grep "browser_download_url.*linux-amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | wget -qi -
+            tar xf doctl-*-linux-amd64.tar.gz
+            sudo mv doctl /usr/local/bin
+            doctl version
+          fi
+
+
+
