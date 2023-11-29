@@ -22,9 +22,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        # with:
-        #   token: ${{ secrets.ORG_GITHUB_TOKEN }}
-
+       
       - name: Go to the project directory
         run: cd ${{ github.event.inputs.project }}
 
@@ -91,9 +89,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ORG_GITHUB_TOKEN }}
 
+      - name: Display directories
+        run: ls
       - name: Go to the project directory
-        run: cd ${{ github.event.inputs.project }}
+        run: |
+          echo "project=${{ github.event.inputs.project }}"
+          cd ${{ github.event.inputs.project }}
+          ls
 
       - name: Determine tag for image
         run: echo "RELEASE_TAG=${{needs.prepare.outputs.TAG}}" >> $GITHUB_ENV
@@ -115,7 +120,7 @@ jobs:
      
       - name: Display directories
         run: ls
-        
+
       - name: Build and push Docker image
         if: env.PULL_SUCCEEDED == 'false'
         run: |
