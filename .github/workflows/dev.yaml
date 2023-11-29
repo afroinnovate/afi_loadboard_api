@@ -96,7 +96,7 @@ jobs:
         run: ls
       - name: Go to the project directory
         run: |
-          echo "project=${{ github.event.inputs.project }}"
+          echo "project ${{ github.event.inputs.project }}"
           cd ${{ github.event.inputs.project }}
           ls
 
