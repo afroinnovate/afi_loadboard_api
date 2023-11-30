@@ -335,5 +335,5 @@ jobs:
             fi
 
             docker pull $RELEASE_TAG
-            docker run -p 80:80 --network afi-loadbaord-network $RELEASE_TAG
+            docker run -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
           EOF

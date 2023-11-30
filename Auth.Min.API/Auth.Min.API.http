@@ -1,6 +1,6 @@
-@Auth.Min.API_HostAddress = http://localhost:5000
+@Auth.Min.API_HostAddress = http://localhost:80
 
-GET {{Auth.Min.API_HostAddress}}/weatherforecast/
+GET {{Auth.Min.API_HostAddress}}/Health/
 Accept: application/json
 
 ###

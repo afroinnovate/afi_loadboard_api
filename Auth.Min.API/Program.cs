@@ -45,33 +45,19 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<AppDbContext>(option => 
     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["ApiSettings:JwtOptions:Issuer"],
-            ValidAudience = builder.Configuration["ApiSettings:JwtOptions:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ApiSettings:JwtOptions:Secret"]))
-        };
-    });
-
 //add authorization
 builder.Services.AddAuthorizationBuilder();
-
 
 //add IdentityEndpoints
 builder.Services.AddIdentityApiEndpoints<AppUser>()
                 .AddEntityFrameworkStores<AppDbContext>();
+                
 
 var app = builder.Build();
 
 //MapIdentityApi to add endpoints for actions like registering a new user, logging in and logging out using Identity.
 app.MapIdentityApi<AppUser>();
+app.MapAuthEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -85,18 +71,6 @@ app.UseHttpsRedirection();
 
 app.Run();
 
-// create method that will automatically apply migrations if there's any pending one 
-// void applyMigrations()
-// {
-//     using (var serviceScope = app.Services.CreateScope())
-//     {
-//         var dbContext = serviceScope.ServiceProvider.GetService<AppDbContext>();
-//         if (dbContext?.Database.GetMigrations().Count() > 0)
-//         {
-//             dbContext.Database.Migrate();
-//         }
-//     };
-// }
 
 
 
