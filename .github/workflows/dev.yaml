@@ -192,15 +192,23 @@ jobs:
           echo "authenticating doctl"
           doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
+      - name: Select Droplet Name
+        run: |
+          if [ ${{ github.event.inputs.project }} == 'Frieght.Api' ]; then
+            echo "DROPLET_NAME=afi-loadboard-api" >> $GITHUB_ENV
+          elif [ ${{ github.event.inputs.project }} == 'Auth.Min.API' ]; then
+            echo "DROPLET_NAME=afi-loadboard-api" >> $GITHUB_ENV
+          fi
+
       # Step to check if a Droplet with the name 'afi-loadboard-api' already exists
       - name: Check for existing Droplet
         run: |
-          EXISTING_DROPLET_ID=$(doctl compute droplet list --format ID,Name --no-header | awk '/afi-loadboard-api/ {print $1}')
+          EXISTING_DROPLET_ID=$(doctl compute droplet list --format ID,Name --no-header | awk '/${{ env.DROPLET_NAME }}/ {print $1}')
           if [ -n "$EXISTING_DROPLET_ID" ]; then
-            echo "Droplet with name afi-loadboard-api already exists with ID: $EXISTING_DROPLET_ID"
+            echo "Droplet with name ${{ env.DROPLET_NAME }} already exists with ID: $EXISTING_DROPLET_ID"
             echo "DROPLET_ID=$EXISTING_DROPLET_ID" >> $GITHUB_ENV
           else
-            echo "No existing Droplet with name afi-loadboard-api found."
+            echo "No existing Droplet with name ${{ env.DROPLET_NAME }} found."
           fi
 
       - name: Get SSH Key Fingerprint
@@ -217,7 +225,7 @@ jobs:
           echo "$DROPLET_SSH_KEY" > droplet_ssh_key
           chmod 600 droplet_ssh_key
 
-          DROPLET_ID=$(doctl compute droplet create afi-loadboard-api --size s-1vcpu-1gb --image ubuntu-20-04-x64 --region sfo3 --ssh-keys $SSH_FINGERPRINT --format ID --no-header --wait)
+          DROPLET_ID=$(doctl compute droplet create ${{ env.DROPLET_NAME }} --size s-1vcpu-1gb --image ubuntu-20-04-x64 --region sfo3 --ssh-keys $SSH_FINGERPRINT --format ID --no-header --wait)
           echo "Droplet ID: $DROPLET_ID"
           echo "DROPLET_ID=$DROPLET_ID" >> $GITHUB_ENV
 
@@ -335,5 +343,6 @@ jobs:
             fi
 
             docker pull $RELEASE_TAG
-            docker run -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
+            # docker run -d -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
+            docker run -d -p 8080:8080 $RELEASE_TAG
           EOF
