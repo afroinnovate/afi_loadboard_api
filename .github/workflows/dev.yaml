@@ -37,6 +37,10 @@ jobs:
         if: github.event.inputs.version == '' && github.ref != 'refs/heads/develop'
         run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:$(echo ${{ github.sha }} | cut -c 1-6)" >> $GITHUB_ENV
 
+      - name: Use version if provided
+        if: github.event.inputs.version != ''
+        run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:${{ github.event.inputs.version }}" >> $GITHUB_ENV
+        
       - name: Set Git Config
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
         run: |
