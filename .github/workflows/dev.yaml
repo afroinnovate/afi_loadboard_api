@@ -151,7 +151,7 @@ jobs:
       release_tag: ${{ env.RELEASE_TAG}}
 
   deploy:
-    needs: [checkout_tag, prepare]
+    needs: [checkout_tag]
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
