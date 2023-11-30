@@ -303,7 +303,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << 'EOF'
             # Find the container ID of the currently running container on port 80 and stop it
-            CONTAINER_ID=$(docker ps --filter "publish=80" -q)
+            CONTAINER_ID=$(docker ps --filter "publish=8080" -q)
             if [ -n "$CONTAINER_ID" ]; then
               echo "Stopping and removing running container bound to port 80"
               docker stop $CONTAINER_ID
@@ -326,6 +326,7 @@ jobs:
             IMAGE_ID=\$(docker images -q $RELEASE_TAG)
             if [ ! -z "$IMAGE_ID" ]; then
               echo "Removing existing image with tag $RELEASE_TAG"
+              docker rm -f $(docker ps -aq)
               docker rmi -f $IMAGE_ID
             else
               echo "No existing image with tag $RELEASE_TAG found."
