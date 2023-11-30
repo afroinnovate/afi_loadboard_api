@@ -40,7 +40,7 @@ jobs:
       - name: Use version if provided
         if: github.event.inputs.version != ''
         run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:${{ github.event.inputs.version }}" >> $GITHUB_ENV
-        
+
       - name: Set Git Config
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
         run: |
@@ -90,6 +90,7 @@ jobs:
   build:
     needs: [prepare]
     runs-on: ubuntu-latest
+    if: github.event.inputs.version == ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
