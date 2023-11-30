@@ -142,6 +142,7 @@ jobs:
   checkout_tag:
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Display Tag
         run: |
