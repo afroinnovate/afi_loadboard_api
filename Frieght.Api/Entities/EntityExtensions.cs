@@ -37,4 +37,18 @@ public static class EntityExtensions
 
             );
     }
+
+    public static BidDto asDto(this Bid bid)
+    {
+        return new BidDto(
+                   bid.Id,
+                   bid.LoadId,
+                   bid.CarrierId,
+                   bid.BidAmount,
+                   bid.BidStatus,
+                   bid.BiddingTime
+
+            );
+    }
+
 }
