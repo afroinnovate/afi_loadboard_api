@@ -17,3 +17,4 @@
 9. ```docker images``` List all the docker images
 10. ```docker rmi <image_id_or_name>``` remove image by name
 11. ```docker exec -it <container_id_or_name> /bin/bash``` Get into the container to check if it runs
+12. ```docker run -e "DefaultConnection=Host=loadboard-db-do-user-14760993-0.c.db.ondigitalocean.com;Port=25060;Database=Users;Username=username;Password=pw;SSL Mode=Prefer;" -p 8080:8080 api:v1```
