@@ -1,0 +1,9 @@
+base:
+  version: latest
+  name: Auth.Min.API
+  description: Auth.Min.API
+
+dev:
+  version: 0.0.1
+  name: Auth.Min.API
+  description: Auth.Min.API

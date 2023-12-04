@@ -1,31 +1,30 @@
-name: deploy dev
+name: Deploy Dev
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - 'afi_loadboad_api/Services/Auth.API/**'
   workflow_dispatch:
     inputs:
-      deployService:
+      version:
+        type: string
+        description: 'Version to deploy'
+        required: false
+      project:
+        type: choice
         description: 'Which service to deploy?'
-        required: true
-        default: 'Auth.API'
-  
+        options:
+          - 'Auth.Min.API'
+          - 'Frieght.Api'
 env:
   REPOSITORY: 'tangotew/afi-loadboard-api'
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && contains(github.ref, 'develop')) || github.event_name == 'workflow_dispatch' 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.ORG_GITHUB_TOKEN }
+        uses: actions/checkout@v4
+       
+      - name: Go to the project directory
+        run: cd ${{ github.event.inputs.project }}
 
       - name: Extract tag based on environment from manifest.yaml
         if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
@@ -35,8 +34,12 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Use SHA for tag if not main
-        if: github.event_name == 'push' && github.ref != 'refs/heads/develop'
-        run: echo "RELEASE_TAG=${{ env.REPOSITORY}}:${{ github.sha }}" >> $GITHUB_ENV
+        if: github.event.inputs.version == '' && github.ref != 'refs/heads/develop'
+        run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:$(echo ${{ github.sha }} | cut -c 1-6)" >> $GITHUB_ENV
+
+      - name: Use version if provided
+        if: github.event.inputs.version != ''
+        run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
       - name: Set Git Config
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
@@ -45,7 +48,7 @@ jobs:
           git config --global --replace-all user.name 'actions@github.com'
           
       - name: Check if Git tag exists
-        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
         id: check_tag
         run: |
           TAG_NAME=${{ env.TAG }}
@@ -60,13 +63,13 @@ jobs:
         continue-on-error: true
 
       - name: Push Git Tag
-        if: "${{ steps.check_tag.outputs.tag-exists == 'false' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' }}"
+        if: "${{ steps.check_tag.outputs.tag-exists == 'false' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}"
         run: |
           git tag -a ${{ env.TAG }} -m "Release ${{ env.TAG }}"
           git push --no-verify origin refs/tags/${{ env.TAG }}
 
       - name: Create PreRelease
-        if: "${{ steps.check_tag.outputs.tag-exists == 'false' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' }}"
+        if: "${{ steps.check_tag.outputs.tag-exists == 'false' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}"
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.ORG_GITHUB_TOKEN }}" \
@@ -86,12 +89,14 @@ jobs:
 
   build:
     needs: [prepare]
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    if: github.event.inputs.version == ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ORG_GITHUB_TOKEN }}
+      
       - name: Determine tag for image
         run: echo "RELEASE_TAG=${{needs.prepare.outputs.TAG}}" >> $GITHUB_ENV
 
@@ -109,12 +114,23 @@ jobs:
         continue-on-error: true # Continue even if the pull fails
         run: |
           docker pull ${{env.RELEASE_TAG}} && echo "PULL_SUCCEEDED=true" >> $GITHUB_ENV || echo "PULL_SUCCEEDED=false" >> $GITHUB_ENV
+     
+      - name: Display directories
+        run: |
+          echo "tag ${{github.event.inputs.project}}"
+          ls
+      
+      - name: Go to the project directory
+        run: |
+          cd ${{ github.event.inputs.project }}
+          ls
 
       - name: Build and push Docker image
         if: env.PULL_SUCCEEDED == 'false'
         run: |
+          cd ${{ github.event.inputs.project }}
           DOCKER_IMAGE=${{ env.RELEASE_TAG }}
-          docker publish --os linux --arch x64 -p:ContainerImageTag=$DOCKER_IMAGE
+          docker build -t $DOCKER_IMAGE -f ./dev/Dockerfile .
           docker push $DOCKER_IMAGE
 
       - name: Display tag in the Summary
@@ -122,23 +138,218 @@ jobs:
 
     outputs:
       image_digest: ${{ env.RELEASE_TAG }}
-
   
   checkout_tag:
-    needs: [prepare, build_and_push]
+    needs: [prepare, build]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Display Tag
         run: |
-          if [-z "${{needs.prepare.outputs.TAG}}" ]; then
-            echo "Release doesn't exist"
-            exit 1
-          else
-            echo "RELEASE_TAG=${{needs.prepare.outputs.TAG}}" >> $GITHUB_ENV
-          fi
+          echo "RELEASE_TAG=${{needs.prepare.outputs.TAG}}" >> $GITHUB_ENV
     outputs:
       release_tag: ${{ env.RELEASE_TAG}}
 
-  
+  deploy:
+    needs: [checkout_tag]
+    if: github.event_name == 'workflow_dispatch' && always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v4
 
-    
+      - name: Display and set Tag
+        run: |
+          if [-z "${{needs.checkout_tag.outputs.release_tag}}" ]; then
+            echo "Release doesn't exist"
+            exit 1
+          else
+            echo "RELEASE_TAG=${{needs.checkout_tag.outputs.release_tag}}" >> $GITHUB_ENV
+            echo "Retrieved the docker image tag: ${{ env.RELEASE_TAG }}"
+          fi
+
+      # Step to check if doctl is already installed
+      - name: Check if doctl is installed
+        run: |
+          echo "checking if doctl is installed"
+          if command -v doctl &> /dev/null; then
+            echo "doctl is already installed"
+            doctl version
+          else
+            echo "doctl is not installed"
+          fi
+
+      # Step to install doctl
+      - name: Install doctl
+        run: |
+          if ! command -v doctl &> /dev/null; then
+            curl -s https://api.github.com/repos/digitalocean/doctl/releases/latest \
+            | grep "browser_download_url.*linux-amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | wget -qi -
+            tar xf doctl-*-linux-amd64.tar.gz
+            sudo mv doctl /usr/local/bin
+            doctl version
+          fi
+
+      # Step to authenticate doctl
+      - name: Authenticate doctl
+        run: |
+          echo "authenticating doctl"
+          doctl auth init --access-token ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+
+      - name: Select Droplet Name
+        run: |
+          if [ ${{ github.event.inputs.project }} == 'Frieght.Api' ]; then
+            echo "DROPLET_NAME=afi-loadboard-api" >> $GITHUB_ENV
+          elif [ ${{ github.event.inputs.project }} == 'Auth.Min.API' ]; then
+            echo "DROPLET_NAME=afi-loadboard-api" >> $GITHUB_ENV
+          fi
+
+      # Step to check if a Droplet with the name 'afi-loadboard-api' already exists
+      - name: Check for existing Droplet
+        run: |
+          EXISTING_DROPLET_ID=$(doctl compute droplet list --format ID,Name --no-header | awk '/${{ env.DROPLET_NAME }}/ {print $1}')
+          if [ -n "$EXISTING_DROPLET_ID" ]; then
+            echo "Droplet with name ${{ env.DROPLET_NAME }} already exists with ID: $EXISTING_DROPLET_ID"
+            echo "DROPLET_ID=$EXISTING_DROPLET_ID" >> $GITHUB_ENV
+          else
+            echo "No existing Droplet with name ${{ env.DROPLET_NAME }} found."
+          fi
+
+      - name: Get SSH Key Fingerprint
+        run: |
+          SSH_FINGERPRINT=$(doctl compute ssh-key list --format FingerPrint --no-header)
+          echo "SSH_FINGERPRINT=$SSH_FINGERPRINT" >> $GITHUB_ENV
+
+      - name: Create a Droplet
+        if: env.DROPLET_ID == ''
+        env:
+          DROPLET_SSH_KEY: ${{ env.SSH_FINGERPRINT }}
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        run: |
+          echo "$DROPLET_SSH_KEY" > droplet_ssh_key
+          chmod 600 droplet_ssh_key
+
+          DROPLET_ID=$(doctl compute droplet create ${{ env.DROPLET_NAME }} --size s-1vcpu-1gb --image ubuntu-20-04-x64 --region sfo3 --ssh-keys $SSH_FINGERPRINT --format ID --no-header --wait)
+          echo "Droplet ID: $DROPLET_ID"
+          echo "DROPLET_ID=$DROPLET_ID" >> $GITHUB_ENV
+
+      - name: Get Droplet IP
+        run: |
+          DROPLET_IP=$(doctl compute droplet get $DROPLET_ID --format PublicIPv4 --no-header)
+          echo "DROPLET_IP=$DROPLET_IP" >> $GITHUB_ENV
+
+      - name: Setup SSH key for Droplet
+        env:
+          DROPLET_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$DROPLET_SSH_PRIVATE_KEY" > droplet_private_ssh_key
+          chmod 600 droplet_private_ssh_key 
+
+      # New step to check if Docker is installed
+      - name: Check if Docker is Installed
+        id: check_docker
+        run: |
+          DOCKER_INSTALLED=$(ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "command -v docker || echo 'not installed'")
+          if [ "$DOCKER_INSTALLED" == "not installed" ]; then
+            echo "Docker is not installed."
+            echo "DOCKER_INSTALLED=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Docker is installed."
+            echo "DOCKER_INSTALLED=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Docker on Droplet
+        if: "${{ steps.check_docker.outputs.DOCKER_INSTALLED == 'false' }}"
+        run: |
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "sudo apt update && apt install -y docker.io"
+
+      - name: Check if Docker Network Exists on Droplet
+        id: check_network
+        run: |
+          # Check if Docker Network exists
+          EXISTING_NETWORK=$(ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "docker network ls --filter name=afi-loadbaord-network -q")
+          if [ -z "$EXISTING_NETWORK" ]; then
+            echo "Network not found."
+            echo "NETWORK_FOUND=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Network found."
+            echo "NETWORK_FOUND=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Docker Network on Droplet
+        if: "${{ steps.check_network.outputs.NETWORK_FOUND == 'false' }}"
+        run: |
+          if [ -z "$EXISTING_NETWORK" ]; then
+            ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "docker network create afi-loadbaord-network"
+          else
+            echo "Docker network afi-loadbaord-network already exists. Skipping creation."
+          fi
+
+      - name: Docker Login on Droplet
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          # Log into Docker Hub
+          echo "Logging into Docker Hub in droplet VM"
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "echo $DOCKER_HUB_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+
+      - name: Check if container with same image tag is running and remove it
+        id: check_container
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << 'EOF'
+            # Find the container ID of the currently running container on port 80 and stop it
+            CONTAINER_ID=$(docker ps --filter "publish=8080" -q)
+            if [ -n "$CONTAINER_ID" ]; then
+              echo "Stopping and removing running container bound to port 80"
+              docker stop $CONTAINER_ID
+              docker container rm $CONTAINER_ID
+              echo "running_container=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "No running container on port 80 found."
+              echo "running_container=false" >> "$GITHUB_OUTPUT"
+            fi
+          EOF
+        continue-on-error: true
+        
+
+      - name: Check if image with same tag exists and remove it
+        if: "${{ steps.check_container.outputs.running_container == 'true' }}"
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << EOF
+            IMAGE_ID=\$(docker images -q $RELEASE_TAG)
+            if [ ! -z "$IMAGE_ID" ]; then
+              echo "Removing existing image with tag $RELEASE_TAG"
+              docker rm -f $(docker ps -aq)
+              docker rmi -f $IMAGE_ID
+            else
+              echo "No existing image with tag $RELEASE_TAG found."
+            fi
+          EOF
+        continue-on-error: true
+
+      - name: Deploy to Droplet
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          # Run commands on the remote server
+          echo "Deploying image $RELEASE_TAG in the Droplet VM"
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << EOF
+            echo "RELEASE_TAG is: $RELEASE_TAG"
+            if [ -z "$RELEASE_TAG" ]; then
+              echo "RELEASE_TAG is not set. Exiting."
+              exit 1
+            fi
+
+            docker pull $RELEASE_TAG
+            # docker run -d -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
+            docker run -d -p 8080:8080 $RELEASE_TAG
+          EOF

@@ -12,19 +12,7 @@ public static class AuthEndpoints
 
         var groups = routes.MapGroup("/").WithName(GetAuthEndpointName);
 
-        groups.MapPost("/login", (string username) =>
-        {
-            var claimsPrincipal = new ClaimsPrincipal(
-            new ClaimsIdentity(
-                new Claim[] {
-                    new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.Role, "Admin")
-                },
-                BearerTokenDefaults.AuthenticationScheme  //👈
-            ));
-
-            return Results.SignIn(claimsPrincipal);
-        });
+        groups.MapGet("/Health", () => "OK from Auth.Min.API");
 
        return groups;
     }

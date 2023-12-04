@@ -19,4 +19,8 @@ RUN dotnet publish "Auth.Min.API.csproj" -c Release -o /app/publish /p:UseAppHos
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Set the ASP.NET Core environment to Development
+ENV ASPNETCORE_ENVIRONMENT=Development
+
 ENTRYPOINT ["dotnet", "Auth.Min.API.dll"]
