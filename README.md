@@ -89,6 +89,10 @@ Access the apis
     cd afi_loadboad_api
     ```
 
+## Running the apis
+1. Run ```dotnet restore```
+2. Run ```dotnet watch run``` To keep loading the apis on any changes.
+
 ## Contributing
 
 We value and appreciate your contributions. To contribute:

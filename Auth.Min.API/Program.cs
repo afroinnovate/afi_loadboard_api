@@ -7,18 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
 using Auth.Min.API.Endpoints;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options => 
 {
-    options.AddSecurityDefinition(name: "Bearer", new OpenApiSecurityScheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the bearer scheme, Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
@@ -36,28 +35,45 @@ builder.Services.AddSwaggerGen(options =>
                 Id = "Bearer"
             }
         },
-        new string[]{}
-        }
+        Array.Empty<string>()
+    }
     });
 });
 
-//add db contextinjection
+// Add DB context injection
 builder.Services.AddDbContext<AppDbContext>(option => 
     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//add authorization
-builder.Services.AddAuthorizationBuilder();
+// Read JwtOptions from appsettings
+var jwtConfig = builder.Configuration.GetSection("ApiSettings:JwtOptions");
+builder.Services.Configure<JwtOptions>(jwtConfig);
 
-//add IdentityEndpoints
+var secretKey = jwtConfig["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured");
+
+// Add JWT authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtConfig["Issuer"],
+            ValidAudience = jwtConfig["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
+
+// Add authorization
+builder.Services.AddAuthorization();
+
+// Add Identity Endpoints
 builder.Services.AddIdentityApiEndpoints<AppUser>()
                 .AddEntityFrameworkStores<AppDbContext>();
-                
 
 var app = builder.Build();
-
-//MapIdentityApi to add endpoints for actions like registering a new user, logging in and logging out using Identity.
-app.MapIdentityApi<AppUser>();
-app.MapAuthEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -67,11 +83,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Map Identity API and Auth endpoints
+app.MapIdentityApi<AppUser>();
+app.MapAuthEndpoints();
+
 // applyMigrations();
 
 app.Run();
-
-
-
-
-
