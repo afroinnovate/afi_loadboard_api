@@ -9,6 +9,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Auth.Min.API.Endpoints;
 using System.Text;
+using Auth.Min.API;
+using Microsoft.VisualBasic;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Auth.Min.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +47,11 @@ builder.Services.AddSwaggerGen(options =>
 // Add DB context injection
 builder.Services.AddDbContext<AppDbContext>(option => 
     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    
+// Register the EmailSender service
+builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 // Read JwtOptions from appsettings
 var jwtConfig = builder.Configuration.GetSection("ApiSettings:JwtOptions");
 builder.Services.Configure<JwtOptions>(jwtConfig);
@@ -70,8 +78,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Add Identity Endpoints
-builder.Services.AddIdentityApiEndpoints<AppUser>()
-                .AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+                
+
+// Read Roles from appsettings and register
+var rolesConfig = new Roles();
+builder.Configuration.GetSection("Roles").Bind(rolesConfig);
+builder.Services.AddSingleton(rolesConfig);
 
 var app = builder.Build();
 
@@ -88,10 +103,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+var roleConfig =  app.Services.GetRequiredService<Roles>();
 // Map Identity API and Auth endpoints
-app.MapIdentityApi<AppUser>();
-app.MapAuthEndpoints();
-
-// applyMigrations();
+// app.MapIdentityApi<IdentityUser>();
+app.MapAuthEndpoints(roleConfig);
 
 app.Run();

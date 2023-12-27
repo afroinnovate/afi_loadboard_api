@@ -9,5 +9,7 @@ namespace Auth.Min.API.Models
         public DateTime DateRegistered { get; set; }
         public DateTime? DateLastLoggedIn { get; set; }
         public string? MiddleName { get; set; }
+        public string? CompanyName { get; set; }
+        public string? DotNumber { get; set; }
     }
 }

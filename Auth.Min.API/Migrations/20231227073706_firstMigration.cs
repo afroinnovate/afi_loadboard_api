@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.Min.API.Migrations
 {
     /// <inheritdoc />
-    public partial class _01 : Migration
+    public partial class firstMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -36,6 +36,9 @@ namespace Auth.Min.API.Migrations
                     DateRegistered = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DateLastLoggedIn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     MiddleName = table.Column<string>(type: "text", nullable: true),
+                    Role = table.Column<string>(type: "text", nullable: true),
+                    CompanyName = table.Column<string>(type: "text", nullable: true),
+                    DotNumber = table.Column<string>(type: "text", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
