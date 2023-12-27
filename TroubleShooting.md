@@ -1,6 +1,13 @@
 # Most common Errors and their Resolutions.
 
 ## Error
+- AspNetRole already exists/
+
+## Solution
+Create a new Migration while having the second migration
+- ```dotnet ef migrations add <secondMigration>```
+Update the database with the new migration
+```dotnet ef databse update secondMigration```
 
 ## Useful commands.
 
