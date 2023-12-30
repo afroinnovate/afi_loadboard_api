@@ -340,6 +340,7 @@ jobs:
           DB_USERNAME: ${{ secrets.DEV_DB_USERNAME }}
           DB_HOST: ${{ secrets.DEV_DB_HOST }}
           DB_NAME: ${{ secrets.DEV_AUTH_DB }}
+          JWT_SECRET: ${{ secrets.DEV_JWT_SECRET }}
         run: |
           # Run commands on the remote server
           echo "Deploying image $RELEASE_TAG in the Droplet VM"
@@ -352,5 +353,5 @@ jobs:
 
             docker pull $RELEASE_TAG
             # docker run -d -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
-            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=require;" -p 8080:8080 -p 443:443 $RELEASE_TAG
+            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=require;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -p 8080:8080 -p 443:443 $RELEASE_TAG
           EOF

@@ -27,6 +27,12 @@ COPY Migrations /app/Migrations
 # Copy the .csproj file
 COPY . /app/
 
+# Remove the appsettings.json file
+RUN rm -f appsettings.json
+
+# If you have an appsettings.Production.json without sensitive data
+COPY ["appsettings.Development.json", "/app/"]
+
 # Set the ASP.NET Core environment to Development
 ENV ASPNETCORE_ENVIRONMENT=Development
 

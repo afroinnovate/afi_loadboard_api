@@ -44,9 +44,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add DB context injection
+var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+
+// Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
-    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    option.UseNpgsql(defaultConnection));
+
+// Add DB context injection for dotnet run in appsettings.json
+// builder.Services.AddDbContext<AppDbContext>(option => 
+//     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     
 // Register the EmailSender service
 builder.Services.AddSingleton<IEmailSender, EmailSender>();

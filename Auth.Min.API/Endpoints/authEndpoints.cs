@@ -38,6 +38,11 @@ public static class AuthEndpoints
     {
         group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager) => 
         {
+            if (request.Username == null)
+            {
+                return Results.BadRequest("Username is required");
+            }
+
             // Find the user
             var user = await userManager.FindByEmailAsync(request.Username);
             if (user == null)
@@ -45,16 +50,19 @@ public static class AuthEndpoints
                 return Results.NotFound("User not Found");
             }
 
-            // Update user details
-            user.FirstName = string.IsNullOrEmpty(request.FirstName) ? user.FirstName : request.FirstName;
-            user.LastName = string.IsNullOrEmpty(request.LastName) ? user.LastName : request.LastName;
-            user.DotNumber = string.IsNullOrEmpty(request.DotNumber) ? user.DotNumber : request.DotNumber;
-            user.CompanyName = string.IsNullOrEmpty(request.CompanyName) ? user.CompanyName : request.CompanyName;
-
-            var updateResult = await userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
+            if (request.FirstName != null || request.LastName != null || request.DotNumber != null || request.CompanyName != null)
             {
-                return Results.BadRequest(updateResult.Errors);
+                // Update user details
+                user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "string" ? user.FirstName : request.FirstName;
+                user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "string" ? user.LastName : request.LastName;
+                user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "string" ? user.DotNumber : request.DotNumber;
+                user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "string" ? user.CompanyName : request.CompanyName;
+
+                var updateResult = await userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    return Results.BadRequest(updateResult.Errors);
+                }
             }
 
             // Assign the role to the user
@@ -143,6 +151,7 @@ public static class AuthEndpoints
     private static bool IsRoleValid(string role, Roles rolesConfig)
     {
         var roleProperties = rolesConfig.GetType().GetProperties();
-        return roleProperties.Any(prop => (string?)prop.GetValue(rolesConfig) == role);
+        return roleProperties.Any(prop => string.Equals((string?)prop.GetValue(rolesConfig), role, StringComparison.OrdinalIgnoreCase));
     }
+
 }
