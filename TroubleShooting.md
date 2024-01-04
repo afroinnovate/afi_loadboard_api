@@ -25,6 +25,8 @@ ERRO[0002] error waiting for container:
           Line: 3650
           Routine: aclcheck_error
 
+6. error sending email: Error occurred while sending email.: 535: 5.7.139 Authentication unsuccessful, the user credentials were incorrect. 
+
 ## Solution
 Create a new Migration while having the second migration
 - ```dotnet ef migrations add <secondMigration>```
@@ -48,6 +50,12 @@ Update the database with the new migration
         2. ```GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO your_db_user;``` Or
         2. ```ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO afroinnovate;```
 
+6. following these steps:
+    1. Sign into the google account you want to use for the sender
+    2. Go to Security
+    3. Type "app password" in the search bar
+    4. provide appname and the password will be generated.
+    5. copy that password into the appsettings.
 
 ## Useful commands.
 

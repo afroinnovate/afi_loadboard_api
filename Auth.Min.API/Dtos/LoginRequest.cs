@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Auth.Min.API.Models
+namespace Auth.Min.API.Models;
+
+public class LoginRequest
 {
-    public class LoginRequest
-    {
-        [Required]
-        public required string Username { get; set; }
-        
-        [Required]
-        public required string Password { get; set; }
-    }
+    [Required]
+    public required string Username { get; set; }
+    
+    [Required]
+    public required string Password { get; set; }
 }

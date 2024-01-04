@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Auth.Min.API.Endpoints;
 using System.Text;
 using Auth.Min.API;
-using Microsoft.VisualBasic;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Auth.Min.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,9 +42,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+
+// setitngs for docker container
 var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 
-// Add DB context injection for docker container
+// // Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
     option.UseNpgsql(defaultConnection));
 
@@ -54,8 +54,8 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 // builder.Services.AddDbContext<AppDbContext>(option => 
 //     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     
-// Register the EmailSender service
-builder.Services.AddSingleton<IEmailSender, EmailSender>();
+// Register the EmailSender service as transient to create a new instance each time it's needed
+builder.Services.AddTransient<IEmailConfigService, EmailService>();
 
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 // Read JwtOptions from appsettings
@@ -110,8 +110,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 var roleConfig =  app.Services.GetRequiredService<Roles>();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 // Map Identity API and Auth endpoints
 // app.MapIdentityApi<IdentityUser>();
-app.MapAuthEndpoints(roleConfig);
+app.MapAuthEndpoints(roleConfig, logger);
+
+// app.MapAuthEndpoints(roleConfig);
 
 app.Run();
