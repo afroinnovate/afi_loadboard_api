@@ -89,6 +89,16 @@ Access the apis
     cd afi_loadboad_api
     ```
 
+## Running the apis
+1. Run ```dotnet restore```
+2. Run ```dotnet watch run``` To keep loading the apis on any changes.
+
+## Creating Migration for the first time
+1. Create migration: 
+    ```dotnet ef migrations add <migrationName>```
+2. Update the database
+    ```dotnet database update```
+
 ## Contributing
 
 We value and appreciate your contributions. To contribute:

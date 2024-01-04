@@ -7,18 +7,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
 using Auth.Min.API.Endpoints;
+using System.Text;
+using Auth.Min.API;
+using Auth.Min.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options => 
 {
-    options.AddSecurityDefinition(name: "Bearer", new OpenApiSecurityScheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the bearer scheme, Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
@@ -36,28 +37,64 @@ builder.Services.AddSwaggerGen(options =>
                 Id = "Bearer"
             }
         },
-        new string[]{}
-        }
+        Array.Empty<string>()
+    }
     });
 });
 
-//add db contextinjection
+
+// setitngs for docker container
+var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+
+// // Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
-    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    option.UseNpgsql(defaultConnection));
 
-//add authorization
-builder.Services.AddAuthorizationBuilder();
+// Add DB context injection for dotnet run in appsettings.json
+// builder.Services.AddDbContext<AppDbContext>(option => 
+//     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    
+// Register the EmailSender service as transient to create a new instance each time it's needed
+builder.Services.AddTransient<IEmailConfigService, EmailService>();
 
-//add IdentityEndpoints
-builder.Services.AddIdentityApiEndpoints<AppUser>()
-                .AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+// Read JwtOptions from appsettings
+var jwtConfig = builder.Configuration.GetSection("ApiSettings:JwtOptions");
+builder.Services.Configure<JwtOptions>(jwtConfig);
+
+var secretKey = jwtConfig["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured");
+
+// Add JWT authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtConfig["Issuer"],
+            ValidAudience = jwtConfig["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
+
+// Add authorization
+builder.Services.AddAuthorization();
+
+// Add Identity Endpoints
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
                 
 
-var app = builder.Build();
+// Read Roles from appsettings and register
+var rolesConfig = new Roles();
+builder.Configuration.GetSection("Roles").Bind(rolesConfig);
+builder.Services.AddSingleton(rolesConfig);
 
-//MapIdentityApi to add endpoints for actions like registering a new user, logging in and logging out using Identity.
-app.MapIdentityApi<AppUser>();
-app.MapAuthEndpoints();
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -67,11 +104,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-// applyMigrations();
+
+// Use authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+var roleConfig =  app.Services.GetRequiredService<Roles>();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+// Map Identity API and Auth endpoints
+// app.MapIdentityApi<IdentityUser>();
+app.MapAuthEndpoints(roleConfig, logger);
+
+// app.MapAuthEndpoints(roleConfig);
 
 app.Run();
-
-
-
-
-

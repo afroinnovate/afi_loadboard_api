@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.Min.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231108004350_01")]
-    partial class _01
+    [Migration("20231227084155_secondMigration")]
+    partial class secondMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0-rc.2.23480.1")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -33,6 +33,9 @@ namespace Auth.Min.API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -42,6 +45,9 @@ namespace Auth.Min.API.Migrations
 
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DotNumber")
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
