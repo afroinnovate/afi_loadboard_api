@@ -27,6 +27,14 @@ ERRO[0002] error waiting for container:
 
 6. error sending email: Error occurred while sending email.: 535: 5.7.139 Authentication unsuccessful, the user credentials were incorrect. 
 
+7. Exception data:
+    Severity: ERROR
+    SqlState: 42501
+    MessageText: must be owner of table AspNetUsers
+    File: aclchk.c
+    Line: 3788
+    Routine: aclcheck_error
+42501: must be owner of table AspNetUsers
 ## Solution
 Create a new Migration while having the second migration
 - ```dotnet ef migrations add <secondMigration>```
@@ -56,6 +64,8 @@ Update the database with the new migration
     3. Type "app password" in the search bar
     4. provide appname and the password will be generated.
     5. copy that password into the appsettings.
+7. Go to pgAdmin->loadboard->disconnect server->properties->connections->change user from afroinnovate to doadmin->save and close -> try to connect-you'd be prompted with password ->enter doadmin password.
+    1. ALTER TABLE AspNetUsers OWNER TO afroinnovate;
 
 ## Useful commands.
 

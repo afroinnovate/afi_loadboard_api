@@ -126,6 +126,7 @@ public static class AuthEndpoints
                 user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "string" ? user.LastName : request.LastName;
                 user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "string" ? user.DotNumber : request.DotNumber;
                 user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "string" ? user.CompanyName : request.CompanyName;
+                user.Confirmed = true;
 
                 var updateResult = await userManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)
@@ -186,6 +187,11 @@ public static class AuthEndpoints
             if (user == null || !(await signInManager.CheckPasswordSignInAsync(user, model.Password, false)).Succeeded)
             {
                 return Results.Unauthorized();
+            }
+
+            if (!user.Confirmed)
+            {
+                return Results.BadRequest("User profile is not confirmed, please check your email and confirm it.");
             }
 
             var token = tokenGenerator.GenerateToken(user, await userManager.GetRolesAsync(user));
