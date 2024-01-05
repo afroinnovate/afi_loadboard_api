@@ -11,5 +11,6 @@ namespace Auth.Min.API.Models
         public string? MiddleName { get; set; }
         public string? CompanyName { get; set; }
         public string? DotNumber { get; set; }
+        public bool Confirmed { get; set; }
     }
 }
