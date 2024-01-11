@@ -55,8 +55,9 @@ public static class AuthEndpoints
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
                 // Create a confirmation link (you would replace "http://localhost:5000" with your front-end URL)
-                var confirmationLink = $"http://app.loadboard.afroinnovate.com/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
-
+                var confirmationLink = $"http://app.loadboard.afroinnovate.com/confirm-email?userId={user.Id}";
+                
+                // var tempConfirmationLink = $"http://localhost:3000/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
                 logger.LogInformation("Attempting to send confirmation email to {Email}", user.Email);
 
             // Send email
@@ -122,11 +123,11 @@ public static class AuthEndpoints
             if (request.FirstName != null || request.LastName != null || request.DotNumber != null || request.CompanyName != null)
             {
                 // Update user details
-                user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "string" ? user.FirstName : request.FirstName;
-                user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "string" ? user.LastName : request.LastName;
-                user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "string" ? user.DotNumber : request.DotNumber;
-                user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "string" ? user.CompanyName : request.CompanyName;
-                user.Confirmed = true;
+                user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "" ? user.FirstName : request.FirstName;
+                user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "" ? user.LastName : request.LastName;
+                user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "" ? user.DotNumber : request.DotNumber;
+                user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "" ? user.CompanyName : request.CompanyName;
+                user.EmailConfirmed = true;
 
                 var updateResult = await userManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)
@@ -189,7 +190,7 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            if (!user.Confirmed)
+            if (!user.EmailConfirmed)
             {
                 return Results.BadRequest("User profile is not confirmed, please check your email and confirm it.");
             }
