@@ -127,7 +127,7 @@ public static class AuthEndpoints
                 user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "" ? user.LastName : request.LastName;
                 user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "" ? user.DotNumber : request.DotNumber;
                 user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "" ? user.CompanyName : request.CompanyName;
-                user.Confirmed = true;
+                user.EmailConfirmed = true;
 
                 var updateResult = await userManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)
@@ -190,7 +190,7 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             }
 
-            if (!user.Confirmed)
+            if (!user.EmailConfirmed)
             {
                 return Results.BadRequest("User profile is not confirmed, please check your email and confirm it.");
             }
