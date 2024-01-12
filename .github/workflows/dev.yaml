@@ -31,7 +31,7 @@ jobs:
       - name: Extract tag based on environment from manifest.yaml
         if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
         run: |
-          run: cd ${{ github.event.inputs.project }}
+          cd ${{ github.event.inputs.project }}
           TAG=$(grep -A1 "dev:" manifest.yaml | grep 'version:' | awk '{print $2}')
           echo "RELEASE_TAG=${{env.REPOSITORY}}:${TAG}" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
