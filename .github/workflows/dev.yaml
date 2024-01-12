@@ -31,12 +31,13 @@ jobs:
       - name: Extract tag based on environment from manifest.yaml
         if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
         run: |
+          run: cd ${{ github.event.inputs.project }}
           TAG=$(grep -A1 "dev:" manifest.yaml | grep 'version:' | awk '{print $2}')
           echo "RELEASE_TAG=${{env.REPOSITORY}}:${TAG}" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Use SHA for tag if not main
-        if: github.event.inputs.version == '' && github.ref != 'refs/heads/develop'
+        if: github.event.inputs.version == '' && github.ref != 'refs/heads/main'
         run: echo "RELEASE_TAG=${{ env.REPOSITORY }}:$(echo ${{ github.sha }} | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Use version if provided
