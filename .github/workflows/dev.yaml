@@ -333,7 +333,7 @@ jobs:
         continue-on-error: true
 
       - name: Deploy auth.min.api to Droplet
-        if: (${{ github.event.inputs.project }} == 'Auth.Min.API')
+        if: ${{ equals(github.event.inputs.project, 'Auth.Min.API') }}
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -353,14 +353,12 @@ jobs:
               echo "RELEASE_TAG is not set. Exiting."
               exit 1
             fi
-
             docker pull $RELEASE_TAG
-            # docker run -d -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
             docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Required;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 8080:8080 -p 443:443 $RELEASE_TAG
           EOF
 
       - name: Deploy frieght to Droplet
-        if: (${{ github.event.inputs.project }} == 'Frieght.Api')
+        if: ${{ equals(github.event.inputs.project, 'Frieght.Api') }}
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -380,7 +378,6 @@ jobs:
               echo "RELEASE_TAG is not set. Exiting."
               exit 1
             fi
-
             docker pull $RELEASE_TAG
             docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Required;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 7070:80 -p 443:443 $RELEASE_TAG
           EOF
