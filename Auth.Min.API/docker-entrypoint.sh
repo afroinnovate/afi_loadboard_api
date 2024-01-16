@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Apply migrations
-dotnet ef database update 1
+dotnet ef database update 
 
 # Start the application
 exec dotnet Auth.Min.API.dll
