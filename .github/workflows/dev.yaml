@@ -11,7 +11,7 @@ on:
         type: choice
         description: 'Which service to deploy?'
         options:
-          - 'Auth.Min.API'
+          - 'Auth.Min.Api'
           - 'Frieght.Api'
 env:
   REPOSITORY: 'tangotew/afi-loadboard-api'
@@ -333,7 +333,7 @@ jobs:
         continue-on-error: true
 
       - name: Deploy auth.min.api to Droplet
-        if: ${{ equals(github.event.inputs.project, 'Auth.Min.API') }}
+        if: ${{ github.event.inputs.project == 'Auth.Min.Api' }}
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -358,7 +358,7 @@ jobs:
           EOF
 
       - name: Deploy frieght to Droplet
-        if: ${{ equals(github.event.inputs.project, 'Frieght.Api') }}
+        if: ${{ github.event.inputs.project == 'Frieght.Api' }}
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
