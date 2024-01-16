@@ -296,6 +296,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "echo $DOCKER_HUB_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
 
       - name: Remove running container on port 8080 for auth.min.api
+        if: ${{ github.event.inputs.project == 'Auth.Min.API' }}
         id: check_container_auth
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
@@ -316,6 +317,7 @@ jobs:
         continue-on-error: true
 
       - name: Remove running container on port 7070 for frieght
+        if: ${{ github.event.inputs.project == 'Frieght.Api' }}
         id: check_container_frieght
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
