@@ -1,3 +1,3 @@
 # Pending
 
-* []: Deploy frieight api and make it accessible
+* [Task 39]: Deploy frieight api and make it accessible
