@@ -401,5 +401,5 @@ jobs:
               exit 1
             fi
             docker pull $RELEASE_TAG
-            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 7070:7070 $RELEASE_TAG
+            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 7070:80 $RELEASE_TAG
           EOF
