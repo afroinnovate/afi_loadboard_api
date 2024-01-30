@@ -4,6 +4,6 @@ base:
   description: Auth.Min.API
 
 dev:
-  version: auth-0.0.1
+  version: frieght-0.0.1
   name: Auth.Min.API
   description: Auth.Min.API

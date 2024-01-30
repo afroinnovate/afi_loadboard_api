@@ -79,6 +79,7 @@ await app.Services.InitializeDbAsync();
 // Map Endpoints
 app.MapLoadsEndpoints().RequireAuthorization();
 app.MapCarriersEndpoints().RequireAuthorization();
+app.MapHealthEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -35,7 +35,11 @@ ERRO[0002] error waiting for container:
     Line: 3788
     Routine: aclcheck_error
 42501: must be owner of table AspNetUsers
+
+8. Unhandled exception. System.ArgumentException: To validate server certificates, please use VerifyFull or VerifyCA instead of Require. To disable validation, explicitly set 'Trust Server Certificate' to true. See https://www.npgsql.org/doc/release-notes/6.0.html for more details.
+
 ## Solution
+
 Create a new Migration while having the second migration
 - ```dotnet ef migrations add <secondMigration>```
 Update the database with the new migration
@@ -66,6 +70,9 @@ Update the database with the new migration
     5. copy that password into the appsettings.
 7. Go to pgAdmin->loadboard->disconnect server->properties->connections->change user from afroinnovate to doadmin->save and close -> try to connect-you'd be prompted with password ->enter doadmin password.
     1. ALTER TABLE AspNetUsers OWNER TO afroinnovate;
+8. Change the sslmode in the connection string. 
+    1. If we want to enforce strict certificate validation (which is recommended for production environments), use sslmode=VerifyFull. This requires a valid certificate and a matching server name.
+    2. Alternatively, if you want to require SSL but without server certificate validation (less secure, but sometimes used in controlled environments), use "sslmode=Require;Trust Server Certificate=true;"
 
 ## Useful commands.
 

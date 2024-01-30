@@ -295,28 +295,50 @@ jobs:
           echo "Logging into Docker Hub in droplet VM"
           ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP "echo $DOCKER_HUB_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
 
-      - name: Check if container with same image tag is running and remove it
-        id: check_container
+      - name: Remove running container on port 8080 for auth.min.api
+        if: ${{ github.event.inputs.project == 'Auth.Min.API' }}
+        id: check_container_auth
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
         run: |
           ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << 'EOF'
-            # Find the container ID of the currently running container on port 80 and stop it
+            # Find the container ID of the currently running container on port 8080 and stop it
             CONTAINER_ID=$(docker ps --filter "publish=8080" -q)
             if [ -n "$CONTAINER_ID" ]; then
-              echo "Stopping and removing running container bound to port 80"
+              echo "Stopping and removing auth.min.api running container bound to port 8080"
               docker stop $CONTAINER_ID
               docker container rm $CONTAINER_ID
               echo "running_container=true" >> "$GITHUB_OUTPUT"
             else
-              echo "No running container on port 80 found."
+              echo "No running container on port 8080 found."
+              echo "running_container=false" >> "$GITHUB_OUTPUT"
+            fi
+          EOF
+        continue-on-error: true
+
+      - name: Remove running container on port 7070 for frieght
+        if: ${{ github.event.inputs.project == 'Frieght.Api' }}
+        id: check_container_frieght
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << 'EOF'
+            # Find the container ID of the currently running container on port 7070 and stop it
+            CONTAINER_ID=$(docker ps --filter "publish=7070" -q)
+            if [ -n "$CONTAINER_ID" ]; then
+              echo "Stopping and removing frieght running container bound to port 7070"
+              docker stop $CONTAINER_ID
+              docker container rm $CONTAINER_ID
+              echo "running_container=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "No running container on port 7070 found."
               echo "running_container=false" >> "$GITHUB_OUTPUT"
             fi
           EOF
         continue-on-error: true
         
       - name: Check if image with same tag exists and remove it
-        if: "${{ steps.check_container.outputs.running_container == 'true' }}"
+        if: "${{ steps.check_container_auth.outputs.running_container == 'true' }} || ${{ steps.check_container_frieght.outputs.running_container == 'true' }}"
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
         run: |
@@ -332,7 +354,8 @@ jobs:
           EOF
         continue-on-error: true
 
-      - name: Deploy to Droplet
+      - name: Deploy auth.min.api to Droplet
+        if: ${{ github.event.inputs.project == 'Auth.Min.API' }}
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -352,8 +375,31 @@ jobs:
               echo "RELEASE_TAG is not set. Exiting."
               exit 1
             fi
-
             docker pull $RELEASE_TAG
-            # docker run -d -p 8080:80 --network afi-loadbaord-network $RELEASE_TAG
-            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=require;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 8080:8080 -p 443:443 $RELEASE_TAG
+            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 8080:8080 $RELEASE_TAG
+          EOF
+
+      - name: Deploy frieght to Droplet
+        if: ${{ github.event.inputs.project == 'Frieght.Api' }}
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+          DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+          DB_USERNAME: ${{ secrets.DEV_DB_USERNAME }}
+          DB_HOST: ${{ secrets.DEV_DB_HOST }}
+          DB_NAME: ${{ secrets.DEV_FRIEGHT_DB }}
+          JWT_SECRET: ${{ secrets.DEV_JWT_SECRET }}
+          PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: |
+          # Run commands on the remote server
+          echo "Deploying image $RELEASE_TAG in the Droplet VM"
+          ssh -o StrictHostKeyChecking=no -i droplet_private_ssh_key root@$DROPLET_IP << EOF
+            echo "RELEASE_TAG is: $RELEASE_TAG"
+            if [ -z "$RELEASE_TAG" ]; then
+              echo "RELEASE_TAG is not set. Exiting."
+              exit 1
+            fi
+            docker pull $RELEASE_TAG
+            docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 7070:80 $RELEASE_TAG
           EOF
