@@ -1,7 +1,9 @@
 ﻿using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
+using Frieght.Api.Infrastructure.Notifications;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Frieght.Api.Endpoints;
 
@@ -15,6 +17,8 @@ public static class LoadEndpoints
         var groups = routes.MapGroup("/loads")
             .WithParameterValidation();
 
+        
+
         groups.MapGet("/", async (ILoadRepository repository) => (await repository.GetLoads()).Select(load => load.asDto()));
         groups.MapGet("/{id}", async (ILoadRepository repository, int id) =>
         {
@@ -25,7 +29,8 @@ public static class LoadEndpoints
 
         }).WithName(GetLoadEndpointName);
 
-        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto) =>
+        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto,
+            ICarrierRepository carrierRepository, IMessageSender messageSender) =>
         {
             Load load = new()
             {
@@ -41,10 +46,30 @@ public static class LoadEndpoints
                 LoadStatus = loadDto.LoadStatus
  
             };
-            await repository.CreateLoad(load);
+            //await repository.CreateLoad(load);
+
+            //Notify Carrier of new load posting
+            await NotifyCarriers(carrierRepository, messageSender, load);
+
             return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.Id }, load);
 
         });
+
+        async Task<string> NotifyCarriers(ICarrierRepository carrierRepository, IMessageSender messageSender, Load load)
+        {
+            var carriers = await carrierRepository.GetCarriers();
+            if(carriers is not null)
+            {
+                foreach (var carrier in carriers)
+                {
+                   
+                    await messageSender.SendEmailAsync(carrier.CompanyEmail, $"From {load.Origin} to {load.destination}", load.LoadDetails);
+                }
+            }
+
+
+            return  "All carriers have been notified";
+        }
 
         groups.MapPut("/{id}", async (ILoadRepository repository, int id, UpdateLoadDto updatedLoadDto) =>
         {
@@ -76,6 +101,8 @@ public static class LoadEndpoints
             return Results.NoContent();
 
         });
+
+        
 
         return groups;
 
