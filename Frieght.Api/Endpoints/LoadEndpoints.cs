@@ -18,8 +18,8 @@ public static class LoadEndpoints
         groups.MapGet("/", async (ILoadRepository repository) => (await repository.GetLoads()).Select(load => load.asDto()));
         groups.MapGet("/{id}", async (ILoadRepository repository, int id) =>
         {
-            Load? game = await repository.GetLoad(id);
-            return game is not null ? Results.Ok(game.asDto()) : Results.NotFound();
+            Load? load = await repository.GetLoad(id);
+            return load is not null ? Results.Ok(load.asDto()) : Results.NotFound();
 
 
 
@@ -70,8 +70,8 @@ public static class LoadEndpoints
 
         groups.MapDelete("/{id}", async (ILoadRepository repository, int id) =>
         {
-            Load? game = await repository.GetLoad(id);
-            if (game is not null) await repository.DeleteLoad(id);
+            Load? load = await repository.GetLoad(id);
+            if (load is not null) await repository.DeleteLoad(id);
 
             return Results.NoContent();
 

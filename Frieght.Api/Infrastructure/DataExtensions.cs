@@ -24,7 +24,8 @@ public static  class DataExtensions
         services.AddDbContext<FrieghtDbContext>(options =>
             options.UseNpgsql(connString)) // Changed to UseNpgsql
             .AddScoped<ILoadRepository, LoadRepository>()
-            .AddScoped<ICarrierRepository, CarrierRepository>();
+            .AddScoped<ICarrierRepository, CarrierRepository>()
+            .AddScoped<IBidRepository, BidRepository>();
 
         return services;
     }
