@@ -25,7 +25,8 @@ public static  class DataExtensions
             options.UseNpgsql(connString)) // Changed to UseNpgsql
             .AddScoped<ILoadRepository, LoadRepository>()
             .AddScoped<ICarrierRepository, CarrierRepository>()
-            .AddScoped<IMessageSender, MessageSender>();
+            .AddScoped<IMessageSender, MessageSender>()
+            .AddScoped<IBidRepository, BidRepository>();
 
         return services;
     }

@@ -14,6 +14,7 @@ namespace Frieght.Api.Infrastructure
         }
         public DbSet<Load> Loads => Set<Load>();
         public DbSet<Carrier> Carriers => Set<Carrier>();
+        public DbSet<Bid> Bids => Set<Bid>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
