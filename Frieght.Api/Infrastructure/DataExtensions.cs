@@ -1,6 +1,6 @@
 ﻿using Frieght.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
-
+using Frieght.Api.Infrastructure.Notifications;
 
 namespace Frieght.Api.Infrastructure;
 
@@ -24,7 +24,8 @@ public static  class DataExtensions
         services.AddDbContext<FrieghtDbContext>(options =>
             options.UseNpgsql(connString)) // Changed to UseNpgsql
             .AddScoped<ILoadRepository, LoadRepository>()
-            .AddScoped<ICarrierRepository, CarrierRepository>();
+            .AddScoped<ICarrierRepository, CarrierRepository>()
+            .AddScoped<IMessageSender, MessageSender>();
 
         return services;
     }
