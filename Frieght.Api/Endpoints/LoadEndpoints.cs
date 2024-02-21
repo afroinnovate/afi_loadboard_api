@@ -46,7 +46,7 @@ public static class LoadEndpoints
                 LoadStatus = loadDto.LoadStatus
  
             };
-            //await repository.CreateLoad(load);
+            await repository.CreateLoad(load);
 
             //Notify Carrier of new load posting
             await NotifyCarriers(carrierRepository, messageSender, load);
