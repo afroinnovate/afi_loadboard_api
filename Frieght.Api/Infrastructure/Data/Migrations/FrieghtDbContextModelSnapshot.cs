@@ -73,15 +73,15 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DOTNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("EquipmentType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("MotorCarrierNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("USDOTNumber")
                         .IsRequired()
                         .HasColumnType("text");
 

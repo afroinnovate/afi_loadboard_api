@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Frieght.Api.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FrieghtDbContext))]
-    [Migration("20240311013045_LoadBidRelationship2")]
-    partial class LoadBidRelationship2
+    [Migration("20240311113354_LoadBidRelationship1")]
+    partial class LoadBidRelationship1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,15 +76,15 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DOTNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("EquipmentType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("MotorCarrierNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("USDOTNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
