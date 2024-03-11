@@ -34,11 +34,9 @@ public static class CarrierEndpoints
                 CompanyEmail = carrierDto.CompanyEmail,
                 CompanyPhone = carrierDto.CompanyPhone,
                 MotorCarrierNumber = carrierDto.MotorCarrierNumber,
-                USDOTNumber = carrierDto.USDOTNumber,
+                DOTNumber = carrierDto.DOTNumber,
                 EquipmentType = carrierDto.EquipmentType,
                 AvailableCapacity = carrierDto.AvailableCapacity,
-  
- 
             };
             await repository.CreateCarrier(carrier);
             return Results.CreatedAtRoute(GetCarrierEndpointName, new { id = carrier.Id }, carrier);
@@ -55,7 +53,7 @@ public static class CarrierEndpoints
             existingCarrier.CompanyPhone   = updatedCarrierDto.CompanyPhone;
             existingCarrier.CompanyEmail = updatedCarrierDto.CompanyEmail;
             existingCarrier.MotorCarrierNumber = updatedCarrierDto.MotorCarrierNumber;
-            existingCarrier.USDOTNumber = updatedCarrierDto.USDOTNumber;
+            existingCarrier.DOTNumber = updatedCarrierDto.DOTNumber;
             existingCarrier.EquipmentType = updatedCarrierDto.EquipmentType;
             existingCarrier.AvailableCapacity = updatedCarrierDto.AvailableCapacity;
 

@@ -8,7 +8,7 @@ public record CarrierDto
         string CompanyEmail,
         string CompanyPhone,
         string MotorCarrierNumber,
-        string USDOTNumber,
+        string DOTNumber,
         string EquipmentType ,
         double AvailableCapacity
    
@@ -16,16 +16,14 @@ public record CarrierDto
 
 public record CreateCarrierDto
 (
-
         string UserId,
         string CompanyName,
         string CompanyEmail,
         string CompanyPhone,
         string MotorCarrierNumber,
-        string USDOTNumber,
+        string DOTNumber,
         string EquipmentType,
         double AvailableCapacity
-   
 );
 
 public record UpdateCarrierDto
@@ -36,7 +34,7 @@ public record UpdateCarrierDto
         string CompanyEmail,
         string CompanyPhone,
         string MotorCarrierNumber,
-        string USDOTNumber,
+        string DOTNumber,
         string EquipmentType,
         double AvailableCapacity
     
