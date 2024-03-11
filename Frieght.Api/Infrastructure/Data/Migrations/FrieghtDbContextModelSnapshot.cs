@@ -73,15 +73,15 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DOTNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("EquipmentType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("MotorCarrierNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("USDOTNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -102,10 +102,16 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AcceptedBidId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Commodity")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("DeliveryDate")
                         .HasColumnType("timestamp with time zone");
@@ -119,6 +125,12 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("Modified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
 
                     b.Property<decimal>("OfferAmount")
                         .HasPrecision(10, 2)

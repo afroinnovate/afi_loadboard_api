@@ -43,11 +43,12 @@ public static class LoadEndpoints
                 Weight = loadDto.Weight,
                 OfferAmount = loadDto.OfferAmount,
                 LoadDetails = loadDto.LoadDetails,
-                LoadStatus = loadDto.LoadStatus
+                LoadStatus = loadDto.LoadStatus,
+                Created = DateTime.UtcNow
  
             };
             await repository.CreateLoad(load);
-
+            
             //Notify Carrier of new load posting
             await NotifyCarriers(carrierRepository, messageSender, load);
 

@@ -26,4 +26,11 @@ public class Load
     [Required]
     [StringLength(20)]
     public required string LoadStatus { get; set;}
+    public int? AcceptedBidId { get; set; }
+
+    // Navigation property for EF Core to establish the foreign key relationship
+    // public Bid? AcceptedBid { get; set; }
+    public DateTime Created { get; set; }
+    public DateTime? Modified { get; set; }
+    public string? ModifiedBy { get; set; }
 }

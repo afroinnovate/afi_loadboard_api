@@ -17,7 +17,11 @@ public static class EntityExtensions
                    load.Weight,
                    load.OfferAmount,
                    load.LoadDetails,
-                   load.LoadStatus
+                   load.LoadStatus,
+                   load.AcceptedBidId,
+                   load.Created,
+                   load.Modified,
+                   load.ModifiedBy
             );
     }
 
@@ -30,11 +34,9 @@ public static class EntityExtensions
             carrier.CompanyEmail,
             carrier.CompanyPhone,
             carrier.MotorCarrierNumber,
-            carrier.USDOTNumber,
+            carrier.DOTNumber,
             carrier.EquipmentType,
             carrier.AvailableCapacity
-      
-
             );
     }
 

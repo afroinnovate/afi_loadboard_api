@@ -14,7 +14,11 @@ public record LoadDto
     double Weight ,
     decimal OfferAmount,
     string LoadDetails,
-    string LoadStatus
+    string LoadStatus,
+    int? AcceptedBidId,
+    DateTime? Created,
+    DateTime? Modified,
+    string? ModifiedBy
 );
 
 public record CreateLoadDto
@@ -28,7 +32,8 @@ public record CreateLoadDto
     double Weight,
     decimal OfferAmount,
     [Required][StringLength(500)] string LoadDetails,
-    [Required][StringLength(20)] string LoadStatus
+    [Required][StringLength(20)] string LoadStatus,
+    DateTime Created
 );
 
 public record UpdateLoadDto
@@ -42,5 +47,8 @@ public record UpdateLoadDto
     double Weight,
     decimal OfferAmount,
     [Required][StringLength(500)] string LoadDetails,
-    [Required][StringLength(20)] string LoadStatus
+    [Required][StringLength(20)] string LoadStatus,
+    DateTime Modified,
+    int? AcceptedBidId,
+    string ModifiedBy
 );
