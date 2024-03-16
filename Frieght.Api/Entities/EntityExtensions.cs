@@ -48,8 +48,9 @@ public static class EntityExtensions
                    bid.CarrierId,
                    bid.BidAmount,
                    bid.BidStatus,
-                   bid.BiddingTime
-
+                   bid.BiddingTime,
+                   bid.UpdatedAt,
+                   bid.UpdatedBy
             );
     }
 

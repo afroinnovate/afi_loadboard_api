@@ -9,19 +9,18 @@ public record BidDto
         string CarrierId,
         decimal BidAmount,
         BidStatus BidStatus,
-        DateTimeOffset BiddingTime
-
+        DateTimeOffset BiddingTime,
+        DateTimeOffset UpdatedAt,
+        string UpdatedBy
 );
 
 public record CreateBidDto
 (
-
         int LoadId,
         string CarrierId,
         decimal BidAmount,
         BidStatus BidStatus,
         DateTimeOffset BiddingTime
-
 );
 
 public record UpdateBidDto
@@ -31,6 +30,7 @@ public record UpdateBidDto
         string CarrierId,
         decimal BidAmount,
         BidStatus BidStatus,
-        DateTimeOffset BiddingTime
-
+        DateTimeOffset BiddingTime,
+        DateTimeOffset UpdatedAt,
+        string UpdatedBy
 );
