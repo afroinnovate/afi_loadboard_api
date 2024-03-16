@@ -50,7 +50,8 @@ public static class BidEndpoints
             existingBid.CarrierId = updatedBidDto.CarrierId;
             existingBid.BidAmount = updatedBidDto.BidAmount;
             existingBid.BidStatus = updatedBidDto.BidStatus;  
-
+            existingBid.UpdatedAt = updatedBidDto.UpdatedAt;
+            existingBid.UpdatedBy = updatedBidDto.UpdatedBy;
 
             await repository.UpdateBid(existingBid);
 
