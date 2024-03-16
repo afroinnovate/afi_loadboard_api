@@ -7,6 +7,7 @@ public class Load
     public int Id { get; set; }
     [Required]
     public required string UserId { get; set; }
+    public Shipper CreatedBy { get; set; }
     [Required]
     [StringLength(100)]
     public required string Origin { get; set; }

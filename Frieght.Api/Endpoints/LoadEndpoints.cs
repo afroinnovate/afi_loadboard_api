@@ -35,6 +35,7 @@ public static class LoadEndpoints
             Load load = new()
             {
                 UserId = loadDto.UserId,
+                CreatedBy = loadDto.CreatedBy,
                 Origin = loadDto.Origin,
                 destination = loadDto.destination,
                 PickupDate = loadDto.PickupDate,
@@ -103,11 +104,7 @@ public static class LoadEndpoints
 
         });
 
-        
-
         return groups;
-
-
     }
 }
 
