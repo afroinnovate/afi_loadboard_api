@@ -226,9 +226,9 @@ public static class AuthEndpoints
     /// Load User endpoint to the specified route group.
     /// </summary>
     /// <param name="group">The route group builder.</param>
-    public static void AddGetUserEndpoint(this RouteGroupBuilder group, UserManager<AppUser> userManager)
+    public static void AddGetUserEndpoint(this RouteGroupBuilder group)
     {
-        group.MapGet("/{id}", async (string id) =>
+        group.MapGet("/{id}", async (string id, UserManager<AppUser> userManager) =>
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -236,6 +236,7 @@ public static class AuthEndpoints
             }
 
             var user = await userManager.FindByIdAsync(id);
+    
             if (user == null)
             {
                 return Results.NotFound("User not found");
@@ -273,6 +274,7 @@ public static class AuthEndpoints
         // Add registration and complete profile endpoints
         groups.AddRegistrationEndpoints(logger);
         groups.AddLoginEndpoint();
+        groups.AddGetUserEndpoint();
         groups.AddCompleteProfileEndpoint(rolesConfig);
 
         return groups;
