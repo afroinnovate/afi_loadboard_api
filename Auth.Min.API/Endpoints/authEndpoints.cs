@@ -223,6 +223,41 @@ public static class AuthEndpoints
     }
 
     /// <summary>
+    /// Load User endpoint to the specified route group.
+    /// </summary>
+    /// <param name="group">The route group builder.</param>
+    public static void AddGetUserEndpoint(this RouteGroupBuilder group, UserManager<AppUser> userManager)
+    {
+        group.MapGet("/{id}", async (string id) =>
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return Results.BadRequest("Invalid user ID");
+            }
+
+            var user = await userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return Results.NotFound("User not found");
+            }
+
+            return Results.Ok(new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Roles = await userManager.GetRolesAsync(user)
+            });
+        })
+        .WithName("GetUser")
+        .Produces<UserDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
+    }
+
+    /// <summary>
     /// Maps the authentication endpoints to the specified route builder.
     /// </summary>
     /// <param name="routes">The endpoint route builder.</param>
