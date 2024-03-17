@@ -88,6 +88,8 @@ public static class LoadEndpoints
             existingLoad.OfferAmount = updatedLoadDto.OfferAmount;
             existingLoad.LoadDetails = updatedLoadDto.LoadDetails;
             existingLoad.LoadStatus = updatedLoadDto.LoadStatus;
+            existingLoad.Modified = DateTime.UtcNow;
+            existingLoad.ModifiedBy = updatedLoadDto.ModifiedBy;
 
             await repository.UpdateLoad(existingLoad);
 
