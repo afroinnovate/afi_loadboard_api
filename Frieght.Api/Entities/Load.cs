@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Frieght.Api.Dtos;
 
 namespace Frieght.Api.Entities;
 
@@ -7,7 +8,7 @@ public class Load
     public int Id { get; set; }
     [Required]
     public required string UserId { get; set; }
-    public Shipper CreatedBy { get; set; }
+    public ShipperDto CreatedBy { get; set; }
     [Required]
     [StringLength(100)]
     public required string Origin { get; set; }

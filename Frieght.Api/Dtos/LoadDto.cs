@@ -7,7 +7,7 @@ public record LoadDto
 (
     int Id,
     string UserId,
-    Shipper CreatedBy,
+    ShipperDto CreatedBy,
     string Origin,
     string destination ,
     DateTime PickupDate,
@@ -26,7 +26,7 @@ public record LoadDto
 public record CreateLoadDto
 (
     string UserId,
-    Shipper CreatedBy,
+    ShipperDto CreatedBy,
     [Required][StringLength(100)] string Origin,
     [Required][StringLength(100)] string destination,
     DateTime PickupDate,
@@ -42,7 +42,6 @@ public record CreateLoadDto
 public record UpdateLoadDto
 (
     string UserId,
-    Shipper CreatedBy,
     [Required][StringLength(100)] string Origin,
     [Required][StringLength(100)] string destination,
     DateTime PickupDate,
@@ -55,4 +54,12 @@ public record UpdateLoadDto
     DateTime Modified,
     int? AcceptedBidId,
     string ModifiedBy
+);
+
+public record ShipperDto
+(
+    string? Id,
+    string? Email,  
+    string? FirstName,
+    string? LastName
 );
