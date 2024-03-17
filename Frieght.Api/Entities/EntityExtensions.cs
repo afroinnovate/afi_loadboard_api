@@ -9,7 +9,7 @@ public static class EntityExtensions
         return new LoadDto(
                    load.Id,
                    load.UserId,
-                   load.CreatedBy,
+                   new ShipperDto(load.ShipperUserId, load.Shipper?.Email, load.Shipper?.FirstName, load.Shipper?.LastName, load.Shipper?.CompanyName, load.Shipper?.DOTNumber),
                    load.Origin,
                    load.destination,
                    load.PickupDate,

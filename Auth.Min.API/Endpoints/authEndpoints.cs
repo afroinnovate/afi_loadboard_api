@@ -249,7 +249,9 @@ public static class AuthEndpoints
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
-                Roles = await userManager.GetRolesAsync(user)
+                Roles = await userManager.GetRolesAsync(user),
+                CompanyName = user.CompanyName,
+                DOTNumber = user.DotNumber
             });
         })
         .WithName("GetUser")

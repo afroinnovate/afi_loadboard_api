@@ -18,24 +18,42 @@ public static class LoadEndpoints
             .WithParameterValidation();
 
         
-
+        /// <summary>
+        /// Get all loads
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <returns></returns>
         groups.MapGet("/", async (ILoadRepository repository) => (await repository.GetLoads()).Select(load => load.asDto()));
+
+        /// <summary>
+        ///  Get Load by Id
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         groups.MapGet("/{id}", async (ILoadRepository repository, int id) =>
         {
             Load? load = await repository.GetLoad(id);
+            
             return load is not null ? Results.Ok(load.asDto()) : Results.NotFound();
-
-
 
         }).WithName(GetLoadEndpointName);
 
+        /// <summary>
+        /// Post a load
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="loadDto"></param>
+        /// <param name="carrierRepository"></param>
+        /// <param name="messageSender"></param>
+        /// <returns></returns>
         groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto,
             ICarrierRepository carrierRepository, IMessageSender messageSender) =>
         {
             Load load = new()
             {
                 UserId = loadDto.UserId,
-                CreatedBy = loadDto.CreatedBy,
+                ShipperUserId = loadDto.ShipperUserId,
                 Origin = loadDto.Origin,
                 destination = loadDto.destination,
                 PickupDate = loadDto.PickupDate,
@@ -73,6 +91,13 @@ public static class LoadEndpoints
             return  "All carriers have been notified";
         }
 
+        /// <summary>
+        /// Update load
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="id"></param>
+        /// <param name="updatedLoadDto"></param>
+        /// <returns></returns>
         groups.MapPut("/{id}", async (ILoadRepository repository, int id, UpdateLoadDto updatedLoadDto) =>
         {
             Load? existingLoad = await repository.GetLoad(id);
@@ -97,6 +122,12 @@ public static class LoadEndpoints
 
         });
 
+        /// <summary>
+        /// Delete load by ID
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         groups.MapDelete("/{id}", async (ILoadRepository repository, int id) =>
         {
             Load? load = await repository.GetLoad(id);

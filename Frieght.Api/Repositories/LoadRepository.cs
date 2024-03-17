@@ -29,12 +29,12 @@ namespace Frieght.Api.Repositories
 
         public async Task<Load?> GetLoad(int id)
         {
-           return await context.Loads.FindAsync(id);
+            return await context.Loads.Include(s => s.Shipper).FirstAsync(l => l.Id == id);
         }
 
         public async Task<IEnumerable<Load>> GetLoads()
         {
-            return await context.Loads.AsNoTracking().ToListAsync();
+            return await context.Loads.Include(s => s.Shipper).AsNoTracking().ToListAsync();
         }
 
         public async Task UpdateLoad(Load load)
