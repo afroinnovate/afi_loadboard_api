@@ -273,7 +273,7 @@ public static class AuthEndpoints
                 return Results.NotFound("User not found");
             }
             
-            logger.LogInformation("User found with ID {Id}, his email is {Email}", id, Email);
+            logger.LogInformation("User found with ID {Id}, his email is {Email}", id, user.Email);
             return Results.Ok(new UserDto
             {
                 Id = user.Id,
