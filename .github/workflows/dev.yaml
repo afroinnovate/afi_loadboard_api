@@ -18,6 +18,7 @@ env:
 
 jobs:
   prepare:
+    name: Preparing ${{ github.event.inputs.project }} for deployment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
