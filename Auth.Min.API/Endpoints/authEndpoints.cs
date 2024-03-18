@@ -21,6 +21,13 @@ namespace Auth.Min.API.Endpoints;
 /// </summary>
 public static class AuthEndpoints
 {
+     // Nested non-static class for logging purposes
+    private class LogCategory
+    {
+        // This class is intentionally left empty and is just used as a category for logging
+    }
+
+
     /// <summary>
     /// The name of the authentication endpoint group.
     /// </summary>
@@ -34,7 +41,7 @@ public static class AuthEndpoints
     public static void AddRegistrationEndpoints(this RouteGroupBuilder group, ILogger logger)
     {
             
-        group.MapPost("/register", async (RegistrationModel model, UserManager<AppUser> userManager, IEmailConfigService emailService) =>
+        group.MapPost("/register", async (RegistrationModel model, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
         { 
             logger.LogInformation("creating user");
             // Handle user registration logic here
@@ -43,6 +50,7 @@ public static class AuthEndpoints
 
             if (!result.Succeeded)
             {
+                logger.LogError("error creating user: {result.Errors}");
                 var errors = result.Errors.Select(e => e.Description).ToList();
                 logger.LogError($"error creating user: {errors}");
                 return Results.BadRequest(new { Errors = errors });
@@ -53,7 +61,7 @@ public static class AuthEndpoints
                 logger.LogInformation("sending email with token");
                 // Generate email confirmation token
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-
+                
                 // Create a confirmation link (you would replace "http://localhost:5000" with your front-end URL)
                 var confirmationLink = $"http://app.loadboard.afroinnovate.com/confirm-email?userId={user.Id}";
                 
@@ -106,10 +114,12 @@ public static class AuthEndpoints
     /// <param name="roleConfig">The role configuration.</param>
     public static void AddCompleteProfileEndpoint(this RouteGroupBuilder group, Roles roleConfig)
     {
-        group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager) => 
+        group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) => 
         {
+            logger.LogInformation("Completing profile for user {Username}", request.Username);
             if (request.Username == null)
             {
+                logger.LogWarning("Username is required");
                 return Results.BadRequest("Username is required");
             }
 
@@ -117,11 +127,13 @@ public static class AuthEndpoints
             var user = await userManager.FindByEmailAsync(request.Username);
             if (user == null)
             {
+                logger.LogWarning("User not found");
                 return Results.NotFound("User not Found");
             }
 
             if (request.FirstName != null || request.LastName != null || request.DotNumber != null || request.CompanyName != null)
             {
+                logger.LogInformation("Updating user details for user {Username}", request.Username);
                 // Update user details
                 user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "" ? user.FirstName : request.FirstName;
                 user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "" ? user.LastName : request.LastName;
@@ -136,35 +148,43 @@ public static class AuthEndpoints
                 }
             }
 
-            // Assign the role to the user
+            logger.LogInformation("User details updated successfully for user {Username}", request.Username);
+            // Assign th e role to the user
             if (!string.IsNullOrEmpty(request.Role))
             {
+                logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Username);
                 // check if the roles is valid 
                 // Check if the role is in the predefined roles
                 if (!IsRoleValid(request.Role, roleConfig))
                 {
+                    logger.LogWarning("Invalid role {Role}", request.Role);
                     return Results.BadRequest("Invalid role.");
                 }
 
                 // Check if the role exists in the database, create if not
                 if (!await roleManager.RoleExistsAsync(request.Role))
                 {
+                    logger.LogInformation("Role {Role} does not exist, creating it", request.Role);
                     await roleManager.CreateAsync(new IdentityRole(request.Role));
                 }
 
                 // Check if the role is valid
                 if (!await roleManager.RoleExistsAsync(request.Role) )
                 {
+                    logger.LogWarning("Invalid role {Role}", request.Role);
                     return Results.BadRequest("Invalid role.");
                 }
 
+                logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Username);
                 var roleResult = await userManager.AddToRoleAsync(user, request.Role);
                 if (!roleResult.Succeeded)
                 {
+                    logger.LogError("Error assigning role {Role} to user {Username}", request.Role, request.Username);
                     return Results.BadRequest(roleResult.Errors);
                 }
             }
 
+            logger.LogInformation("User profile updated successfully for user {Username}", request.Username);
             return Results.Ok("User profile updated successfully");
         }).WithName("CompleteProfile")
         .Produces(StatusCodes.Status200OK)
@@ -177,25 +197,31 @@ public static class AuthEndpoints
     /// <param name="group">The route group builder.</param>
     public static void AddLoginEndpoint(this RouteGroupBuilder group)
     {
-        group.MapPost("/login", async (LoginRequest model, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IJwtTokenGenerator tokenGenerator) =>
+        group.MapPost("/login", async (LoginRequest model, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IJwtTokenGenerator tokenGenerator, ILogger<LogCategory> logger) =>
         {
+            logger.LogInformation("Login attempt for user {Username}", model.Username);
+
             if ((string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password)) || (model.Username == "string" || model.Password == "string"))
             {
+                logger.LogWarning("Invalid login attempt: Username or password is missing");
                 return Results.BadRequest("Invalid username or password");
             }
 
             var user = await userManager.FindByNameAsync(model.Username);
             if (user == null || !(await signInManager.CheckPasswordSignInAsync(user, model.Password, false)).Succeeded)
             {
+                logger.LogWarning("Invalid login attempt: User {Username} not found", model.Username);
                 return Results.Unauthorized();
             }
 
             if (!user.EmailConfirmed)
             {
+                logger.LogWarning("Login attempt for unconfirmed user {Username}", model.Username);
                 return Results.BadRequest("User profile is not confirmed, please check your email and confirm it.");
             }
 
             var token = tokenGenerator.GenerateToken(user, await userManager.GetRolesAsync(user));
+            logger.LogInformation("User {Username} logged in successfully", model.Username);
 
             // You would also generate a refresh token here and save it to the database or a cache
 
@@ -211,7 +237,9 @@ public static class AuthEndpoints
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     UserName = user.UserName,
-                    Roles = await userManager.GetRolesAsync(user)
+                    Roles = await userManager.GetRolesAsync(user),
+                    CompanyName = user.CompanyName,
+                    DOTNumber = user.DotNumber
                 },
                 // refreshToken = "Your generated refresh token here"
             });
@@ -228,20 +256,24 @@ public static class AuthEndpoints
     /// <param name="group">The route group builder.</param>
     public static void AddGetUserEndpoint(this RouteGroupBuilder group)
     {
-        group.MapGet("/{id}", async (string id, UserManager<AppUser> userManager) =>
+        group.MapGet("/{id}", async (string id, UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
         {
+            logger.LogInformation("Getting user with ID {Id}", id);
             if (string.IsNullOrEmpty(id))
             {
+                logger.LogWarning("Invalid user ID");
                 return Results.BadRequest("Invalid user ID");
             }
 
-            var user = await userManager.FindByIdAsync(id);
-    
+            AppUser user = await userManager.FindByIdAsync(id);
+            logger.LogInformation("User found with ID {Id}", id);
             if (user == null)
             {
+                logger.LogWarning("User not found with ID {Id}", id);
                 return Results.NotFound("User not found");
             }
-
+            
+            logger.LogInformation("User found with ID {Id}, his email is {Email}", id, Email);
             return Results.Ok(new UserDto
             {
                 Id = user.Id,

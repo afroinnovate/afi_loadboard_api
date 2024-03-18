@@ -14,6 +14,11 @@ using Auth.Min.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// add logger service
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 
@@ -48,11 +53,11 @@ var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 
 // // Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
-    option.UseNpgsql(defaultConnection));
+option.UseNpgsql(defaultConnection));
 
 // Add DB context injection for dotnet run in appsettings.json
 // builder.Services.AddDbContext<AppDbContext>(option => 
-//     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    //     option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     
 // Register the EmailSender service as transient to create a new instance each time it's needed
 builder.Services.AddTransient<IEmailConfigService, EmailService>();
