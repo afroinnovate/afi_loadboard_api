@@ -11,7 +11,7 @@ public static class EntityExtensions
                    load.UserId,
                    new ShipperDto(load.ShipperUserId, load.Shipper?.Email, load.Shipper?.FirstName, load.Shipper?.LastName, load.Shipper?.CompanyName, load.Shipper?.DOTNumber),
                    load.Origin,
-                   load.destination,
+                   load.Destination,
                    load.PickupDate,
                    load.DeliveryDate,
                    load.Commodity,

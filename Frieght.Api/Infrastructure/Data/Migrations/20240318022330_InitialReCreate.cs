@@ -76,7 +76,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     UserId = table.Column<string>(type: "text", nullable: false),
                     ShipperUserId = table.Column<string>(type: "text", nullable: false),
                     Origin = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    destination = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Destination = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PickupDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Commodity = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),

@@ -14,7 +14,7 @@ public class Load
     public required string Origin { get; set; }
     [Required]
     [StringLength(100)]
-    public required string destination { get; set; }
+    public required string Destination { get; set; }
     public DateTime PickupDate { get; set; }
     public DateTime DeliveryDate { get; set; }
     [Required]
