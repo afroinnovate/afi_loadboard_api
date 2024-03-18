@@ -10,7 +10,7 @@ public record LoadDto
     // string ShipperUserId,
     ShipperDto CreatedBy,
     string Origin,
-    string destination ,
+    string Destination ,
     DateTime PickupDate,
     DateTime DeliveryDate,
     string Commodity,
@@ -28,8 +28,9 @@ public record CreateLoadDto
 (
     string UserId,
     string ShipperUserId,
+    ShipperDto CreatedBy,
     [Required][StringLength(100)] string Origin,
-    [Required][StringLength(100)] string destination,
+    [Required][StringLength(100)] string Destination,
     DateTime PickupDate,
     DateTime DeliveryDate,
     [Required][StringLength(30)] string Commodity,
@@ -44,7 +45,7 @@ public record UpdateLoadDto
 (
     string UserId,
     [Required][StringLength(100)] string Origin,
-    [Required][StringLength(100)] string destination,
+    [Required][StringLength(100)] string Destination,
     DateTime PickupDate,
     DateTime DeliveryDate,
     [Required][StringLength(30)] string Commodity,
@@ -65,7 +66,7 @@ public record UpdateLoadDto
 //     public string ShipperUserId { get; set; }
 //     public dynamic Shipper { get; set; }
 //     public string Origin { get; set; }
-//     public string destination { get; set; }
+//     public string Destination { get; set; }
 //     public DateTime PickupDate { get; set; }
 //     public DateTime DeliveryDate { get; set; }
 //     public string Commodity { get; set; }

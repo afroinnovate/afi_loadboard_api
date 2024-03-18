@@ -9,6 +9,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add logger
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add Repositories
 builder.Services.AddRepositories(builder.Configuration);
 

@@ -166,7 +166,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<double>("Weight")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("destination")
+                    b.Property<string>("Destination")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
