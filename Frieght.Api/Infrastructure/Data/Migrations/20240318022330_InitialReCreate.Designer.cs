@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Frieght.Api.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FrieghtDbContext))]
-    [Migration("20240317191256_FixCreatedByInLoad")]
-    partial class FixCreatedByInLoad
+    [Migration("20240318022330_InitialReCreate")]
+    partial class InitialReCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,31 +24,6 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Frieght.Api.Dtos.ShipperDto", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DOTNumber")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ShipperDto");
-                });
 
             modelBuilder.Entity("Frieght.Api.Entities.Bid", b =>
                 {
@@ -149,9 +124,6 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("DeliveryDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -183,6 +155,10 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<DateTime>("PickupDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ShipperUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -197,18 +173,50 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("ShipperUserId");
 
                     b.ToTable("Loads");
                 });
 
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DOTNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Shipper");
+                });
+
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
                 {
-                    b.HasOne("Frieght.Api.Dtos.ShipperDto", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById");
+                    b.HasOne("Frieght.Api.Entities.Shipper", "Shipper")
+                        .WithMany("Loads")
+                        .HasForeignKey("ShipperUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Shipper");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Navigation("Loads");
                 });
 #pragma warning restore 612, 618
         }
