@@ -39,11 +39,19 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset>("BiddingTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CarrierId")
-                        .HasColumnType("integer");
+                    b.Property<string>("CarrierId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("LoadId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -144,6 +152,10 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<DateTime>("PickupDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ShipperUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -158,7 +170,50 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ShipperUserId");
+
                     b.ToTable("Loads");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DOTNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Shipper");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
+                {
+                    b.HasOne("Frieght.Api.Entities.Shipper", "Shipper")
+                        .WithMany("Loads")
+                        .HasForeignKey("ShipperUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shipper");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Navigation("Loads");
                 });
 #pragma warning restore 612, 618
         }

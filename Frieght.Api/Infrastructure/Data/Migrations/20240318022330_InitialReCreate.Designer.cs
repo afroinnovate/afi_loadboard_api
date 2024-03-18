@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Frieght.Api.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FrieghtDbContext))]
-    [Migration("20231111235629_pgInitial")]
-    partial class pgInitial
+    [Migration("20240318022330_InitialReCreate")]
+    partial class InitialReCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,42 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Frieght.Api.Entities.Bid", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BidAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("BidStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("BiddingTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CarrierId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("LoadId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bids");
+                });
 
             modelBuilder.Entity("Frieght.Api.Entities.Carrier", b =>
                 {
@@ -48,15 +84,15 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DOTNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("EquipmentType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("MotorCarrierNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("USDOTNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -77,10 +113,16 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AcceptedBidId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Commodity")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("DeliveryDate")
                         .HasColumnType("timestamp with time zone");
@@ -95,6 +137,12 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<DateTime?>("Modified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
                     b.Property<decimal>("OfferAmount")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -106,6 +154,10 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.Property<DateTime>("PickupDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ShipperUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -121,7 +173,50 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ShipperUserId");
+
                     b.ToTable("Loads");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DOTNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Shipper");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
+                {
+                    b.HasOne("Frieght.Api.Entities.Shipper", "Shipper")
+                        .WithMany("Loads")
+                        .HasForeignKey("ShipperUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shipper");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+                {
+                    b.Navigation("Loads");
                 });
 #pragma warning restore 612, 618
         }

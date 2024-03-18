@@ -9,6 +9,7 @@ public static class EntityExtensions
         return new LoadDto(
                    load.Id,
                    load.UserId,
+                   new ShipperDto(load.ShipperUserId, load.Shipper?.Email, load.Shipper?.FirstName, load.Shipper?.LastName, load.Shipper?.CompanyName, load.Shipper?.DOTNumber),
                    load.Origin,
                    load.destination,
                    load.PickupDate,
@@ -48,8 +49,9 @@ public static class EntityExtensions
                    bid.CarrierId,
                    bid.BidAmount,
                    bid.BidStatus,
-                   bid.BiddingTime
-
+                   bid.BiddingTime,
+                   bid.UpdatedAt,
+                   bid.UpdatedBy
             );
     }
 

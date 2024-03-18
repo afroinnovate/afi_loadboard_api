@@ -11,6 +11,16 @@ public static  class DataExtensions
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<FrieghtDbContext>();
         await dbContext.Database.MigrateAsync();
+
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the exception and handle it as needed
+            Console.WriteLine($"Migration failed: {ex.Message}");
+        }
     }
 
     public static IServiceCollection AddRepositories(this IServiceCollection services, IConfiguration configuration)
