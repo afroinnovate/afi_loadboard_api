@@ -11,7 +11,7 @@ public record BidDto
         BidStatus BidStatus,
         DateTimeOffset BiddingTime,
         DateTimeOffset UpdatedAt,
-        string UpdatedBy
+        string? UpdatedBy
 );
 
 public record CreateBidDto

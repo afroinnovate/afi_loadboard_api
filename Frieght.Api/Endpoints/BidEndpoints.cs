@@ -88,7 +88,7 @@ public static class BidEndpoints
             }
         });
 
-        groups.MapDelete("/{id}", async (IBidRepository repository, int id) =>
+        groups.MapDelete("/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
         {
             try
             {

@@ -11,5 +11,5 @@ public class Bid
     public BidStatus BidStatus { get; set; }
     public DateTimeOffset BiddingTime { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-    public string UpdatedBy { get; set; }
+    public string? UpdatedBy { get; set; }
 }
