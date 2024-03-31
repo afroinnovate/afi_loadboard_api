@@ -38,6 +38,23 @@ public static class BidEndpoints
             }
         }).WithName(GetBidEndpointName);
 
+        groups.MapGet("/load/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Getting Bid by loadId {0}", id);
+
+                Bid? bid = await repository.GetBidByLoadId(id);
+                logger.LogInformation("Bid found: {0}", bid);
+                return bid is not null ? Results.Ok(bid.asDto()) : Results.NotFound();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting bid by Load id {0}", id);
+                return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
+            }
+        }).WithName("GetBidByLoadId");
+
         groups.MapPost("/", async (IBidRepository repository, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
         {
             try

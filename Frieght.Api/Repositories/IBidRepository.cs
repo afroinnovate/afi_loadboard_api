@@ -7,6 +7,7 @@ namespace Frieght.Api.Repositories
         Task CreateBid(Bid bid);
         Task DeleteBid(int id);
         Task<Bid?> GetBid(int id);
+        Task<Bid?> GetBidByLoadId(int id);
         Task<IEnumerable<Bid>> GetBids();
         Task UpdateBid(Bid bid);
     }
