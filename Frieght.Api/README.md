@@ -129,8 +129,15 @@ Go to `Infrastructure > DataExtension.cs
 ## Creating Migration for the first time
 1. Create migration: 
     ```dotnet ef migrations add <MigrationName> --output-dir ./Infrastructure/Data/Migrations```
+2. If you're running the app locally go to Infrastructure folder -> DataExtensions and then comment out this lines and comment the second line.
+- comment out ```var connString = Environment.GetEnvironmentVariable("DefaultConnection");```
+- uncomment For non docker testing
+    ```
+       var connString = configuration.GetConnectionString("DefaultConnection"); // to retrieve connection from configuration file like appsettings.json
+        Console.WriteLine($"DefaultConnection: {connString}"); 
+    ```
 2. Update the database
-    ```dotnet database update```
+    ```dotnet run``` on freight.api directory
 
 
 

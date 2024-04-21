@@ -12,4 +12,8 @@ public class Bid
     public DateTimeOffset BiddingTime { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
+
+    // Navigation properties
+    public Load Load { get; set; }
+    public User Carrier { get; set; }
 }

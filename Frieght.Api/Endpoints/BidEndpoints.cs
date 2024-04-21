@@ -20,16 +20,16 @@ public static class BidEndpoints
         var groups = routes.MapGroup("/bids")
             .WithParameterValidation();
 
-        groups.MapGet("/", async (IBidRepository repository) => (await repository.GetBids()).Select(bid => bid.asDto()));
+        groups.MapGet("/", async (IBidRepository repository) =>
+            (await repository.GetBids()).Select(bid => bid.asDto()));
+
         groups.MapGet("/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
         {
             try
             {
-                logger.LogInformation("Getting Bid by Id {0}", id);
-
-                Bid? bid = await repository.GetBid(id);
-                logger.LogInformation("Bid found: {0}", bid);
-                return bid is not null ? Results.Ok(bid.asDto()) : Results.NotFound();
+                logger.LogInformation("Getting Bid by Id {Id}", id);
+                var bid = await repository.GetBid(id);
+                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -42,11 +42,10 @@ public static class BidEndpoints
         {
             try
             {
-                logger.LogInformation("Getting Bid by loadId {0}", id);
-
-                Bid? bid = await repository.GetBidByLoadId(id);
+                logger.LogInformation("Getting Bid by LoadId {LoadId}", id);
+                var bid = await repository.GetBidByLoadId(id);
                 logger.LogInformation("Bid found: {0}", bid);
-                return bid is not null ? Results.Ok(bid.asDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -55,22 +54,27 @@ public static class BidEndpoints
             }
         }).WithName("GetBidByLoadId");
 
-        groups.MapPost("/", async (IBidRepository repository, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
+        groups.MapPost("/", async (IBidRepository repository, ICarrierRepository carrierRepo, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Creating Bid");
-                Bid bid = new()
+                var bid = new Bid
                 {
                     LoadId = bidDto.LoadId,
                     CarrierId = bidDto.CarrierId,
                     BidAmount = bidDto.BidAmount,
                     BidStatus = bidDto.BidStatus,
+                    BiddingTime = DateTimeOffset.UtcNow,  // Set server-side for consistency
+                    UpdatedAt = DateTimeOffset.UtcNow  // Initial set at creation
                 };
-                logger.LogInformation("Bid created: {0}", bid);
-                await repository.CreateBid(bid);
+
+                var carrier = await carrierRepo.GetCarrier(bidDto.CarrierId);
+                if (carrier == null) return Results.NotFound("Carrier not found");
+                await repository.CreateBid(bid, carrier);
+                logger.LogInformation("Bid Created: {Bid}", bid);
                 logger.LogInformation("returing creation response for bid: {0}", bid);
-                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, bid);
+                return Results.CreatedAtRoute("GetBid", new { id = bid.Id }, bid.asDto());
             }
             catch (Exception ex)
             {
@@ -83,19 +87,19 @@ public static class BidEndpoints
         {
             try
             {
-                logger.LogInformation("Updating Bid by Id {0}", id);
-                Bid? existingBid = await repository.GetBid(id);
-                if (existingBid is null) return Results.NotFound();
-        
+                logger.LogInformation("Updating Bid by Id {Id}", id);
+                var existingBid = await repository.GetBid(id);
+                if (existingBid == null) return Results.NotFound();
+
                 existingBid.LoadId = updatedBidDto.LoadId;
                 existingBid.CarrierId = updatedBidDto.CarrierId;
                 existingBid.BidAmount = updatedBidDto.BidAmount;
                 existingBid.BidStatus = updatedBidDto.BidStatus;  
-                existingBid.UpdatedAt = updatedBidDto.UpdatedAt;
+                existingBid.UpdatedAt = DateTimeOffset.UtcNow;  // Set server-side
                 existingBid.UpdatedBy = updatedBidDto.UpdatedBy;
 
-                logger.LogInformation("Bid updated: {0}", existingBid);
                 await repository.UpdateBid(existingBid);
+                logger.LogInformation("Bid Updated: {Bid}", existingBid);
                 return Results.NoContent();
             }
             catch (Exception ex)
@@ -105,14 +109,16 @@ public static class BidEndpoints
             }
         });
 
-        groups.MapDelete("/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
+        groups.MapDelete("/{id}", async (IBidRepository repository, int id, ILogger<LoggerCategory> logger) =>
         {
             try
             {
-                logger.LogInformation("Deleting Bid by Id {0}", id);
-                Bid? bid = await repository.GetBid(id);
-                if (bid is not null) await repository.DeleteBid(id);
-                logger.LogInformation("Bid deleted: {0}", bid);
+                logger.LogInformation("Deleting Bid by Id {Id}", id);
+                var bid = await repository.GetBid(id);
+                if (bid == null) return Results.NotFound();
+
+                await repository.DeleteBid(id);
+                logger.LogInformation("Bid Deleted: {Id}", id);
                 return Results.NoContent();
             }
             catch (Exception ex)

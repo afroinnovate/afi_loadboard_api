@@ -4,9 +4,9 @@ namespace Frieght.Api.Repositories;
 
 public interface ICarrierRepository
 {
-    Task<IEnumerable<Carrier>> GetCarriers();
-    Task<Carrier?> GetCarrier(int id);
-    Task CreateCarrier(Carrier carrier);
-    Task DeleteCarrier(Carrier carrier);
-    Task UpdateCarrier(Carrier carrier);
+    Task<IEnumerable<User>> GetCarriers();
+    Task<User?> GetCarrier(string id);
+    Task CreateCarrier(User carrier);
+    Task DeleteCarrier(User carrier);
+    Task UpdateCarrier(User carrier);
 }

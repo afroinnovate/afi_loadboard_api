@@ -31,7 +31,8 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("BidAmount")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("BidStatus")
                         .HasColumnType("integer");
@@ -54,70 +55,27 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CarrierId");
+
+                    b.HasIndex("LoadId");
+
                     b.ToTable("Bids");
-                });
-
-            modelBuilder.Entity("Frieght.Api.Entities.Carrier", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("AvailableCapacity")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("CompanyEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyPhone")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DOTNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EquipmentType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MotorCarrierNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Carriers");
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("LoadId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AcceptedBidId")
-                        .HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LoadId"));
 
                     b.Property<string>("Commodity")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("DeliveryDate")
@@ -138,7 +96,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<DateTime?>("Modified")
+                    b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ModifiedBy")
@@ -160,24 +118,25 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<double>("Weight")
                         .HasColumnType("double precision");
 
-                    b.HasKey("Id");
+                    b.HasKey("LoadId");
 
                     b.HasIndex("ShipperUserId");
+
+                    b.HasIndex("Origin", "Destination");
 
                     b.ToTable("Loads");
                 });
 
-            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+            modelBuilder.Entity("Frieght.Api.Entities.User", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("text");
+
+                    b.Property<double?>("AvailableCapacity")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("CompanyName")
                         .HasColumnType("text");
@@ -186,32 +145,71 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EquipmentType")
                         .HasColumnType("text");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MotorCarrierNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
                         .HasColumnType("text");
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Shipper");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.Bid", b =>
+                {
+                    b.HasOne("Frieght.Api.Entities.User", "Carrier")
+                        .WithMany("Bids")
+                        .HasForeignKey("CarrierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Frieght.Api.Entities.Load", "Load")
+                        .WithMany()
+                        .HasForeignKey("LoadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Carrier");
+
+                    b.Navigation("Load");
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
                 {
-                    b.HasOne("Frieght.Api.Entities.Shipper", "Shipper")
+                    b.HasOne("Frieght.Api.Entities.User", "Shipper")
                         .WithMany("Loads")
                         .HasForeignKey("ShipperUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Shipper");
                 });
 
-            modelBuilder.Entity("Frieght.Api.Entities.Shipper", b =>
+            modelBuilder.Entity("Frieght.Api.Entities.User", b =>
                 {
+                    b.Navigation("Bids");
+
                     b.Navigation("Loads");
                 });
 #pragma warning restore 612, 618

@@ -4,11 +4,9 @@ namespace Frieght.Api.Entities;
 
 public class Load
 {
-    public int Id { get; set; }
+    public int LoadId { get; set; }
     [Required]
-    public required string UserId { get; set; }
     public required string ShipperUserId { get; set; }
-    public Shipper Shipper { get; set; }
     [Required]
     [StringLength(100)]
     public required string Origin { get; set; }
@@ -28,11 +26,10 @@ public class Load
     [Required]
     [StringLength(20)]
     public required string LoadStatus { get; set;}
-    public int? AcceptedBidId { get; set; }
-
-    // Navigation property for EF Core to establish the foreign key relationship
-    // public Bid? AcceptedBid { get; set; }
-    public DateTime Created { get; set; }
-    public DateTime? Modified { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ModifiedAt { get; set; }
     public string? ModifiedBy { get; set; }
+
+    // Navigation property to Shipper
+    public User Shipper { get; set; }
 }
