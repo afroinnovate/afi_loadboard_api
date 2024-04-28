@@ -2,40 +2,42 @@
 
 public record CarrierDto
 (
-        int Id,
-        string UserId,
-        string CompanyName,
-        string CompanyEmail,
-        string CompanyPhone,
-        string MotorCarrierNumber,
-        string DOTNumber,
-        string EquipmentType ,
-        double AvailableCapacity
-   
+    string UserId, // Unique identifier
+    string Email,
+    string FirstName,
+    string LastName,
+    string? Phone,
+    string? MotorCarrierNumber,
+    string? DOTNumber,
+    string? EquipmentType,
+    double? AvailableCapacity,
+    string? CompanyName
 );
 
 public record CreateCarrierDto
 (
-        string UserId,
-        string CompanyName,
-        string CompanyEmail,
-        string CompanyPhone,
-        string MotorCarrierNumber,
-        string DOTNumber,
-        string EquipmentType,
-        double AvailableCapacity
+    string UserId, // Unique identifier
+    string Email,
+    string FirstName,
+    string LastName,
+    string? Phone,
+    string? MotorCarrierNumber,
+    string? DOTNumber,
+    string? EquipmentType,
+    double? AvailableCapacity,
+    string? CompanyName
 );
 
 public record UpdateCarrierDto
 (
-        int Id,
-        string UserId,
-        string CompanyName,
-        string CompanyEmail,
-        string CompanyPhone,
-        string MotorCarrierNumber,
-        string DOTNumber,
-        string EquipmentType,
-        double AvailableCapacity
-    
+    string UserId, // Unique identifier
+    string Email,
+    string FirstName,
+    string LastName,
+    string? Phone,
+    string? MotorCarrierNumber,
+    string? DOTNumber,
+    string? EquipmentType,
+    double? AvailableCapacity,
+    string? CompanyName
 );

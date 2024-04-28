@@ -15,43 +15,43 @@ public static class CarrierEndpoints
         var groups = routes.MapGroup("/carriers")
             .WithParameterValidation();
 
-        groups.MapGet("/", async (ICarrierRepository repository) => (await repository.GetCarriers()).Select(carrier => carrier.asDto()));
-        groups.MapGet("/{id}", async (ICarrierRepository repository, int id) =>
+        groups.MapGet("/", async (ICarrierRepository repository) => (await repository.GetCarriers()).Select(carrier => carrier.asCarrierDto()));
+        groups.MapGet("/{id}", async (ICarrierRepository repository, string id) =>
         {
-            Carrier? carrier = await repository.GetCarrier(id);
-            return carrier is not null ? Results.Ok(carrier.asDto()) : Results.NotFound();
-
-
+            User? carrier = await repository.GetCarrier(id);
+            return carrier is not null ? Results.Ok(carrier.asCarrierDto()) : Results.NotFound();
 
         }).WithName(GetCarrierEndpointName);
 
         groups.MapPost("/", async (ICarrierRepository repository, CreateCarrierDto carrierDto) =>
         {
-            Carrier carrier = new()
+            User carrier = new()
             {
                 UserId = carrierDto.UserId,
+                FirstName = carrierDto.FirstName,
+                LastName = carrierDto.LastName,
                 CompanyName = carrierDto.CompanyName,
-                CompanyEmail = carrierDto.CompanyEmail,
-                CompanyPhone = carrierDto.CompanyPhone,
+                Email = carrierDto.Email,
+                Phone = carrierDto.Phone,
                 MotorCarrierNumber = carrierDto.MotorCarrierNumber,
                 DOTNumber = carrierDto.DOTNumber,
                 EquipmentType = carrierDto.EquipmentType,
                 AvailableCapacity = carrierDto.AvailableCapacity,
             };
             await repository.CreateCarrier(carrier);
-            return Results.CreatedAtRoute(GetCarrierEndpointName, new { id = carrier.Id }, carrier);
+            return Results.CreatedAtRoute(GetCarrierEndpointName, new { id = carrier.UserId }, carrier);
 
         });
 
-        groups.MapPut("/{id}", async (ICarrierRepository repository, int id, UpdateCarrierDto updatedCarrierDto) =>
+        groups.MapPut("/{id}", async (ICarrierRepository repository, string id, UpdateCarrierDto updatedCarrierDto) =>
         {
-            Carrier? existingCarrier = await repository.GetCarrier(id);
+            User? existingCarrier = await repository.GetCarrier(id);
             if (existingCarrier is null) return Results.NotFound();
      
             existingCarrier.UserId = updatedCarrierDto.UserId;
             existingCarrier.CompanyName = updatedCarrierDto.CompanyName;    
-            existingCarrier.CompanyPhone   = updatedCarrierDto.CompanyPhone;
-            existingCarrier.CompanyEmail = updatedCarrierDto.CompanyEmail;
+            existingCarrier.Phone   = updatedCarrierDto.Phone;
+            existingCarrier.Email = updatedCarrierDto.Email;
             existingCarrier.MotorCarrierNumber = updatedCarrierDto.MotorCarrierNumber;
             existingCarrier.DOTNumber = updatedCarrierDto.DOTNumber;
             existingCarrier.EquipmentType = updatedCarrierDto.EquipmentType;
@@ -63,9 +63,9 @@ public static class CarrierEndpoints
 
         });
 
-        groups.MapDelete("/{id}", async (ICarrierRepository repository, int id) =>
+        groups.MapDelete("/{id}", async (ICarrierRepository repository, string id) =>
         {
-            Carrier? carrier = await repository.GetCarrier(id);
+            User? carrier = await repository.GetCarrier(id);
             if (carrier is not null) await repository.DeleteCarrier(carrier);
 
             return Results.NoContent();

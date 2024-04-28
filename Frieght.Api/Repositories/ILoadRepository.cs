@@ -8,7 +8,7 @@ public interface ILoadRepository
 {
     Task<IEnumerable<Load>> GetLoads();
     Task<Load?> GetLoad(int id);
-    Task CreateLoad(CreateLoadDto loadDto);
+    Task CreateLoad(Load load, User shipper);
     Task DeleteLoad(int id);
     Task UpdateLoad(Load load);
 }
