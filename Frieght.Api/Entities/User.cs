@@ -11,6 +11,7 @@ public class User
     public string? EquipmentType { get; set; } // Primarily for carriers
     public double? AvailableCapacity { get; set; } // Primarily for carriers
     public string? CompanyName { get; set; } // Could be used by both, but mainly carriers
+    public string? UserType { get; set; } // Shipper or Carrier
 
     // Navigation properties
     public virtual ICollection<Load>? Loads { get; set; } = new List<Load>(); // List of loads posted by the user

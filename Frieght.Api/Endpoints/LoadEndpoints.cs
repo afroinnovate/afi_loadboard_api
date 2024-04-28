@@ -22,7 +22,7 @@ public static class LoadEndpoints
         var groups = routes.MapGroup("/loads")
             .WithParameterValidation();
 
-        
+        #region GetLoad
         /// <summary>
         /// Get all loads
         /// </summary>
@@ -41,7 +41,9 @@ public static class LoadEndpoints
                 return Results.Problem("An error occurred while retrieving loads", statusCode: 500);
             }
         });
+        #endregion
 
+        #region GetLoadById
         /// <summary>
         ///  Get Load by Id
         /// </summary>
@@ -62,7 +64,9 @@ public static class LoadEndpoints
                 return Results.Problem("An error occurred while retrieving the load", statusCode: 500);
             }
         }).WithName(GetLoadEndpointName);
+        #endregion
 
+        #region PostLoad
         /// <summary>
         /// Post a load
         /// </summary>
@@ -71,7 +75,7 @@ public static class LoadEndpoints
         /// <param name="carrierRepository"></param>
         /// <param name="messageSender"></param>
         /// <returns></returns>
-        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, ILogger<LoggerCategory> logger) =>
+        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, ICarrierRepository carrierRepository, IMessageSender messageSender, ILogger<LoggerCategory> logger) =>
         {
             logger.LogInformation("Creating Load");
             try
@@ -108,6 +112,7 @@ public static class LoadEndpoints
                     DOTNumber = loadDto.CreatedBy.DOTNumber,
                     FirstName = loadDto.CreatedBy.FirstName,
                     LastName = loadDto.CreatedBy.LastName,
+                    UserType = "shipper"
                 };
 
                 await repository.CreateLoad(load, shipper);
@@ -130,11 +135,21 @@ public static class LoadEndpoints
             }
 
         });
+        #endregion
 
+        #region NotifyCarriers
+        /// <summary>
+        /// Notify carriers
+        /// </summary>
+        /// <param name="carrierRepository"></param>
+        /// <param name="messageSender"></param>
+        /// <param name="load"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
         async Task<string> NotifyCarriers(ICarrierRepository carrierRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
         {
             logger.LogInformation("Getting Carriers");
-            var carriers = await carrierRepository.GetCarriers();
+            var carriers = await carrierRepository.GetCarrierByUserType("carrier");
             if(carriers is not null)
             {
                 logger.LogInformation("Carriers found: {0}", carriers.Count());
@@ -153,7 +168,9 @@ public static class LoadEndpoints
             }
             return  "All carriers have been notified";
         }
+        #endregion
 
+        #region UpdateLoad
         /// <summary>
         /// Update load
         /// </summary>
@@ -197,7 +214,9 @@ public static class LoadEndpoints
                 return Results.Problem("An error occurred while updating the load", statusCode: 500);
             }
         });
+        #endregion
 
+        #region DeleteLoad
         /// <summary>
         /// Delete load by ID
         /// </summary>
@@ -222,9 +241,8 @@ public static class LoadEndpoints
             }
 
         });
+        #endregion
 
         return groups;
     }
 }
-
-

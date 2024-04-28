@@ -15,13 +15,11 @@ public static class CarrierEndpoints
         var groups = routes.MapGroup("/carriers")
             .WithParameterValidation();
 
-        groups.MapGet("/", async (ICarrierRepository repository) => (await repository.GetCarriers()).Select(carrier => carrier.asDto()));
+        groups.MapGet("/", async (ICarrierRepository repository) => (await repository.GetCarriers()).Select(carrier => carrier.asCarrierDto()));
         groups.MapGet("/{id}", async (ICarrierRepository repository, string id) =>
         {
             User? carrier = await repository.GetCarrier(id);
-            return carrier is not null ? Results.Ok(carrier.asDto()) : Results.NotFound();
-
-
+            return carrier is not null ? Results.Ok(carrier.asCarrierDto()) : Results.NotFound();
 
         }).WithName(GetCarrierEndpointName);
 

@@ -36,5 +36,5 @@ public record CreateBidDto
     BidStatus BidStatus,
     DateTimeOffset BiddingTime,
     DateTimeOffset UpdatedAt,
-    string UpdatedBy
+    CarrierDto CreatedBy
 );

@@ -20,9 +20,12 @@ public static class BidEndpoints
         var groups = routes.MapGroup("/bids")
             .WithParameterValidation();
 
+        #region GetBidEndpoints
         groups.MapGet("/", async (IBidRepository repository) =>
             (await repository.GetBids()).Select(bid => bid.asDto()));
+        #endregion
 
+        #region GetBidByIdEndpoint
         groups.MapGet("/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
         {
             try
@@ -37,28 +40,23 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
             }
         }).WithName(GetBidEndpointName);
+        #endregion
 
-        groups.MapGet("/load/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
-        {
-            try
-            {
-                logger.LogInformation("Getting Bid by LoadId {LoadId}", id);
-                var bid = await repository.GetBidByLoadId(id);
-                logger.LogInformation("Bid found: {0}", bid);
-                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An error occurred while getting bid by Load id {0}", id);
-                return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
-            }
-        }).WithName("GetBidByLoadId");
-
+        #region CreateBidEndpoint
         groups.MapPost("/", async (IBidRepository repository, ICarrierRepository carrierRepo, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Creating Bid");
+                // First findout if the same person is trying to bid on the same load twice
+                logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
+                var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
+                
+                if (existingBid != null) {
+                    logger.LogError("Bid already exists for the same load and carrier");
+                    return Results.Conflict("Bid already exists for the same load and carrier");
+                }
+
                 var bid = new Bid
                 {
                     LoadId = bidDto.LoadId,
@@ -69,12 +67,26 @@ public static class BidEndpoints
                     UpdatedAt = DateTimeOffset.UtcNow  // Initial set at creation
                 };
 
-                var carrier = await carrierRepo.GetCarrier(bidDto.CarrierId);
-                if (carrier == null) return Results.NotFound("Carrier not found");
+                var carrier = new User
+                {
+                    UserId = bidDto.CarrierId,
+                    FirstName = bidDto.CreatedBy.FirstName,
+                    LastName = bidDto.CreatedBy.LastName,
+                    Email = bidDto.CreatedBy.Email,
+                    Phone = bidDto.CreatedBy.Phone,
+                    MotorCarrierNumber = bidDto.CreatedBy.MotorCarrierNumber,
+                    DOTNumber = bidDto.CreatedBy.DOTNumber,
+                    EquipmentType = bidDto.CreatedBy.EquipmentType,
+                    AvailableCapacity = bidDto.CreatedBy.AvailableCapacity,
+                    CompanyName = bidDto.CreatedBy.CompanyName,
+                    UserType = "carrier"
+                };
+
+                logger.LogInformation("Persisting bids in the db for carrier: {Carrier}", carrier);
                 await repository.CreateBid(bid, carrier);
                 logger.LogInformation("Bid Created: {Bid}", bid);
                 logger.LogInformation("returing creation response for bid: {0}", bid);
-                return Results.CreatedAtRoute("GetBid", new { id = bid.Id }, bid.asDto());
+                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, bid.asDto());
             }
             catch (Exception ex)
             {
@@ -82,7 +94,9 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while creating bid", statusCode: 500);
             }
         });
+        #endregion
 
+        #region UpdateBidEndpoint
         groups.MapPut("/{id}", async (IBidRepository repository, int id, UpdateBidDto updatedBidDto, ILogger<LoggerCategory> logger) =>
         {
             try
@@ -108,7 +122,9 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while updating bid", statusCode: 500);
             }
         });
+        #endregion
 
+        #region DeleteBidEndpoint
         groups.MapDelete("/{id}", async (IBidRepository repository, int id, ILogger<LoggerCategory> logger) =>
         {
             try
@@ -127,9 +143,8 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while deleting bid", statusCode: 500);
             }
         });
+        #endregion
 
         return groups;
     }
 }
-
-

@@ -9,7 +9,7 @@ public static class EntityExtensions
         return new LoadDto(
             load.LoadId,
             load.ShipperUserId,
-            load.Shipper?.AsShipperDto(), // Transform User entity to ShipperDto
+            load.Shipper?.asShipperDto(), // Transform User entity to ShipperDto
             load.Origin,
             load.Destination,
             load.PickupDate,
@@ -36,12 +36,12 @@ public static class EntityExtensions
             bid.BiddingTime,
             bid.UpdatedAt,
             bid.UpdatedBy,
-            bid.Load.asDto(),     // Transform Load entity to LoadDto
-            bid.Carrier.asDto()   // Transform User entity (acting as Carrier) to CarrierDto
+            bid.Load?.asDto(),     // Transform Load entity to LoadDto
+            bid.Carrier?.asCarrierDto()   // Transform User entity (acting as Carrier) to CarrierDto
         );
     }
 
-    public static CarrierDto asDto(this User user)
+    public static CarrierDto asCarrierDto(this User user)
     {
         return new CarrierDto(
             user.UserId, // Unique identifier
@@ -57,7 +57,7 @@ public static class EntityExtensions
         );
     }
 
-    public static ShipperDto AsShipperDto(this User user)
+    public static ShipperDto asShipperDto(this User user)
     {
         return new ShipperDto(
             user.UserId,

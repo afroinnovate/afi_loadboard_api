@@ -16,13 +16,25 @@ public class BidRepository : IBidRepository
         _logger = logger;
     }
     
+    #region CreateBid
+    /// <summary>
+    /// Create a bid
+    /// </summary>
+    /// <param name="bid"></param>
+    /// <param name="carrier"></param>
+    /// <returns>None</returns>
     public async Task CreateBid(Bid bid, User carrier)
     {
-         using var transaction = context.Database.BeginTransaction();
         try
         {
+            using var transaction = context.Database.BeginTransaction();
+
             _logger.LogInformation("Attempting to create bid for LoadId: {LoadId}", bid.LoadId);
-            var existingCarrier = await context.Users.FindAsync(bid.CarrierId);
+
+            // Check if the Shipper already exists
+            var existingCarrier = await context.Users
+                            .FirstOrDefaultAsync(u => u.UserId == bid.CarrierId);
+                            
             if (existingCarrier == null)
             {
                 _logger.LogInformation("Carrier not found, creating a new one.");
@@ -45,7 +57,14 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 
+    #region DeleteBid
+    /// <summary>
+    /// Delete a bid
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>None</returns>
     public async Task DeleteBid(int id)
     {
         try
@@ -64,7 +83,14 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 
+    #region GetBid
+    /// <summary>
+    /// Get Bid by Id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>Bid Object</returns>
     public async Task<Bid?> GetBid(int id)
     {
        try
@@ -81,16 +107,24 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 
-    public async Task<Bid?> GetBidByLoadId(int loadId)
+    #region GetBidByLoadIdAndCarrierId
+    /// <summary>
+    /// Get Bid by LoadId and CarrierId
+    /// </summary>
+    /// <param name="loadId"></param>
+    /// <param name="carrierId"></param>
+    /// <returns>Bid Object</returns>
+    public async Task<Bid?> GetBidByLoadIdAndCarrierId(int loadId, string carrierId)
     {
         try
         {
-            _logger.LogInformation("Retrieving Bid by LoadId: {LoadId}", loadId);
+            _logger.LogInformation("Retrieving Bid by LoadId: {LoadId} and carrier id: {CarrierId}", loadId, carrierId);
             return await context.Bids
                                 .Include(b => b.Load)
                                 .Include(b => b.Carrier)
-                                .Where(b => b.LoadId == loadId)
+                                .Where(b => b.LoadId == loadId && b.CarrierId == carrierId)
                                 .FirstOrDefaultAsync();
         }
         catch (Exception ex)
@@ -99,7 +133,13 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 
+    #region GetBids
+    /// <summary>
+    /// Get all the bids
+    /// </summary>
+    /// <returns>IEnumerable<Bid></returns>
     public async Task<IEnumerable<Bid>> GetBids()
     {
         try
@@ -117,7 +157,14 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 
+    #region UpdateBid
+    /// <summary>
+    /// Update a bid
+    /// </summary>
+    /// <param name="bid"></param>
+    /// <returns>None</returns>
     public async Task UpdateBid(Bid bid)
     {
         try
@@ -132,6 +179,5 @@ public class BidRepository : IBidRepository
             throw;
         }
     }
+    #endregion
 }
-
-

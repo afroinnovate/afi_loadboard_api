@@ -37,6 +37,19 @@ public class CarrierRepository : ICarrierRepository
         return await context.Users.AsNoTracking().ToListAsync();
     }
 
+    public async Task<IEnumerable<User>> GetCarrierByUserType(string UserType)
+    {
+        try
+        {
+            return await context.Users.AsNoTracking().Where(u => u.UserType == UserType).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error occurred while fetching carriers", ex);
+        }
+    }
+
+
     public async Task UpdateCarrier(User carrier)
     {
         context.Update(carrier);
