@@ -5,11 +5,11 @@ namespace Auth.Min.API;
     public string? Admin { get; set; }
     public string? Support { get; set; }
     public string? Carrier { get; set; }
-    public string? GovCarrier { get; set; }
-    public string? CorporateCarrier { get; set; }
-    public string? IndependentCarrier { get; set; }
+    public string? Shipper { get; set; }
+    public string? GovShipper { get; set; }
+    public string? CorporateShipper { get; set; }
+    public string? IndependentShipper { get; set; }
     public string? OwnerOperator { get; set; }
-    public string? CompanyDriver { get; set; }
     public string? Dispatcher { get; set; }
     public string? FleetOwner { get; set; }
 }

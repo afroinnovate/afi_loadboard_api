@@ -97,7 +97,7 @@ Access the apis
 1. Create migration: 
     ```dotnet ef migrations add <migrationName>```
 2. Update the database
-    ```dotnet database update```
+    ```dotnet ef database update```
 
 ## Contributing
 

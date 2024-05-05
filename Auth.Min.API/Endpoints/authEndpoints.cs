@@ -116,79 +116,158 @@ public static class AuthEndpoints
     {
         group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) => 
         {
-            logger.LogInformation("Completing profile for user {Username}", request.Username);
-            if (request.Username == null)
+            logger.LogInformation("Completing profile for user {Email}", request.Email);
+            if (request.Email == null)
             {
-                logger.LogWarning("Username is required");
-                return Results.BadRequest("Username is required");
+                logger.LogWarning("Email or Username is required");
+                return Results.BadRequest("Email is required");
             }
 
-            // Find the user
-            var user = await userManager.FindByEmailAsync(request.Username);
-            if (user == null)
+            try 
             {
-                logger.LogWarning("User not found");
-                return Results.NotFound("User not Found");
-            }
+                var user = await userManager.FindByEmailAsync(request.Email);
+                logger.LogInformation("User found with email {User}", user);
+                if (user == null)
+                {
+                    logger.LogWarning("User not found");
+                    return Results.NotFound("User not Found");
+                }
 
-            if (request.FirstName != null || request.LastName != null || request.DotNumber != null || request.CompanyName != null)
+                if (request.FirstName != null || request.LastName != null || request.PhoneNumber != null)
+                {
+                    logger.LogInformation("Updating user details for user {Username}", request.Email);
+                    // Update user details
+                    user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "" ? user.FirstName : request.FirstName;
+                    user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "" ? user.LastName : request.LastName;
+                    user.MiddleName = string.IsNullOrEmpty(request.MiddleName) || request.MiddleName == "" ? user.MiddleName : request.MiddleName;
+                    user.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) || request.PhoneNumber == "" ? user.PhoneNumber : request.PhoneNumber;
+                    user.EmailConfirmed = true;
+                    user.Confirmed = true;
+
+                    var updateResult = await userManager.UpdateAsync(user);
+                    if (!updateResult.Succeeded)
+                    {
+                        return Results.BadRequest(updateResult.Errors);
+                    }
+                }
+            
+                #region Update User Role
+                logger.LogInformation("User details updated successfully for user {Username}", request.Email);
+                // Assign the role to the user
+                if (!string.IsNullOrEmpty(request.Role))
+                {
+                    logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Email);
+                    // check if the roles is valid 
+                    // Check if the role is in the predefined roles
+                    if (!IsRoleValid(request.Role, roleConfig))
+                    {
+                        logger.LogWarning("Invalid role {Role}", request.Role);
+                        return Results.BadRequest("Invalid role.");
+                    }
+
+                    // Check if the role exists in the database, create if not
+                    if (!await roleManager.RoleExistsAsync(request.Role))
+                    {
+                        logger.LogInformation("Role {Role} does not exist, creating it", request.Role);
+                        await roleManager.CreateAsync(new IdentityRole(request.Role));
+                    }
+
+                    // Check if the role is valid
+                    if (!await roleManager.RoleExistsAsync(request.Role) )
+                    {
+                        logger.LogWarning("Invalid role {Role}", request.Role);
+                        return Results.BadRequest("Invalid role.");
+                    }
+
+                    logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Email);
+                    var roleResult = await userManager.AddToRoleAsync(user, request.Role);
+                    if (!roleResult.Succeeded)
+                    {
+                        logger.LogError("Error assigning role {Role} to user {Username}", request.Role, request.Email);
+                        return Results.BadRequest(roleResult.Errors);
+                    }
+                }
+                #endregion
+
+                logger.LogInformation("User profile updated successfully for user {Username}", request.Email);
+                return Results.Ok("User profile updated successfully");
+            }
+            catch (Exception ex)
             {
-                logger.LogInformation("Updating user details for user {Username}", request.Username);
-                // Update user details
-                user.FirstName = string.IsNullOrEmpty(request.FirstName) || request.FirstName == "" ? user.FirstName : request.FirstName;
-                user.LastName = string.IsNullOrEmpty(request.LastName) || request.LastName == "" ? user.LastName : request.LastName;
-                user.DotNumber = string.IsNullOrEmpty(request.DotNumber) || request.DotNumber == "" ? user.DotNumber : request.DotNumber;
-                user.CompanyName = string.IsNullOrEmpty(request.CompanyName) || request.CompanyName == "" ? user.CompanyName : request.CompanyName;
-                user.EmailConfirmed = true;
-
-                var updateResult = await userManager.UpdateAsync(user);
-                if (!updateResult.Succeeded)
-                {
-                    return Results.BadRequest(updateResult.Errors);
-                }
+                logger.LogError($"Error updating user details: {ex.Message}");
+                return Results.BadRequest("Error updating user details");
             }
-
-            logger.LogInformation("User details updated successfully for user {Username}", request.Username);
-            // Assign th e role to the user
-            if (!string.IsNullOrEmpty(request.Role))
-            {
-                logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Username);
-                // check if the roles is valid 
-                // Check if the role is in the predefined roles
-                if (!IsRoleValid(request.Role, roleConfig))
-                {
-                    logger.LogWarning("Invalid role {Role}", request.Role);
-                    return Results.BadRequest("Invalid role.");
-                }
-
-                // Check if the role exists in the database, create if not
-                if (!await roleManager.RoleExistsAsync(request.Role))
-                {
-                    logger.LogInformation("Role {Role} does not exist, creating it", request.Role);
-                    await roleManager.CreateAsync(new IdentityRole(request.Role));
-                }
-
-                // Check if the role is valid
-                if (!await roleManager.RoleExistsAsync(request.Role) )
-                {
-                    logger.LogWarning("Invalid role {Role}", request.Role);
-                    return Results.BadRequest("Invalid role.");
-                }
-
-                logger.LogInformation("Assigning role {Role} to user {Username}", request.Role, request.Username);
-                var roleResult = await userManager.AddToRoleAsync(user, request.Role);
-                if (!roleResult.Succeeded)
-                {
-                    logger.LogError("Error assigning role {Role} to user {Username}", request.Role, request.Username);
-                    return Results.BadRequest(roleResult.Errors);
-                }
-            }
-
-            logger.LogInformation("User profile updated successfully for user {Username}", request.Username);
-            return Results.Ok("User profile updated successfully");
+            
         }).WithName("CompleteProfile")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest);
+    }
+
+    /// <summary>
+    /// This request endpoint for password reset.
+    /// </summary>
+    /// <param name="group"></param> <summary>
+    ///
+    /// </summary>
+    /// <param name="group"></param>
+    public static void AddPasswordResetEndpoints(this RouteGroupBuilder group)
+    {
+        // Endpoint to request password reset
+        group.MapPost("/request-password-reset", async (PasswordResetRequestModelDTO model, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
+        {
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                logger.LogWarning("Password reset requested for non-existing user.");
+                return Results.NotFound("User does not exist.");
+            }
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"https://app.loadboard.afroinnovate.com/reset-password?email={model.Email}&token={Uri.EscapeDataString(token)}";
+
+            // Send email with reset link
+            var emailResult = await SendEmailAsync(new EmailRequestDto
+            {
+                Subject = "Reset Your Password",
+                Body = $"Please click on the link to reset your password: <a href='{resetLink}'>Reset Password</a>",
+                To = user.Email
+            }, logger, emailService);
+            
+            if (!emailResult)
+            {
+                return Results.Problem("Failed to send password reset email.");
+            }
+
+            return Results.Ok("Password reset link sent to your email.");
+        })
+        .WithName("RequestPasswordReset")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status500InternalServerError);
+    
+
+    
+        group.MapPost("/reset-password", async (ResetPasswordModelDTO model, UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
+        {
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return Results.NotFound("User does not exist.");
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return Results.BadRequest(new { Errors = errors });
+            }
+
+            return Results.Ok("Password has been reset successfully.");
+        })
+        .WithName("ResetPassword")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
     }
 
     /// <summary>
@@ -237,9 +316,8 @@ public static class AuthEndpoints
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     Roles = await userManager.GetRolesAsync(user),
-                    CompanyName = user.CompanyName,
-                    DOTNumber = user.DotNumber
                 },
                 // refreshToken = "Your generated refresh token here"
             });
@@ -249,6 +327,48 @@ public static class AuthEndpoints
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status400BadRequest);
     }
+
+    /// <summary>
+    /// Adds the get all users endpoint to the specified route group.
+    /// </summary>
+    /// <param name="group">The route group builder.</param>
+    /// <param name="userManager">The user manager.</param>
+    /// <param name="logger">The logger.</param>
+    public static void AddGetAllUsersEndpoint(this RouteGroupBuilder group)
+    {
+        group.MapGet("/users", async (UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
+        {
+            // Fetch all users with their details
+            var users = userManager.Users.ToList();
+
+            // Create a list to hold the data transfer objects
+            var userDtos = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                // For each user, get their roles
+                var roles = await userManager.GetRolesAsync(user);
+
+                // Create and fill the user DTO
+                userDtos.Add(new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    UserName = user.UserName,
+                    Roles = roles.ToList(),
+                    PhoneNumber = user.PhoneNumber
+                });
+            }
+
+            logger.LogInformation("Fetched all users");
+            return Results.Ok(userDtos);
+        })
+        .WithName("GetAllUsers")
+        .Produces<List<UserDto>>(StatusCodes.Status200OK);
+    }
+
 
     /// <summary>
     /// Load User endpoint to the specified route group.
@@ -281,9 +401,8 @@ public static class AuthEndpoints
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
                 Roles = await userManager.GetRolesAsync(user),
-                CompanyName = user.CompanyName,
-                DOTNumber = user.DotNumber
             });
         })
         .WithName("GetUser")
@@ -310,6 +429,8 @@ public static class AuthEndpoints
         groups.AddLoginEndpoint();
         groups.AddGetUserEndpoint();
         groups.AddCompleteProfileEndpoint(rolesConfig);
+        groups.AddPasswordResetEndpoints(); // Include the password reset endpoints
+        groups.AddGetAllUsersEndpoint(); // Include the endpoint to view all users
 
         return groups;
     }
