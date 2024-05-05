@@ -13,5 +13,5 @@ namespace Auth.Min.API.Data
 		{
 			
 		}
-    }
+  }
 }
