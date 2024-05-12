@@ -13,6 +13,7 @@ public static class BidEndpoints
     }
 
     const string GetBidEndpointName = "GetBid";
+    const string GetBidByLoadAndCarrierEndpointName = "GetBidByLoadAndCarrier";
 
     public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes)
     {
@@ -40,6 +41,23 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
             }
         }).WithName(GetBidEndpointName);
+        #endregion
+
+        #region GetBidByLoadAndCarrierEndpoint
+        groups.MapGet("/{loadId}/{carrierId}", async (IBidRepository repository, int loadId, string carrierId,  ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Getting Bid by Load Id and carrier id {loadId} with carrierId {carrierId}", loadId, carrierId);
+                var bid = await repository.GetBidByLoadIdAndCarrierId(loadId, carrierId);
+                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting bid by load id {0} and carrierId {1}", loadId, carrierId);
+                return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
+            }
+        }).WithName(GetBidByLoadAndCarrierEndpointName);
         #endregion
 
         #region CreateBidEndpoint
