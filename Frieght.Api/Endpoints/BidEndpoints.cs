@@ -67,13 +67,13 @@ public static class BidEndpoints
             {
                 logger.LogInformation("Creating Bid");
                 // First findout if the same person is trying to bid on the same load twice
-                logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
-                var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
+                // logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
+                // var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
                 
-                if (existingBid != null) {
-                    logger.LogError("Bid already exists for the same load and carrier");
-                    return Results.Conflict("Bid already exists for the same load and carrier");
-                }
+                // if (existingBid != null) {
+                //     logger.LogError("Bid already exists for the same load and carrier");
+                //     return Results.Conflict("Bid already exists for the same load and carrier");
+                // }
 
                 var bid = new Bid
                 {
