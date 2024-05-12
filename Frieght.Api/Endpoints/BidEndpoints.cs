@@ -91,7 +91,7 @@ public static class BidEndpoints
                     FirstName = bidDto.CreatedBy.FirstName,
                     LastName = bidDto.CreatedBy.LastName,
                     Email = bidDto.CreatedBy.Email,
-                    Phone = bidDto.CreatedBy.Phone,
+                    Phone = bidDto.CreatedBy.PhoneNumber,
                     MotorCarrierNumber = bidDto.CreatedBy.MotorCarrierNumber,
                     DOTNumber = bidDto.CreatedBy.DOTNumber,
                     EquipmentType = bidDto.CreatedBy.EquipmentType,
