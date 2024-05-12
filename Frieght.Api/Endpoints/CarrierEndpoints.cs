@@ -32,7 +32,7 @@ public static class CarrierEndpoints
                 LastName = carrierDto.LastName,
                 CompanyName = carrierDto.CompanyName,
                 Email = carrierDto.Email,
-                Phone = carrierDto.Phone,
+                Phone = carrierDto.PhoneNumber,
                 MotorCarrierNumber = carrierDto.MotorCarrierNumber,
                 DOTNumber = carrierDto.DOTNumber,
                 EquipmentType = carrierDto.EquipmentType,
@@ -50,7 +50,7 @@ public static class CarrierEndpoints
      
             existingCarrier.UserId = updatedCarrierDto.UserId;
             existingCarrier.CompanyName = updatedCarrierDto.CompanyName;    
-            existingCarrier.Phone   = updatedCarrierDto.Phone;
+            existingCarrier.Phone   = updatedCarrierDto.PhoneNumber;
             existingCarrier.Email = updatedCarrierDto.Email;
             existingCarrier.MotorCarrierNumber = updatedCarrierDto.MotorCarrierNumber;
             existingCarrier.DOTNumber = updatedCarrierDto.DOTNumber;

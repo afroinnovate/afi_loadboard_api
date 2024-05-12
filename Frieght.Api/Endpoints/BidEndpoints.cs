@@ -13,6 +13,7 @@ public static class BidEndpoints
     }
 
     const string GetBidEndpointName = "GetBid";
+    const string GetBidByLoadAndCarrierEndpointName = "GetBidByLoadAndCarrier";
 
     public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes)
     {
@@ -42,6 +43,23 @@ public static class BidEndpoints
         }).WithName(GetBidEndpointName);
         #endregion
 
+        #region GetBidByLoadAndCarrierEndpoint
+        groups.MapGet("/{loadId}/{carrierId}", async (IBidRepository repository, int loadId, string carrierId,  ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Getting Bid by Load Id and carrier id {loadId} with carrierId {carrierId}", loadId, carrierId);
+                var bid = await repository.GetBidByLoadIdAndCarrierId(loadId, carrierId);
+                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting bid by load id {0} and carrierId {1}", loadId, carrierId);
+                return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
+            }
+        }).WithName(GetBidByLoadAndCarrierEndpointName);
+        #endregion
+
         #region CreateBidEndpoint
         groups.MapPost("/", async (IBidRepository repository, ICarrierRepository carrierRepo, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
         {
@@ -49,13 +67,13 @@ public static class BidEndpoints
             {
                 logger.LogInformation("Creating Bid");
                 // First findout if the same person is trying to bid on the same load twice
-                logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
-                var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
+                // logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
+                // var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
                 
-                if (existingBid != null) {
-                    logger.LogError("Bid already exists for the same load and carrier");
-                    return Results.Conflict("Bid already exists for the same load and carrier");
-                }
+                // if (existingBid != null) {
+                //     logger.LogError("Bid already exists for the same load and carrier");
+                //     return Results.Conflict("Bid already exists for the same load and carrier");
+                // }
 
                 var bid = new Bid
                 {
@@ -73,7 +91,7 @@ public static class BidEndpoints
                     FirstName = bidDto.CreatedBy.FirstName,
                     LastName = bidDto.CreatedBy.LastName,
                     Email = bidDto.CreatedBy.Email,
-                    Phone = bidDto.CreatedBy.Phone,
+                    Phone = bidDto.CreatedBy.PhoneNumber,
                     MotorCarrierNumber = bidDto.CreatedBy.MotorCarrierNumber,
                     DOTNumber = bidDto.CreatedBy.DOTNumber,
                     EquipmentType = bidDto.CreatedBy.EquipmentType,
