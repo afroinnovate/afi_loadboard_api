@@ -21,7 +21,7 @@ namespace Auth.Min.API.Endpoints;
 /// </summary>
 public static class AuthEndpoints
 {
-     // Nested non-static class for logging purposes
+    // Nested non-static class for logging purposes
     private class LogCategory
     {
         // This class is intentionally left empty and is just used as a category for logging
@@ -40,9 +40,9 @@ public static class AuthEndpoints
     /// <param name="logger">The logger.</param>
     public static void AddRegistrationEndpoints(this RouteGroupBuilder group, ILogger logger)
     {
-            
+
         group.MapPost("/register", async (RegistrationModel model, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
-        { 
+        {
             logger.LogInformation("creating user");
             // Handle user registration logic here
             var user = new AppUser { UserName = model.Email, Email = model.Email };
@@ -61,14 +61,14 @@ public static class AuthEndpoints
                 logger.LogInformation("sending email with token");
                 // Generate email confirmation token
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                
+
                 // Create a confirmation link (you would replace "http://localhost:5000" with your front-end URL)
                 var confirmationLink = $"http://app.loadboard.afroinnovate.com/confirm-email?userId={user.Id}";
-                
+
                 // var tempConfirmationLink = $"http://localhost:3000/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
                 logger.LogInformation("Attempting to send confirmation email to {Email}", user.Email);
 
-            // Send email
+                // Send email
                 var emailRequest = new EmailRequestDto
                 {
                     Subject = "Welcome to Loadboard - Confirm Your Registration",
@@ -98,7 +98,7 @@ public static class AuthEndpoints
                 // Log the error, handle it, or inform the user as necessary
                 return Results.Problem("The user was created but there was an issue sending the confirmation email.");
             }
-        // You might want to check the emailResult for specific error messages
+            // You might want to check the emailResult for specific error messages
             logger.LogInformation("Confirmation email sent to {Email}", user.Email);
             return Results.Ok("User created successfully, confirmation email is sent to the user.");
         })
@@ -114,7 +114,7 @@ public static class AuthEndpoints
     /// <param name="roleConfig">The role configuration.</param>
     public static void AddCompleteProfileEndpoint(this RouteGroupBuilder group, Roles roleConfig)
     {
-        group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) => 
+        group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) =>
         {
             logger.LogInformation("Completing profile for user {Email}", request.Email);
             if (request.Email == null)
@@ -123,7 +123,7 @@ public static class AuthEndpoints
                 return Results.BadRequest("Email is required");
             }
 
-            try 
+            try
             {
                 var user = await userManager.FindByEmailAsync(request.Email);
                 logger.LogInformation("User found with email {User}", user);
@@ -150,7 +150,7 @@ public static class AuthEndpoints
                         return Results.BadRequest(updateResult.Errors);
                     }
                 }
-            
+
                 #region Update User Role
                 logger.LogInformation("User details updated successfully for user {Username}", request.Email);
                 // Assign the role to the user
@@ -173,7 +173,7 @@ public static class AuthEndpoints
                     }
 
                     // Check if the role is valid
-                    if (!await roleManager.RoleExistsAsync(request.Role) )
+                    if (!await roleManager.RoleExistsAsync(request.Role))
                     {
                         logger.LogWarning("Invalid role {Role}", request.Role);
                         return Results.BadRequest("Invalid role.");
@@ -197,7 +197,7 @@ public static class AuthEndpoints
                 logger.LogError($"Error updating user details: {ex.Message}");
                 return Results.BadRequest("Error updating user details");
             }
-            
+
         }).WithName("CompleteProfile")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest);
@@ -213,9 +213,10 @@ public static class AuthEndpoints
     public static void AddPasswordResetEndpoints(this RouteGroupBuilder group)
     {
         // Endpoint to request password reset
-        group.MapPost("/request-password-reset", async (PasswordResetRequestModelDTO model, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
+        group.MapPost("/request-password-reset", async (string email, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
         {
-            var user = await userManager.FindByEmailAsync(model.Email);
+            logger.LogInformation("Requesting password reset for {0}", email);
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 logger.LogWarning("Password reset requested for non-existing user.");
@@ -223,7 +224,8 @@ public static class AuthEndpoints
             }
 
             var token = await userManager.GeneratePasswordResetTokenAsync(user);
-            var resetLink = $"https://app.loadboard.afroinnovate.com/reset-password?email={model.Email}&token={Uri.EscapeDataString(token)}";
+           
+            var resetLink = $"https://app.loadboard.afroinnovate.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}";
 
             // Send email with reset link
             var emailResult = await SendEmailAsync(new EmailRequestDto
@@ -232,36 +234,46 @@ public static class AuthEndpoints
                 Body = $"Please click on the link to reset your password: <a href='{resetLink}'>Reset Password</a>",
                 To = user.Email
             }, logger, emailService);
-            
+
             if (!emailResult)
             {
+                logger.LogError("Failed to send password reset email.");
                 return Results.Problem("Failed to send password reset email.");
             }
-
+            logger.LogInformation("Password reset link sent to {0}", email);
             return Results.Ok("Password reset link sent to your email.");
         })
         .WithName("RequestPasswordReset")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status500InternalServerError);
-    
 
-    
+        // Endpoint to reset the password
         group.MapPost("/reset-password", async (ResetPasswordModelDTO model, UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
         {
+            logger.LogInformation("Reseting password for {0}", model.Email);
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
+                logger.LogWarning("Password reset requested for non-existing user, make sure you have an existing account.");
                 return Results.NotFound("User does not exist.");
+            }
+
+            var tokenValid = await userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "ResetPassword", model.Token);
+            if (!tokenValid)
+            {
+                logger.LogWarning("Invalid password reset token for {0}", model.Email);
+                return Results.BadRequest("Invalid or expired token.");
             }
 
             var result = await userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
             if (!result.Succeeded)
             {
+                logger.LogError("Bad request, resetting password: {0}", result.Errors);
                 var errors = result.Errors.Select(e => e.Description).ToList();
                 return Results.BadRequest(new { Errors = errors });
             }
-
+            logger.LogInformation("Password reset successfully for {0}", model.Email);
             return Results.Ok("Password has been reset successfully.");
         })
         .WithName("ResetPassword")
@@ -269,6 +281,7 @@ public static class AuthEndpoints
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound);
     }
+
 
     /// <summary>
     /// Adds the login endpoint to the specified route group.
@@ -369,7 +382,6 @@ public static class AuthEndpoints
         .Produces<List<UserDto>>(StatusCodes.Status200OK);
     }
 
-
     /// <summary>
     /// Load User endpoint to the specified route group.
     /// </summary>
@@ -392,7 +404,7 @@ public static class AuthEndpoints
                 logger.LogWarning("User not found with ID {Id}", id);
                 return Results.NotFound("User not found");
             }
-            
+
             logger.LogInformation("User found with ID {Id}, his email is {Email}", id, user.Email);
             return Results.Ok(new UserDto
             {
@@ -456,16 +468,16 @@ public static class AuthEndpoints
     /// <returns><c>true</c> if the email is sent successfully; otherwise, <c>false</c>.</returns>
     private static async Task<bool> SendEmailAsync(EmailRequestDto request, ILogger logger, IEmailConfigService emailService)
     {
-            try
+        try
         {
             var (client, fromEmail) = await emailService.EmailSetup();
 
             logger.LogInformation("Creating email message");
-            var  mailMessage = new MimeMessage();
-        
+            var mailMessage = new MimeMessage();
+
             mailMessage.From.Add(MailboxAddress.Parse(fromEmail));
             mailMessage.Subject = request.Subject;
-            mailMessage.Body = new TextPart(TextFormat.Html){Text = request.Body};
+            mailMessage.Body = new TextPart(TextFormat.Html) { Text = request.Body };
             mailMessage.To.Add(MailboxAddress.Parse(request.To));
 
             await client.SendAsync(mailMessage);
