@@ -224,7 +224,7 @@ public static class AuthEndpoints
             }
 
             var token = await userManager.GeneratePasswordResetTokenAsync(user);
-           
+
             var resetLink = $"https://app.loadboard.afroinnovate.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}";
 
             // Send email with reset link
@@ -277,6 +277,31 @@ public static class AuthEndpoints
             return Results.Ok("Password has been reset successfully.");
         })
         .WithName("ResetPassword")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/update-password-inprofile", async (UpdatePasswordDTO model, UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
+        {
+            logger.LogInformation("Updating the password from profile for {0}", model.Email);
+            var user = await userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                logger.LogWarning("Password update requested for non-existing user.");
+                return Results.NotFound("User does not exist.");
+            }
+
+            var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                logger.LogError("Bad request, updating password: {0}", result.Errors);
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return Results.BadRequest(new { Errors = errors });
+            }
+            logger.LogInformation("Password updated successfully for {0}", model.Email);
+            return Results.Ok("Password has been updated successfully.");
+        })
+        .WithName("UpdatePassword")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound);
