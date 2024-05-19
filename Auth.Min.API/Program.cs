@@ -50,7 +50,6 @@ builder.Services.AddSwaggerGen(options =>
 
 // setitngs for docker container
 var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
-
 // Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
 option.UseNpgsql(defaultConnection));
@@ -93,7 +92,6 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
                 
-
 // Read Roles from appsettings and register
 var rolesConfig = new Roles();
 builder.Configuration.GetSection("Roles").Bind(rolesConfig);
