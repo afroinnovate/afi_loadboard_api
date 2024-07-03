@@ -40,7 +40,7 @@ This API uses PostgreSQL. To set it up:
 
 1. **Install PostgreSQL** if not already installed.
    
-3. **Update Connection String** in `appsettings.json` to point to your local PostgreSQL instance.
+3. **Update Connection String** in `appsettings.Development.json` to point to your local PostgreSQL instance.
 
 ## Useful Docker Commands
 

@@ -54,7 +54,7 @@ Access the apis
 
 
 ### Run it locally without docker
-- Make sure you create appsettings.json file in the service you're trying to run, example in Auth.Min.API I can fill in the contents like.
+- Make sure you create appsettings.Development.json file in the service you're trying to run, example in Auth.Min.API I can fill in the contents like.
 ```{
     "Logging": {
         "LogLevel": {
@@ -90,7 +90,7 @@ Access the apis
     ```
 
 ## Running the apis
-Make sure you have `appsettings.json` file on the root directory and use below example as your local setup.
+Make sure you have `appsettings.Development.json` file on the root directory and use below example as your local setup.
 ```bash
 {
     "Logging": {

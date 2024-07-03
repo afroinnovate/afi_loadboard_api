@@ -64,8 +64,8 @@ artifacts/
 .idea/
 
 # ASP.NET Core
-appsettings.json
-!appsettings.Development.json
+!appsettings.json
+appsettings.Development.json
 
 # Windows image file caches
 Thumbs.db

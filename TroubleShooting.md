@@ -74,6 +74,8 @@ Update the database with the new migration
     1. If we want to enforce strict certificate validation (which is recommended for production environments), use sslmode=VerifyFull. This requires a valid certificate and a matching server name.
     2. Alternatively, if you want to require SSL but without server certificate validation (less secure, but sometimes used in controlled environments), use "sslmode=Require;Trust Server Certificate=true;"
 
+9. File still shows as being tracked even if added to git ignore.
+    1. git rm --cached <filename> e.g. appsettings.Development.json
 ## Useful commands.
 
 ### docker-compose

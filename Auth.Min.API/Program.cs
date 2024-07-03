@@ -68,6 +68,17 @@ builder.Services.Configure<JwtOptions>(jwtConfig);
 
 var secretKey = jwtConfig["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key is not configured");
 
+// Use the secret key directly as UTF8-encoded byte array
+var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
+if (secretKeyBytes.Length < 32)
+{
+    Array.Resize(ref secretKeyBytes, 32); // Ensure key is at least 32 bytes long
+}
+var base64SecretKey = Convert.ToBase64String(secretKeyBytes);
+
+// Decode the base64 secret key back to bytes for JWT configuration
+var decodedSecretKey = Convert.FromBase64String(base64SecretKey);
+
 // Add JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -80,7 +91,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtConfig["Issuer"],
             ValidAudience = jwtConfig["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            IssuerSigningKey = new SymmetricSecurityKey(decodedSecretKey)
         };
     });
 
