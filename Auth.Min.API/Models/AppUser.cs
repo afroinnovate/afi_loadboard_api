@@ -10,6 +10,6 @@ namespace Auth.Min.API.Models
         public DateTime? DateLastLoggedIn { get; set; }
         public string? MiddleName { get; set; }
         public bool Confirmed { get; set; }
-        public string? PhoneNumber { get; set; }
+        // public override string?  PhoneNumber { get; set; }
     }
 }

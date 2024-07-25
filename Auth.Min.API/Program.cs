@@ -103,6 +103,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+// Add User Services
+builder.Services.AddScoped<IUserService, UserService>();
                 
 // Read Roles from appsettings and register
 var rolesConfig = new Roles();
@@ -127,4 +130,6 @@ app.UseAuthorization();
 var roleConfig =  app.Services.GetRequiredService<Roles>();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 app.MapAuthEndpoints(roleConfig, logger);
+app.MapUserManagementEndpoints();
+
 app.Run();

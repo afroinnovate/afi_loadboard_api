@@ -352,6 +352,7 @@ public static class AuthEndpoints
                     Id = user.Id,
                     Email = user.Email,
                     FirstName = user.FirstName,
+                    MiddleName = user.MiddleName,
                     LastName = user.LastName,
                     UserName = user.UserName,
                     PhoneNumber = user.PhoneNumber,
@@ -408,47 +409,6 @@ public static class AuthEndpoints
     }
 
     /// <summary>
-    /// Load User endpoint to the specified route group.
-    /// </summary>
-    /// <param name="group">The route group builder.</param>
-    public static void AddGetUserEndpoint(this RouteGroupBuilder group)
-    {
-        group.MapGet("/{id}", async (string id, UserManager<AppUser> userManager, ILogger<LogCategory> logger) =>
-        {
-            logger.LogInformation("Getting user with ID {Id}", id);
-            if (string.IsNullOrEmpty(id))
-            {
-                logger.LogWarning("Invalid user ID");
-                return Results.BadRequest("Invalid user ID");
-            }
-
-            AppUser user = await userManager.FindByIdAsync(id);
-            logger.LogInformation("User found with ID {Id}", id);
-            if (user == null)
-            {
-                logger.LogWarning("User not found with ID {Id}", id);
-                return Results.NotFound("User not found");
-            }
-
-            logger.LogInformation("User found with ID {Id}, his email is {Email}", id, user.Email);
-            return Results.Ok(new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                PhoneNumber = user.PhoneNumber,
-                Roles = await userManager.GetRolesAsync(user),
-            });
-        })
-        .WithName("GetUser")
-        .Produces<UserDto>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status404NotFound);
-    }
-
-    /// <summary>
     /// Maps the authentication endpoints to the specified route builder.
     /// </summary>
     /// <param name="routes">The endpoint route builder.</param>
@@ -464,7 +424,6 @@ public static class AuthEndpoints
         // Add registration and complete profile endpoints
         groups.AddRegistrationEndpoints(logger);
         groups.AddLoginEndpoint();
-        groups.AddGetUserEndpoint();
         groups.AddCompleteProfileEndpoint(rolesConfig);
         groups.AddPasswordResetEndpoints(); // Include the password reset endpoints
         groups.AddGetAllUsersEndpoint(); // Include the endpoint to view all users
