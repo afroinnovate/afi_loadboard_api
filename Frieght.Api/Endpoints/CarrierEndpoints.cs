@@ -37,6 +37,9 @@ public static class CarrierEndpoints
                 DOTNumber = carrierDto.DOTNumber,
                 EquipmentType = carrierDto.EquipmentType,
                 AvailableCapacity = carrierDto.AvailableCapacity,
+                UserType = carrierDto.UserType,
+                CarrierRole = carrierDto.CarrierRole,
+                ShipperRole = carrierDto.ShipperRole
             };
             await repository.CreateCarrier(carrier);
             return Results.CreatedAtRoute(GetCarrierEndpointName, new { id = carrier.UserId }, carrier);

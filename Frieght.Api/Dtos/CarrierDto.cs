@@ -1,4 +1,5 @@
-﻿namespace Frieght.Api.Dtos;
+﻿using Frieght.Api.Enuns;
+namespace Frieght.Api.Dtos;
 
 public record CarrierDto
 (
@@ -11,7 +12,10 @@ public record CarrierDto
     string? DOTNumber,
     string? EquipmentType,
     double? AvailableCapacity,
-    string? CompanyName
+    string? CompanyName,
+    string? UserType,
+    CarrierRoleType? CarrierRole,
+    ShipperRoleType? ShipperRole
 );
 
 public record CreateCarrierDto
@@ -25,7 +29,10 @@ public record CreateCarrierDto
     string? DOTNumber,
     string? EquipmentType,
     double? AvailableCapacity,
-    string? CompanyName
+    string? CompanyName,
+    string UserType,
+    CarrierRoleType? CarrierRole,
+    ShipperRoleType? ShipperRole
 );
 
 public record UpdateCarrierDto
@@ -39,5 +46,8 @@ public record UpdateCarrierDto
     string? DOTNumber,
     string? EquipmentType,
     double? AvailableCapacity,
-    string? CompanyName
+    string? CompanyName,
+    string? UserType,
+    CarrierRoleType? CarrierRole,
+    ShipperRoleType? ShipperRole
 );

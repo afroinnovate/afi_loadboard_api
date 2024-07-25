@@ -53,7 +53,10 @@ public static class EntityExtensions
             user.MotorCarrierNumber,
             user.EquipmentType,
             user.AvailableCapacity,
-            user.CompanyName
+            user.CompanyName,
+            user.UserType,
+            user.CarrierRole,
+            user.ShipperRole
         );
     }
 

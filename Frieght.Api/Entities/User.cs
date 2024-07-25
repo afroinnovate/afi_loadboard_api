@@ -1,3 +1,5 @@
+using Frieght.Api.Enuns;
+
 namespace Frieght.Api.Entities;
 public class User
 {
@@ -13,7 +15,8 @@ public class User
     public double? AvailableCapacity { get; set; } // Primarily for carriers
     public string? CompanyName { get; set; } // Could be used by both, but mainly carriers
     public string? UserType { get; set; } // Shipper or Carrier
-
+    public CarrierRoleType? CarrierRole { get; set; } // Owner Operator, Fleet Owner, or Company Driver
+    public ShipperRoleType? ShipperRole { get; set; } // Manufacturer, Distributor, or Retailer
     // Navigation properties
     public virtual ICollection<Load>? Loads { get; set; } = new List<Load>(); // List of loads posted by the user
     public virtual ICollection<Bid>? Bids { get; set; } = new List<Bid>(); // List of bids placed by the user
