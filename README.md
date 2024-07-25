@@ -90,6 +90,29 @@ Access the apis
     }
 }
 ```
+2. Change the context to load the appsetings.Development.json instead of the docker as below
+    - For Freight.API:
+        - Go to Freight.API/Infrastructure/DataExtension if you're working on /frieght and 
+        comment out the first line for docker and uncomment the next line for local env as bellow
+        ```
+          // setitngs for docker container
+          // var connString = Environment.GetEnvironmentVariable("DefaultConnection"); // to retrieve connection from docker container environment variable   
+        
+          var connString = configuration.GetConnectionString("DefaultConnection"); // to retrieve connection from configuration file like appsettings.json
+        ```
+    - For Auth.Min.API
+        - Go to Auth.Min.API/Program.cs and do the same, if you're working on Auth.Min.API
+            ```
+                // var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+                // Add DB context injection for docker container
+                // builder.Services.AddDbContext<AppDbContext>(option => 
+                // option.UseNpgsql(defaultConnection));
+                // 
+                
+                // Add DB context injection for dotnet run in appsettings.Development.json
+                builder.Services.AddDbContext<AppDbContext>(option => 
+                    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        ```
 
 ## Running the apis
 1. Run ```dotnet restore```
