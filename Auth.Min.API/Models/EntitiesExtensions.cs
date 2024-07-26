@@ -14,7 +14,10 @@ public static class EntitiesExtensions
       MiddleName = user.MiddleName,
       LastName = user.LastName,
       Roles = roles,
-      PhoneNumber = user.PhoneNumber
+      PhoneNumber = user.PhoneNumber,
+      Confirmed = user.Confirmed,
+      Status = user.Status,
+      UserType = user.UserType
     };
   }
 
@@ -26,7 +29,11 @@ public static class EntitiesExtensions
       MiddleName = user.MiddleName,
       LastName = user.LastName,
       Email = user.Email,
-      PhoneNumber = user.PhoneNumber
+      PhoneNumber = user.PhoneNumber,
+      UserName = user.Email,
+      Confirmed = user.Confirmed,
+      Status = user.Status,
+      UserType = user.UserType
     };
   }
 }

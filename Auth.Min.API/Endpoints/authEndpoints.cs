@@ -50,7 +50,7 @@ public static class AuthEndpoints
 
             if (!result.Succeeded)
             {
-                logger.LogError("error creating user: {result.Errors}");
+                logger.LogError("error creating user: {error}", result.Errors);
                 var errors = result.Errors.Select(e => e.Description).ToList();
                 logger.LogError($"error creating user: {errors}");
                 return Results.BadRequest(new { Errors = errors });
@@ -143,6 +143,7 @@ public static class AuthEndpoints
                     user.PhoneNumber = string.IsNullOrEmpty(request.PhoneNumber) || request.PhoneNumber == "" ? user.PhoneNumber : request.PhoneNumber;
                     user.EmailConfirmed = true;
                     user.Confirmed = true;
+                    user.Status = request.Status;
 
                     var updateResult = await userManager.UpdateAsync(user);
                     if (!updateResult.Succeeded)
@@ -357,6 +358,8 @@ public static class AuthEndpoints
                     UserName = user.UserName,
                     PhoneNumber = user.PhoneNumber,
                     Roles = await userManager.GetRolesAsync(user),
+                    Confirmed = user.Confirmed,
+                    Status = user.Status
                 },
                 // refreshToken = "Your generated refresh token here"
             });
