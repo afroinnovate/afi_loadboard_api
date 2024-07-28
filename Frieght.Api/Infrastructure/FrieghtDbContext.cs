@@ -13,8 +13,11 @@ namespace Frieght.Api.Infrastructure
 
         }
         public DbSet<Load> Loads { get; set; }
-        public DbSet<User> Users { get; set; } // Unified set for users
-        public DbSet<Bid> Bids { get; set; } // Assuming Bidding instead of Bid
+        public DbSet<User> Users { get; set; }
+        public DbSet<Bid> Bids { get; set; }
+        public DbSet<BusinessProfile> BusinessProfiles { get; set; }
+        public DbSet<VehicleType> VehicleTypes { get; set; }
+        public DbSet<BusinessVehicleType> BusinessVehicleTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

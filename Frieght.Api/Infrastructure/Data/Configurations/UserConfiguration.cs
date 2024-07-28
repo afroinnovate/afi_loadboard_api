@@ -1,15 +1,13 @@
 ﻿using Frieght.Api.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Frieght.Api.Infrastructure.Data.Configurations;
-
-
+namespace Frieght.Api.Infrastructure.Data.Configurations
+{
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-           
             // Set the primary key
             builder.HasKey(user => user.UserId);
 
@@ -23,26 +21,23 @@ namespace Frieght.Api.Infrastructure.Data.Configurations;
 
             // Configuring optional properties
             builder.Property(user => user.Phone).IsRequired(false);
-            builder.Property(user => user.MotorCarrierNumber).IsRequired(false);
-            builder.Property(user => user.DOTNumber).IsRequired(false);
-            builder.Property(user => user.EquipmentType).IsRequired(false);
-            builder.Property(user => user.AvailableCapacity).IsRequired(false);
-            builder.Property(user => user.CompanyName).IsRequired(false);
 
             // Relationships
-            // If a User can be both a Shipper and a Carrier, you might have Load and Bidding
-            // For example, assuming a User can have multiple Loads they have posted
-            builder.HasMany<Load>(user => user.Loads)
+            builder.HasMany(user => user.Loads)
                 .WithOne(load => load.Shipper)
                 .HasForeignKey(load => load.ShipperUserId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion if there are related loads
 
-            // A User can have multiple Biddings they have made
-            builder.HasMany<Bid>(user => user.Bids)
+            builder.HasMany(user => user.Bids)
                 .WithOne(bid => bid.Carrier)
                 .HasForeignKey(bid => bid.CarrierId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion if there are related biddings
-                
-        }
 
+            // One-to-one relationship with BusinessProfile
+            builder.HasOne(user => user.BusinessProfile)
+                .WithOne(bp => bp.User)
+                .HasForeignKey<BusinessProfile>(bp => bp.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete the BusinessProfile if User is deleted
+        }
     }
+}
