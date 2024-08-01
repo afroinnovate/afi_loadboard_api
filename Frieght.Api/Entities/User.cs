@@ -10,7 +10,7 @@ public class User
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
     public string? Phone { get; set; }
-    public string? UserType { get; set; } // Shipper or Carrier
+    public required string UserType { get; set; } // Shipper or Carrier
 
     // Navigation properties
     public virtual ICollection<Load>? Loads { get; set; } = new List<Load>();

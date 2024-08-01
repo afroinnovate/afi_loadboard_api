@@ -1,4 +1,5 @@
-﻿using Frieght.Api.Enuns;
+﻿using Frieght.Api.Entities;
+using Frieght.Api.Enuns;
 
 namespace Frieght.Api.Dtos;
 
@@ -12,8 +13,9 @@ public record BidDto
     DateTimeOffset BiddingTime,
     DateTimeOffset UpdatedAt,
     string? UpdatedBy,
+
     LoadDto Load,    // Include associated Load details
-    CarrierDto Carrier // Include associated Carrier details
+    UserDto Carrier // Include associated Carrier details
 );
 
 public record UpdateBidDto
@@ -22,6 +24,7 @@ public record UpdateBidDto
     int LoadId,
     string CarrierId,
     decimal BidAmount,
+    LoadDto Load,
     BidStatus BidStatus,
     DateTimeOffset BiddingTime, // Review if updates to BiddingTime are allowed
     DateTimeOffset UpdatedAt,   // This should likely be set automatically to now in the backend
@@ -32,9 +35,9 @@ public record CreateBidDto
 (
     int LoadId,
     string CarrierId,
+    LoadDto LoadDto,
     decimal BidAmount,
     BidStatus BidStatus,
     DateTimeOffset BiddingTime,
-    DateTimeOffset UpdatedAt,
     CarrierDto CreatedBy
 );

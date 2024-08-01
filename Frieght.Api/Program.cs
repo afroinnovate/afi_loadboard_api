@@ -38,7 +38,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 //add authorization
 builder.Services.AddAuthorizationBuilder();
 
@@ -82,8 +81,9 @@ await app.Services.InitializeDbAsync();
 
 // Map Endpoints
 app.MapLoadsEndpoints().RequireAuthorization();
-app.MapCarriersEndpoints().RequireAuthorization();
+app.MapUserEndpoints().RequireAuthorization();
 app.MapBidsEndpoints().RequireAuthorization();
+app.MapBusinessProfileEndpoints().RequireAuthorization();
 app.MapHealthEndpoints();
 
 // Configure the HTTP request pipeline.

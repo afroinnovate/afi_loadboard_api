@@ -31,5 +31,5 @@ public class Load
     public string? ModifiedBy { get; set; }
 
     // Navigation property to Shipper
-    public User Shipper { get; set; }
+    public required User Shipper { get; set; }
 }

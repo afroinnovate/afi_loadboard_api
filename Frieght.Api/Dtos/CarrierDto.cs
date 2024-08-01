@@ -3,51 +3,57 @@ namespace Frieght.Api.Dtos;
 
 public record CarrierDto
 (
-    string UserId, // Unique identifier
+    string UserId,
     string Email,
     string FirstName,
+    string? MiddleName,
     string LastName,
-    string? PhoneNumber,
-    string? MotorCarrierNumber,
+    string? Phone,
+    string? UserType,
     string? DOTNumber,
+    string? MotorCarrierNumber,
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    string? UserType,
+    VehicleTypeDto[]? VehicleTypes,
     CarrierRoleType? CarrierRole,
-    ShipperRoleType? ShipperRole
+    BusinessProfileDto? BusinessProfile
 );
 
 public record CreateCarrierDto
 (
-    string UserId, // Unique identifier
+    string UserId,
     string Email,
     string FirstName,
+    string? MiddleName,
     string LastName,
-    string? PhoneNumber,
-    string? MotorCarrierNumber,
+    string? Phone,
+    string UserType,
     string? DOTNumber,
+    string? MotorCarrierNumber,
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    string UserType,
     CarrierRoleType? CarrierRole,
-    ShipperRoleType? ShipperRole
+    VehicleTypeDto[]? VehicleTypes,
+    BusinessProfileDto? BusinessProfile
 );
 
 public record UpdateCarrierDto
 (
-    string UserId, // Unique identifier
+    string UserId,
     string Email,
     string FirstName,
+    string? MiddleName,
     string LastName,
-    string? PhoneNumber,
-    string? MotorCarrierNumber,
+    string? Phone,
+    string? UserType,
     string? DOTNumber,
+    string? MotorCarrierNumber,
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    string? UserType,
     CarrierRoleType? CarrierRole,
-    ShipperRoleType? ShipperRole
+    VehicleTypeDto[]? VehicleTypes,
+    BusinessProfileDto? BusinessProfile
 );

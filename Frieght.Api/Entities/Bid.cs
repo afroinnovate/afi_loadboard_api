@@ -6,7 +6,7 @@ public class Bid
 {
     public int Id { get; set; }
     public int LoadId { get; set; }
-    public string CarrierId { get; set; }
+    public required string CarrierId { get; set; }
     public decimal BidAmount { get; set; }
     public BidStatus BidStatus { get; set; }
     public DateTimeOffset BiddingTime { get; set; }
@@ -15,6 +15,6 @@ public class Bid
     public string? UserType { get; set; }
 
     // Navigation properties
-    public Load Load { get; set; }
-    public User Carrier { get; set; }
+    public required Load Load { get; set; }
+    public required User Carrier { get; set; }
 }

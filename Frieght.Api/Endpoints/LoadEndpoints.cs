@@ -80,6 +80,26 @@ public static class LoadEndpoints
             logger.LogInformation("Creating Load");
             try
             {
+                var shipper = new User
+                {
+                    UserId = loadDto.ShipperUserId,
+                    Email = loadDto.CreatedBy.Email,
+                    FirstName = loadDto.CreatedBy.FirstName,
+                    MiddleName = loadDto.CreatedBy.MiddleName,
+                    LastName = loadDto.CreatedBy.LastName,
+                    UserType = "shipper"
+                };
+
+                shipper.BusinessProfile = new BusinessProfile
+                {
+                    UserId = loadDto.ShipperUserId,
+                    CompanyName = loadDto.CreatedBy.CompanyName,
+                    ShipperRole = loadDto.CreatedBy.ShipperRole,
+                    BusinessType = loadDto.CreatedBy.BusinessType,
+                    BusinessRegistrationNumber = loadDto.CreatedBy.BusinessRegistrationNumber,
+                    User = shipper
+                };
+
                 var load = new Load
                 {
                     ShipperUserId = loadDto.ShipperUserId,
@@ -93,26 +113,7 @@ public static class LoadEndpoints
                     LoadDetails = loadDto.LoadDetails,
                     LoadStatus = loadDto.LoadStatus,
                     CreatedAt = DateTime.UtcNow,
-                    Shipper = new User
-                    {
-                        UserId = loadDto.ShipperUserId,
-                        Email = loadDto.CreatedBy.Email,
-                        CompanyName = loadDto.CreatedBy.CompanyName,
-                        DOTNumber = loadDto.CreatedBy.DOTNumber,
-                        FirstName = loadDto.CreatedBy.FirstName,
-                        LastName = loadDto.CreatedBy.LastName,
-                    }
-                };
-
-                var shipper = new User
-                {
-                    UserId = loadDto.ShipperUserId,
-                    Email = loadDto.CreatedBy.Email,
-                    CompanyName = loadDto.CreatedBy.CompanyName,
-                    DOTNumber = loadDto.CreatedBy.DOTNumber,
-                    FirstName = loadDto.CreatedBy.FirstName,
-                    LastName = loadDto.CreatedBy.LastName,
-                    UserType = "shipper"
+                    Shipper = shipper
                 };
 
                 await repository.CreateLoad(load, shipper);
@@ -149,7 +150,7 @@ public static class LoadEndpoints
         async Task<string> NotifyCarriers(ICarrierRepository carrierRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
         {
             logger.LogInformation("Getting Carriers");
-            var carriers = await carrierRepository.GetCarrierByUserType("carrier");
+            IEnumerable<User> carriers = await carrierRepository.GetCarrierByUserType("carrier");
             if(carriers is not null)
             {
                 logger.LogInformation("Carriers found: {0}", carriers.Count());
@@ -158,11 +159,11 @@ public static class LoadEndpoints
                    try 
                    {
                         await messageSender.SendEmailAsync(carrier.Email, $"From {load.Origin} to {load.Destination}", load.LoadDetails);
-                        logger.LogInformation("Carrier {0} notified", carrier.CompanyName);
+                        logger.LogInformation("Carrier {0} notified", carrier.BusinessProfile?.CompanyName);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "An error occurred while notifying carrier {0}", carrier.CompanyName);
+                        logger.LogError(ex, "An error occurred while notifying carrier {0}", carrier.BusinessProfile?.CompanyName);
                     }
                 }
             }

@@ -13,6 +13,16 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
       builder.Property(bvt => bvt.Quantity)
           .IsRequired()
           .HasDefaultValue(0);
+
+      builder.HasOne(bvt => bvt.BusinessProfile)
+          .WithMany(bp => bp.BusinessVehicleTypes)
+          .HasForeignKey(bvt => bvt.BusinessProfileId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+      builder.HasOne(bvt => bvt.VehicleType)
+          .WithMany(vt => vt.BusinessVehicleTypes)
+          .HasForeignKey(bvt => bvt.VehicleTypeId)
+          .OnDelete(DeleteBehavior.Cascade);
     }
   }
 }

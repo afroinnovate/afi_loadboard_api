@@ -12,9 +12,9 @@ public class VehicleType
   public string? Model { get; set; }
   public string? Year { get; set; }
   public string? Color { get; set; }
-  public bool HasInsurance { get; set; }
-  public bool HasRegistration { get; set; }
-  public bool HasInspection { get; set; }
+  public bool? HasInsurance { get; set; }
+  public bool? HasRegistration { get; set; }
+  public bool? HasInspection { get; set; }
   // Navigation property for the many-to-many relationship with BusinessProfiles
   public virtual ICollection<BusinessVehicleType>? BusinessVehicleTypes { get; set; } = new List<BusinessVehicleType>();
 }

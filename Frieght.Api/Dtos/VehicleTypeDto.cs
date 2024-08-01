@@ -1,6 +1,7 @@
 namespace Frieght.Api.Dtos;
 public class VehicleTypeDto
 {
+  public int Id { get; set; }
   public required string Name { get; set; }
   public int Quantity { get; set; }
   public bool? HasInsurance { get; set; }
