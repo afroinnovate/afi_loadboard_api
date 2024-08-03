@@ -165,15 +165,19 @@ public static class BidEndpoints
         });
         #endregion
 
-
         #region UpdateBidEndpoint
         groups.MapPut("/{id}", async (IBidRepository repository, int id, UpdateBidDto updatedBidDto, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Updating Bid by Id {Id}", id);
+
+                logger.LogInformation("Retrieving Bid by Id {Id}", id);
                 var existingBid = await repository.GetBid(id);
-                if (existingBid == null) return Results.NotFound();
+                if (existingBid == null){
+                    logger.LogInformation("Bid not found with Id {Id}", id);
+                    return Results.NotFound($"Bid with Id: {id} not found");
+                }
 
                 existingBid.LoadId = updatedBidDto.LoadId;
                 existingBid.CarrierId = updatedBidDto.CarrierId;
