@@ -38,26 +38,64 @@ public static class AuthEndpoints
     /// </summary>
     /// <param name="group">The route group builder.</param>
     /// <param name="logger">The logger.</param>
-    public static void AddRegistrationEndpoints(this RouteGroupBuilder group, ILogger logger)
+    public static void AddRegistrationEndpoints(this RouteGroupBuilder group, Roles roleConfig)
     {
 
-        group.MapPost("/register", async (RegistrationModel model, UserManager<AppUser> userManager, IEmailConfigService emailService, ILogger<LogCategory> logger) =>
+        group.MapPost("/register", async (RegistrationModel request, UserManager<AppUser> userManager, IEmailConfigService emailService, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) =>
         {
             logger.LogInformation("creating user");
             // Handle user registration logic here
-            var user = new AppUser { UserName = model.Email, Email = model.Email };
-            var result = await userManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                logger.LogError("error creating user: {error}", result.Errors);
-                var errors = result.Errors.Select(e => e.Description).ToList();
-                logger.LogError($"error creating user: {errors}");
-                return Results.BadRequest(new { Errors = errors });
-            }
-
+            var user = new AppUser { UserName = request.Email, Email = request.Email };
             try
             {
+                var result = await userManager.CreateAsync(user, request.Password);
+
+                if (!result.Succeeded)
+                {
+                    logger.LogError("error creating user: {error}", result.Errors);
+                    var errors = result.Errors.Select(e => e.Description).ToList();
+                    logger.LogError($"error creating user: {errors}");
+                    return Results.BadRequest(new { Errors = errors });
+                }
+
+                #region Update User Role
+                logger.LogInformation("User details updated successfully for user {Username}", request.Email);
+                // Assign the role to the user
+                if (request.UserType != null)
+                {
+                    logger.LogInformation("Assigning role {Role} to user {Username}", request.UserType, request.Email);
+                    // check if the roles is valid 
+                    // Check if the role is in the predefined roles
+                    if (!IsRoleValid(request.UserType, roleConfig))
+                    {
+                        logger.LogWarning("Invalid role {Role}", request.UserType);
+                        return Results.BadRequest("Invalid role.");
+                    }
+
+                    // Check if the role exists in the database, create if not
+                    if (!await roleManager.RoleExistsAsync(request.UserType))
+                    {
+                        logger.LogInformation("Role {Role} does not exist, creating it", request.UserType);
+                        await roleManager.CreateAsync(new IdentityRole(request.UserType));
+                    }
+
+                    // Check if the role is valid
+                    if (!await roleManager.RoleExistsAsync(request.UserType))
+                    {
+                        logger.LogWarning("Invalid role {Role}", request.UserType);
+                        return Results.BadRequest("Invalid role.");
+                    }
+
+                    logger.LogInformation("Assigning role {Role} to user {Username}", request.UserType, request.Email);
+                    var roleResult = await userManager.AddToRoleAsync(user, request.UserType);
+                    if (!roleResult.Succeeded)
+                    {
+                        logger.LogError("Error assigning role {Role} to user {Username}", request.UserType, request.Email);
+                        return Results.BadRequest(roleResult.Errors);
+                    }
+                }
+                #endregion
+
                 logger.LogInformation("sending email with token");
                 // Generate email confirmation token
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -114,7 +152,7 @@ public static class AuthEndpoints
     /// <param name="roleConfig">The role configuration.</param>
     public static void AddCompleteProfileEndpoint(this RouteGroupBuilder group, Roles roleConfig)
     {
-        group.MapPost("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) =>
+        group.MapPut("/completeprofile", async (CompleteProfileRequest request, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<LogCategory> logger) =>
         {
             logger.LogInformation("Completing profile for user {Email}", request.Email);
             if (request.Email == null)
@@ -144,6 +182,7 @@ public static class AuthEndpoints
                     user.EmailConfirmed = true;
                     user.Confirmed = true;
                     user.Status = request.Status;
+                    user.UserType = request.UserType;
 
                     var updateResult = await userManager.UpdateAsync(user);
                     if (!updateResult.Succeeded)
@@ -400,7 +439,10 @@ public static class AuthEndpoints
                     LastName = user.LastName,
                     UserName = user.UserName,
                     Roles = roles.ToList(),
-                    PhoneNumber = user.PhoneNumber
+                    PhoneNumber = user.PhoneNumber,
+                    Confirmed = user.EmailConfirmed,
+                    Status = user.Status,
+                    UserType = user.UserType,
                 });
             }
 
@@ -425,7 +467,7 @@ public static class AuthEndpoints
         groups.MapGet("/Health", () => "OK from Auth.Min.API");
 
         // Add registration and complete profile endpoints
-        groups.AddRegistrationEndpoints(logger);
+        groups.AddRegistrationEndpoints(rolesConfig);
         groups.AddLoginEndpoint();
         groups.AddCompleteProfileEndpoint(rolesConfig);
         groups.AddPasswordResetEndpoints(); // Include the password reset endpoints

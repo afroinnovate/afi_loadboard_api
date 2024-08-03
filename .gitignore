@@ -3,6 +3,8 @@
 *.rsuser
 *.suo
 *.user
+.vs_code/
+.vscode/
 *.userosscache
 *.sln.docstates
 .env
