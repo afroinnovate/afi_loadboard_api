@@ -12,7 +12,6 @@ public class Bid
     public DateTimeOffset BiddingTime { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
-    public string? UserType { get; set; }
 
     // Navigation properties
     public required Load Load { get; set; }

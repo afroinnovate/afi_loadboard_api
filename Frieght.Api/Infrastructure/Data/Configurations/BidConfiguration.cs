@@ -2,8 +2,6 @@ using Frieght.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Frieght.Api.Infrastructure.Data.Configurations;
-
 public class BidConfiguration : IEntityTypeConfiguration<Bid>
 {
     public void Configure(EntityTypeBuilder<Bid> builder)
@@ -15,12 +13,12 @@ public class BidConfiguration : IEntityTypeConfiguration<Bid>
 
         // Configuring the relationship between Bid and Load
         builder.HasOne(b => b.Load)
-            .WithMany() //Load does not explicitly track its Bids in a collection
+            .WithMany() // Load does not explicitly track its Bids in a collection
             .HasForeignKey(b => b.LoadId)
             .OnDelete(DeleteBehavior.Cascade); // Cascading delete: deleting a Load will delete its associated Bids
 
         builder.HasOne(b => b.Carrier)
-            .WithMany() // User (Carrier) does not explicitly track its Bids in a collection
+            .WithMany(u => u.Bids) // Ensure User (Carrier) explicitly tracks its Bids in a collection
             .HasForeignKey(b => b.CarrierId)
             .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of User when Bids exist
 

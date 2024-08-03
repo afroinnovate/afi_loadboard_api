@@ -76,11 +76,20 @@ public static class LoadEndpoints
         /// <param name="carrierRepository"></param>
         /// <param name="messageSender"></param>
         /// <returns></returns>
-        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, ICarrierRepository carrierRepository, IMessageSender messageSender, ILogger<LoggerCategory> logger) =>
+        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, IUserRepository userRepository, IMessageSender messageSender, ILogger<LoggerCategory> logger) =>
         {
             logger.LogInformation("Creating Load");
             try
             {
+                var shipperProfile = new BusinessProfile
+                {
+                    UserId = loadDto.ShipperUserId,
+                    CompanyName = loadDto.CreatedBy.CompanyName,
+                    ShipperRole = loadDto.CreatedBy.ShipperRole,
+                    BusinessType = loadDto.CreatedBy.BusinessType,
+                    BusinessRegistrationNumber = loadDto.CreatedBy.BusinessRegistrationNumber,
+                };
+
                 var shipper = new User
                 {
                     UserId = loadDto.ShipperUserId,
@@ -88,16 +97,8 @@ public static class LoadEndpoints
                     FirstName = loadDto.CreatedBy.FirstName,
                     MiddleName = loadDto.CreatedBy.MiddleName,
                     LastName = loadDto.CreatedBy.LastName,
-                    UserType = "shipper"
-                };
-
-                shipper.BusinessProfile = new BusinessProfile
-                {
-                    UserId = loadDto.ShipperUserId,
-                    CompanyName = loadDto.CreatedBy.CompanyName,
-                    ShipperRole = loadDto.CreatedBy.ShipperRole,
-                    BusinessType = loadDto.CreatedBy.BusinessType,
-                    BusinessRegistrationNumber = loadDto.CreatedBy.BusinessRegistrationNumber,
+                    UserType = "shipper",
+                    BusinessProfile = shipperProfile
                 };
 
                 var load = new Load
@@ -147,10 +148,10 @@ public static class LoadEndpoints
         /// <param name="load"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        async Task<string> NotifyCarriers(ICarrierRepository carrierRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
+        async Task<string> NotifyCarriers(IUserRepository userRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
         {
             logger.LogInformation("Getting Carriers");
-            IEnumerable<User> carriers = await carrierRepository.GetCarrierByUserType("carrier");
+            IEnumerable<User> carriers = await userRepository.GetUserByUserType("carrier");
             if(carriers is not null)
             {
                 logger.LogInformation("Carriers found: {0}", carriers.Count());

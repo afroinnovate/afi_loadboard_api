@@ -38,5 +38,5 @@ public record CreateBidDto
     decimal BidAmount,
     BidStatus BidStatus,
     DateTimeOffset BiddingTime,
-    CarrierDto CreatedBy
+    CreateCarrierDto CreatedBy
 );

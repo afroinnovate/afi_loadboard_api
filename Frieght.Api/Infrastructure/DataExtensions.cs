@@ -33,7 +33,6 @@ public static  class DataExtensions
         services.AddDbContext<FrieghtDbContext>(options =>
             options.UseNpgsql(connString)) // Changed to UseNpgsql
             .AddScoped<ILoadRepository, LoadRepository>()
-            .AddScoped<ICarrierRepository, CarrierRepository>()
             .AddScoped<IMessageSender, MessageSender>()
             .AddScoped<IBidRepository, BidRepository>()
             .AddScoped<IBusinessProfileRepository, BusinessProfileRepository>()

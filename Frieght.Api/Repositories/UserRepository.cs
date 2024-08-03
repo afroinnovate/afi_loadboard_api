@@ -18,36 +18,110 @@ namespace Frieght.Api.Repositories
 
     public async Task<IEnumerable<User>> GetUsers()
     {
-      return await context.Users
-          .Include(u => u.BusinessProfile)
-          .ThenInclude(bp => bp.BusinessVehicleTypes)
-          .ToListAsync();
+      try
+      {
+        _logger.LogInformation("Retrieving all users");
+        return await context.Users
+            .Include(u => u.BusinessProfile)
+            .ThenInclude(bp => bp.BusinessVehicleTypes)
+            .AsNoTracking()
+            .ToListAsync();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while retrieving all users");
+        throw;
+      }
     }
 
     public async Task<User?> GetUser(string id)
     {
-      return await context.Users
-          .Include(u => u.BusinessProfile)
-          .ThenInclude(bp => bp.BusinessVehicleTypes)
-          .FirstOrDefaultAsync(u => u.UserId == id);
+      try
+      {
+        _logger.LogInformation("Retrieving user with ID: {UserId}", id);
+        return await context.Users
+            .Include(u => u.BusinessProfile)
+            .ThenInclude(bp => bp.BusinessVehicleTypes)
+            .FirstOrDefaultAsync(u => u.UserId == id);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while retrieving user with ID: {UserId}", id);
+        throw;
+      }
+    }
+
+    public async Task<IEnumerable<User?>> GetUserByUserType(string userType)
+    {
+      try
+      {
+        _logger.LogInformation("Retrieving user with UserType: {UserType}", userType);
+        return await context.Users
+            .Include(u => u.BusinessProfile)
+            .ThenInclude(bp => bp.BusinessVehicleTypes)
+            .Where(u => u.UserType == userType)
+            .AsNoTracking()
+            .ToListAsync();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while retrieving user with UserType: {UserType}", userType);
+        throw;
+      }
     }
 
     public async Task CreateUser(User user)
     {
-      context.Users.Add(user);
-      await context.SaveChangesAsync();
+      try
+      {
+        await context.Database.BeginTransactionAsync();
+
+        _logger.LogInformation("Creating user with ID: {UserId}", user.UserId);
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+        await context.Database.CommitTransactionAsync();
+        _logger.LogInformation("User created successfully with ID: {UserId}", user.UserId);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while creating user with ID: {UserId}", user.UserId);
+        throw;
+      }
     }
 
     public async Task UpdateUser(User user)
     {
-      context.Users.Update(user);
-      await context.SaveChangesAsync();
+      try
+      {
+        await context.Database.BeginTransactionAsync();
+
+        _logger.LogInformation("Updating user with ID: {UserId}", user.UserId);
+        context.Users.Update(user);
+        await context.SaveChangesAsync();
+        await context.Database.CommitTransactionAsync();
+        _logger.LogInformation("User updated successfully with ID: {UserId}", user.UserId);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while updating user with ID: {UserId}", user.UserId);
+        throw;
+      }
     }
 
     public async Task DeleteUser(User user)
     {
-      context.Users.Remove(user);
-      await context.SaveChangesAsync();
+      try
+      {
+        _logger.LogInformation("Deleting user with ID: {UserId}", user.UserId);
+        context.Users.Remove(user);
+        await context.SaveChangesAsync();
+        _logger.LogInformation("User deleted successfully with ID: {UserId}", user.UserId);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while deleting user with ID: {UserId}", user.UserId);
+        throw;
+      }
     }
   }
 }

@@ -4,7 +4,7 @@ namespace Frieght.Api.Repositories
 {
     public interface IBidRepository
     {
-        Task CreateBid(Bid bid, User carrier);
+        Task CreateBid(Bid bid);
         Task DeleteBid(int id);
         Task<Bid?> GetBid(int id);
         Task<Bid?> GetBidByLoadIdAndCarrierId(int loadId, string carrierId);

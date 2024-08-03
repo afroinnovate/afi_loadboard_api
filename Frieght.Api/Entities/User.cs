@@ -15,6 +15,6 @@ namespace Frieght.Api.Entities
         // Navigation properties
         public virtual ICollection<Load>? Loads { get; set; } = new List<Load>();
         public virtual ICollection<Bid>? Bids { get; set; } = new List<Bid>();
-        public virtual BusinessProfile? BusinessProfile { get; set; }
+        public required virtual BusinessProfile BusinessProfile { get; set; }
     }
 }
