@@ -23,7 +23,7 @@ namespace Frieght.Api.Repositories
         _logger.LogInformation("Retrieving all users");
         return await context.Users
             .Include(u => u.BusinessProfile)
-            .ThenInclude(bp => bp.BusinessVehicleTypes)
+              .ThenInclude(bp => bp.BusinessVehicleTypes)
             .AsNoTracking()
             .ToListAsync();
       }
@@ -41,7 +41,7 @@ namespace Frieght.Api.Repositories
         _logger.LogInformation("Retrieving user with ID: {UserId}", id);
         return await context.Users
             .Include(u => u.BusinessProfile)
-            .ThenInclude(bp => bp.BusinessVehicleTypes)
+              .ThenInclude(bp => bp.BusinessVehicleTypes)
             .FirstOrDefaultAsync(u => u.UserId == id);
       }
       catch (Exception ex)
@@ -58,7 +58,7 @@ namespace Frieght.Api.Repositories
         _logger.LogInformation("Retrieving user with UserType: {UserType}", userType);
         return await context.Users
             .Include(u => u.BusinessProfile)
-            .ThenInclude(bp => bp.BusinessVehicleTypes)
+              .ThenInclude(bp => bp.BusinessVehicleTypes)
             .Where(u => u.UserType == userType)
             .AsNoTracking()
             .ToListAsync();

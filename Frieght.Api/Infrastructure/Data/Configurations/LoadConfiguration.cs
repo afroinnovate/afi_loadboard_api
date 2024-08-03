@@ -1,13 +1,10 @@
-﻿
-
-
-using Frieght.Api.Entities;
+﻿using Frieght.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Frieght.Api.Infrastructure.Data.Configurations;
 
-public class LoadConfiguration: IEntityTypeConfiguration<Load>
+public class LoadConfiguration : IEntityTypeConfiguration<Load>
 {
     public void Configure(EntityTypeBuilder<Load> builder)
     {
@@ -26,11 +23,23 @@ public class LoadConfiguration: IEntityTypeConfiguration<Load>
             .HasMaxLength(20)
             .IsRequired();
 
-        // Define primary key if not conventionally done by EF Core
+        // Define primary key
         builder.HasKey(load => load.LoadId);
-        
+
         // Add an index on Origin and Destination for faster searches
         builder.HasIndex(load => new { load.Origin, load.Destination });
+
+        // Add a unique constraint to prevent duplicate loads on the same date
+        builder.HasIndex(load => new
+        {
+            load.ShipperUserId,
+            load.Origin,
+            load.Destination,
+            load.PickupDate,
+            load.DeliveryDate,
+            load.Commodity,
+            load.LoadDetails
+        }).IsUnique();
 
         // Configure relationships if not done in the DbContext
         builder.HasOne(load => load.Shipper)
@@ -38,5 +47,4 @@ public class LoadConfiguration: IEntityTypeConfiguration<Load>
             .HasForeignKey(load => load.ShipperUserId)
             .OnDelete(DeleteBehavior.Restrict);  // Prevent deletion of User if they have posted Loads
     }
-
 }

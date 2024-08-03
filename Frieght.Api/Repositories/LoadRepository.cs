@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Frieght.Api.Dtos;
+using Npgsql;
+using Frieght.Api.Infrastructure.Exceptions;
 
 namespace Frieght.Api.Repositories
 {
@@ -58,13 +60,18 @@ namespace Frieght.Api.Repositories
 
                 _logger.LogInformation("Load created successfully with LoadId: {LoadId}", load.LoadId);
             }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+            {
+                // Unique constraint violation
+                _logger.LogError(ex, "Duplicate load detected.");
+                throw new DuplicateLoadException("This load has already been created, please change your pickup date or load details to ensure no duplication.");
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to create load due to an error.");
+                _logger.LogError("Failed to create load due to an error: {message}", ex.Message);
                 throw; // Rethrow to ensure the error is handled or logged at a higher level
             }
         }
-
 
         public async Task DeleteLoad(int id)
         {
@@ -97,6 +104,7 @@ namespace Frieght.Api.Repositories
             {
                 var load = await context.Loads
                     .Include(l => l.Shipper) // Eager load the Shipper associated with the Load
+                        .ThenInclude(s => s.BusinessProfile)
                     .AsNoTracking()          // Use AsNoTracking for read-only operations for better performance
                     .FirstOrDefaultAsync(l => l.LoadId == id);
 
@@ -122,6 +130,7 @@ namespace Frieght.Api.Repositories
             {
                 var loads = await context.Loads
                     .Include(l => l.Shipper)  // Eager load the Shipper associated with each Load
+                        .ThenInclude(s => s.BusinessProfile)
                     .AsNoTracking()           // Use AsNoTracking for better performance in read-only operations
                     .ToListAsync();
 

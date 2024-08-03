@@ -1,6 +1,7 @@
 ﻿using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
 using Frieght.Api.Extensions;
+using Frieght.Api.Infrastructure.Exceptions;
 using Frieght.Api.Infrastructure.Notifications;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
@@ -34,7 +35,7 @@ public static class LoadEndpoints
             try
             {
                 var loads = await repository.GetLoads();
-                return Results.Ok(loads.Select(load => load.AsLoadDto()));
+                return Results.Ok(loads.Select(load => load.AsLoadResponse()));
             }
             catch (Exception ex)
             {
@@ -57,7 +58,7 @@ public static class LoadEndpoints
             {
                 var load = await repository.GetLoad(id);
                 logger.LogInformation("Load found: {0}", load);
-                return load != null ? Results.Ok(load.AsLoadDto()) : Results.NotFound();
+                return load != null ? Results.Ok(load.AsLoadResponse()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -128,7 +129,12 @@ public static class LoadEndpoints
                 // await NotifyCarriers(carrierRepository, messageSender, load, logger);
                 // logger.LogInformation("Carriers Notified");
             
-                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, load.AsLoadDto());
+                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, load.AsLoadResponse());
+            }
+            catch (DuplicateLoadException ex)
+            {
+                logger.LogWarning(ex, "Duplicate load creation attempt.");
+                return Results.BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

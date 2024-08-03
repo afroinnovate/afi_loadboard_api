@@ -18,6 +18,18 @@ public record ShipperDto
     BusinessProfileDto? BusinessProfile
 );
 
+public record ShipperDtoResponse
+(
+    string UserId,
+    string Email,
+    string FirstName,
+    string? MiddleName,
+    string LastName,
+    string? Phone,
+    string? UserType,
+    BusinessProfileDto? BusinessProfile
+);
+
 public record CreateShipperDto
 (
     string UserId,

@@ -19,6 +19,24 @@ public record CarrierDto
     CarrierRoleType CarrierRole
 );
 
+public record CarrierResponse
+(
+    string UserId,
+    string Email,
+    string FirstName,
+    string? MiddleName,
+    string LastName,
+    string? Phone,
+    string? UserType,
+    string? DOTNumber,
+    string? MotorCarrierNumber,
+    string? EquipmentType,
+    double? AvailableCapacity,
+    string? CompanyName,
+    VehicleTypeDto[] VehicleTypes,
+    CarrierRoleType CarrierRole
+);
+
 public record CreateCarrierDto
 (
     string UserId,

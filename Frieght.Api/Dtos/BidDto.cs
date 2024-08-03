@@ -17,6 +17,20 @@ public record BidDto
     CarrierDto Carrier // Include associated Carrier details
 );
 
+public record BidDtoResponse
+(
+    int Id,
+    int LoadId,
+    string CarrierId,
+    decimal BidAmount,
+    BidStatus BidStatus,
+    DateTimeOffset BiddingTime,
+    DateTimeOffset UpdatedAt,
+    string? UpdatedBy,
+    LoadDtoResponse Load,    // Include associated Load details
+    CarrierResponse Carrier // Include associated Carrier details
+);
+
 public record UpdateBidDto
 (
     int Id,

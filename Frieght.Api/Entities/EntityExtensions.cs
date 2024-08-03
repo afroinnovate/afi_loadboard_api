@@ -325,12 +325,12 @@ namespace Frieght.Api.Extensions
             return user;
         }
 
-        public static LoadDto AsLoadDto(this Load load)
+        public static LoadDtoResponse AsLoadResponse(this Load load)
         {
-            return new LoadDto(
+            return new LoadDtoResponse(
                 load.LoadId,
                 load.ShipperUserId,
-                load.Shipper.AsShipperDto(), // Transform User entity to ShipperDto
+                load.Shipper.AsShipperResponse(), // Transform User entity to ShipperDto
                 load.Origin,
                 load.Destination,
                 load.PickupDate,
@@ -365,6 +365,20 @@ namespace Frieght.Api.Extensions
             };
         }
 
+        public static ShipperDtoResponse AsShipperResponse(this User user)
+        {
+            return new ShipperDtoResponse(
+                UserId: user.UserId,
+                Email: user.Email,
+                FirstName: user.FirstName,
+                MiddleName: user.MiddleName,
+                LastName: user.LastName,
+                Phone: user.Phone,
+                UserType: user.UserType,
+                BusinessProfile: user.BusinessProfile?.AsBusinessProfileDto()
+            );
+        }
+
         public static Load AsLoad(this LoadDto loadDto)
         {
             return new Load
@@ -386,10 +400,30 @@ namespace Frieght.Api.Extensions
                 Shipper = loadDto.CreatedBy.AsUser()
             };
         }
-
-        public static BidDto AsBidDto(this Bid bid)
+        
+        public static CarrierResponse AsCarrierResponse(this User user)
         {
-            return new BidDto(
+            return new CarrierResponse(
+                UserId: user.UserId,
+                Email: user.Email,
+                FirstName: user.FirstName,
+                MiddleName: user.MiddleName,
+                LastName: user.LastName,
+                Phone: user.Phone,
+                UserType: user.UserType,
+                DOTNumber: user.BusinessProfile?.DOTNumber,
+                MotorCarrierNumber: user.BusinessProfile?.MotorCarrierNumber,
+                EquipmentType: user.BusinessProfile?.EquipmentType,
+                AvailableCapacity: user.BusinessProfile?.AvailableCapacity,
+                CompanyName: user.BusinessProfile?.CompanyName,
+                VehicleTypes: user.BusinessProfile?.BusinessVehicleTypes?.Select(vt => vt.AsVehicleDto()).ToArray() ?? Array.Empty<VehicleTypeDto>(),
+                CarrierRole: user.BusinessProfile?.CarrierRole ?? 0
+            );
+        }
+
+        public static BidDtoResponse AsBidResponse(this Bid bid)
+        {
+            return new BidDtoResponse(
                 bid.Id,
                 bid.LoadId,
                 bid.CarrierId,
@@ -398,8 +432,8 @@ namespace Frieght.Api.Extensions
                 bid.BiddingTime,
                 bid.UpdatedAt,
                 bid.UpdatedBy,
-                bid.Load.AsLoadDto(),     // Transform Load entity to LoadDto
-                bid.Carrier.AsCarrierDto()   // Transform User entity (acting as Carrier) to CarrierDto
+                bid.Load.AsLoadResponse(),     // Transform Load entity to LoadDto
+                bid.Carrier.AsCarrierResponse()   // Transform User entity (acting as Carrier) to CarrierDto
             );
         }
     }

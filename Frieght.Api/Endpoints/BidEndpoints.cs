@@ -24,7 +24,7 @@ public static class BidEndpoints
 
         #region GetBidEndpoints
         groups.MapGet("/", async (IBidRepository repository) =>
-            (await repository.GetBids()).Select(bid => bid.AsBidDto()));
+            (await repository.GetBids()).Select(bid => bid.AsBidResponse()));
         #endregion
 
         #region GetBidByIdEndpoint
@@ -35,7 +35,7 @@ public static class BidEndpoints
                 logger.LogInformation("Getting Bid by Id {Id}", id);
                 var bid = await repository.GetBid(id);
                 if (bid == null) logger.LogInformation("Bid not found with Id {Id}", id);
-                return bid != null ? Results.Ok(bid.AsBidDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(bid.AsBidResponse()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ public static class BidEndpoints
             {
                 logger.LogInformation("Getting Bid by Load Id and carrier id {loadId} with carrierId {carrierId}", loadId, carrierId);
                 var bid = await repository.GetBidByLoadIdAndCarrierId(loadId, carrierId);
-                return bid != null ? Results.Ok(bid.AsBidDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(bid.AsBidResponse()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -124,7 +124,7 @@ public static class BidEndpoints
 
                 await repository.CreateBid(bid);
 
-                var response = new BidDto
+                var response = new BidDtoResponse
                 (
                     Id: bid.Id,
                     LoadId: load.LoadId,
@@ -134,11 +134,11 @@ public static class BidEndpoints
                     BiddingTime: bid.BiddingTime,
                     UpdatedAt: bid.UpdatedAt,
                     UpdatedBy: bid.UpdatedBy,
-                    Load: new LoadDto
+                    Load: new LoadDtoResponse
                     (
                         LoadId: load.LoadId,
                         ShipperUserId: load.ShipperUserId,
-                        CreatedBy: load.Shipper.AsShipperDto(),
+                        CreatedBy: load.Shipper.AsShipperResponse(),
                         Origin: load.Origin,
                         Destination: load.Destination,
                         PickupDate: load.PickupDate,
@@ -152,7 +152,7 @@ public static class BidEndpoints
                         ModifiedAt: load.ModifiedAt,
                         ModifiedBy: load.ModifiedBy
                     ),
-                    Carrier: trackedCarrier.AsCarrierDto()
+                    Carrier: trackedCarrier.AsCarrierResponse()
                 );
 
                 return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, response);
