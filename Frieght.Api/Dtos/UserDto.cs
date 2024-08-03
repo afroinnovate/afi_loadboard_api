@@ -23,13 +23,20 @@ public record CreateUserDto
     string LastName,
     string? Phone,
     string UserType, // "Carrier" or "Shipper"
+                    // Common fields for both
     string? CompanyName,
+    // Carrier specific
     string? MotorCarrierNumber,
     string? DOTNumber,
     string? EquipmentType,
     double? AvailableCapacity,
+    string? BusinessType, // For shippers independent business owner, corporation, etc.
+    string? BusinessRegistrationNumber,
     CarrierRoleType? CarrierRole,
-    ShipperRoleType? ShipperRole
+    // Shipper specific
+    ShipperRoleType? ShipperRole,
+    // Vehicle information
+    IEnumerable<VehicleTypeDto>? VehicleTypes
 );
 
 public record UpdateUserDto

@@ -1,213 +1,406 @@
 ﻿using Frieght.Api.Dtos;
-using Frieght.Api.Enuns;
+using Frieght.Api.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Frieght.Api.Entities;
-
-public static class EntityExtensions
+namespace Frieght.Api.Extensions
 {
-    public static LoadDto asDto(this Load load)
+    public static class EntityExtensions
     {
-        return new LoadDto(
-            load.LoadId,
-            load.ShipperUserId,
-            load.Shipper?.asShipperDto(), // Transform User entity to ShipperDto
-            load.Origin,
-            load.Destination,
-            load.PickupDate,
-            load.DeliveryDate,
-            load.Commodity,
-            load.Weight,
-            load.OfferAmount,
-            load.LoadDetails,
-            load.LoadStatus,
-            load.CreatedAt,
-            load.ModifiedAt,
-            load.ModifiedBy
-        );
-    }
-
-    public static Load asLoad(this LoadDto loadDto)
-    {
-        return new Load
+        public static CarrierDto AsCarrierDto(this User user)
         {
-            LoadId = loadDto.LoadId,
-            ShipperUserId = loadDto.ShipperUserId,
-            Shipper = new User
-            {
-                UserId = loadDto.ShipperUserId,
-                Email = loadDto.CreatedBy.Email,
-                FirstName = loadDto.CreatedBy.FirstName,
-                MiddleName = loadDto.CreatedBy.MiddleName,
-                LastName = loadDto.CreatedBy.LastName,
-                UserType = "shipper"
-            },
-            Origin = loadDto.Origin,
-            Destination = loadDto.Destination,
-            PickupDate = loadDto.PickupDate,
-            DeliveryDate = loadDto.DeliveryDate,
-            Commodity = loadDto.Commodity,
-            Weight = loadDto.Weight,
-            OfferAmount = loadDto.OfferAmount,
-            LoadDetails = loadDto.LoadDetails,
-            LoadStatus = loadDto.LoadStatus,
-            CreatedAt = (DateTime)loadDto.CreatedAt,
-            ModifiedAt = (DateTime)loadDto.ModifiedAt,
-            ModifiedBy = loadDto.ModifiedBy
-        };
-    }
+            return new CarrierDto(
+                UserId: user.UserId,
+                Email: user.Email,
+                FirstName: user.FirstName,
+                MiddleName: user.MiddleName,
+                LastName: user.LastName,
+                Phone: user.Phone,
+                UserType: user.UserType,
+                DOTNumber: user.BusinessProfile?.DOTNumber,
+                MotorCarrierNumber: user.BusinessProfile?.MotorCarrierNumber,
+                EquipmentType: user.BusinessProfile?.EquipmentType,
+                AvailableCapacity: user.BusinessProfile?.AvailableCapacity,
+                CompanyName: user.BusinessProfile?.CompanyName,
+                VehicleTypes: user.BusinessProfile?.BusinessVehicleTypes?.Select(vt => vt.AsVehicleDto()).ToArray() ?? Array.Empty<VehicleTypeDto>(),
+                CarrierRole: user.BusinessProfile?.CarrierRole ?? 0
+            );
+        }
 
-    public static BidDto asBidDto(this Bid bid)
-    {
-        return new BidDto(
-            bid.Id,
-            bid.LoadId,
-            bid.CarrierId,
-            bid.BidAmount,
-            bid.BidStatus,
-            bid.BiddingTime,
-            bid.UpdatedAt,
-            bid.UpdatedBy,
-            bid.Load.asDto(),     // Transform Load entity to LoadDto
-            bid.Carrier.asUserDto()   // Transform User entity (acting as Carrier) to CarrierDto
-        );
-    }
-
-    public static Bid asBid(this CreateBidDto createBidDto)
-    {
-        return new Bid
+        public static ShipperDto AsShipperDto(this User user)
         {
-            LoadId = createBidDto.LoadId,
-            CarrierId = createBidDto.CarrierId,
-            BidAmount = createBidDto.BidAmount,
-            BidStatus = createBidDto.BidStatus,
-            BiddingTime = createBidDto.BiddingTime,
-            UpdatedBy = createBidDto.CreatedBy.Email,
-            Load = new Load
+            return new ShipperDto(
+                UserId: user.UserId,
+                Email: user.Email,
+                FirstName: user.FirstName,
+                MiddleName: user.MiddleName,
+                LastName: user.LastName,
+                Phone: user.Phone,
+                UserType: user.UserType,
+                BusinessType: user.BusinessProfile?.BusinessType ?? "",
+                BusinessRegistrationNumber: user.BusinessProfile?.BusinessRegistrationNumber ?? "",
+                CompanyName: user.BusinessProfile?.CompanyName ?? "",
+                ShipperRole: user.BusinessProfile?.ShipperRole ?? 0,
+                BusinessProfile: user.BusinessProfile?.AsBusinessProfileDto()
+            );
+        }
+
+        public static User AsUser(this CreateCarrierDto createCarrierDto)
+        {
+            var businessProfile = new BusinessProfile
             {
-                LoadId = createBidDto.LoadDto.LoadId,
-                ShipperUserId = createBidDto.LoadDto.ShipperUserId,
-                Origin = createBidDto.LoadDto.Origin,
-                Destination = createBidDto.LoadDto.Destination,
-                PickupDate = createBidDto.LoadDto.PickupDate,
-                DeliveryDate = createBidDto.LoadDto.DeliveryDate,
-                Commodity = createBidDto.LoadDto.Commodity,
-                Weight = createBidDto.LoadDto.Weight,
-                OfferAmount = createBidDto.LoadDto.OfferAmount,
-                LoadDetails = createBidDto.LoadDto.LoadDetails,
-                LoadStatus = createBidDto.LoadDto.LoadStatus,
-                CreatedAt = (DateTime)createBidDto.LoadDto.CreatedAt,
-                Shipper = new User
+                UserId = createCarrierDto.UserId,
+                CompanyName = createCarrierDto.CompanyName,
+                MotorCarrierNumber = createCarrierDto.MotorCarrierNumber,
+                DOTNumber = createCarrierDto.DOTNumber,
+                EquipmentType = createCarrierDto.EquipmentType,
+                AvailableCapacity = createCarrierDto.AvailableCapacity,
+                CarrierRole = createCarrierDto.CarrierRole
+            };
+
+            var user = new User
+            {
+                UserId = createCarrierDto.UserId,
+                Email = createCarrierDto.Email,
+                FirstName = createCarrierDto.FirstName,
+                MiddleName = createCarrierDto.MiddleName,
+                LastName = createCarrierDto.LastName,
+                Phone = createCarrierDto.Phone,
+                UserType = createCarrierDto.UserType,
+                BusinessProfile = businessProfile
+            };
+
+            businessProfile.BusinessVehicleTypes = new List<BusinessVehicleType>
+            {
+                new BusinessVehicleType
                 {
-                    UserId = createBidDto.CreatedBy.UserId,
-                    Email = createBidDto.CreatedBy.Email,
-                    FirstName = createBidDto.CreatedBy.FirstName,
-                    MiddleName = createBidDto.CreatedBy.MiddleName,
-                    LastName = createBidDto.CreatedBy.LastName,
-                    UserType = "shipper"
+                    VehicleType = new VehicleType
+                    {
+                        Name = createCarrierDto.Name,
+                        Description = createCarrierDto.Description,
+                        ImageUrl = createCarrierDto.ImageUrl,
+                        VIN = createCarrierDto.VIN,
+                        LicensePlate = createCarrierDto.LicensePlate,
+                        Make = createCarrierDto.Make,
+                        Model = createCarrierDto.Model,
+                        Year = createCarrierDto.Year,
+                        Color = createCarrierDto.Color,
+                        HasInsurance = createCarrierDto.HasInsurance,
+                        HasRegistration = createCarrierDto.HasRegistration,
+                        HasInspection = createCarrierDto.HasInspection
+                    },
+                    Quantity = createCarrierDto.Quantity,
+                    BusinessProfile = businessProfile
                 }
-            },
-            Carrier = new User
+            };
+            return user;
+        }
+
+        public static User AsUser(this UpdateCarrierDto updateCarrierDto)
+        {
+            var businessProfile = new BusinessProfile
             {
-                UserId = createBidDto.CarrierId,
-                Email = createBidDto.CreatedBy.Email,
-                FirstName = createBidDto.CreatedBy.FirstName,
-                MiddleName = createBidDto.CreatedBy.MiddleName,
-                LastName = createBidDto.CreatedBy.LastName,
-                UserType = "carrier"
+                UserId = updateCarrierDto.UserId,
+                CompanyName = updateCarrierDto.CompanyName,
+                MotorCarrierNumber = updateCarrierDto.MotorCarrierNumber,
+                DOTNumber = updateCarrierDto.DOTNumber,
+                EquipmentType = updateCarrierDto.EquipmentType,
+                AvailableCapacity = updateCarrierDto.AvailableCapacity,
+                CarrierRole = updateCarrierDto.CarrierRole
+            };
+
+            var user = new User
+            {
+                UserId = updateCarrierDto.UserId,
+                Email = updateCarrierDto.Email,
+                FirstName = updateCarrierDto.FirstName,
+                MiddleName = updateCarrierDto.MiddleName,
+                LastName = updateCarrierDto.LastName,
+                Phone = updateCarrierDto.Phone,
+                UserType = updateCarrierDto.UserType,
+                BusinessProfile = businessProfile
+            };
+
+            businessProfile.BusinessVehicleTypes = new List<BusinessVehicleType>
+            {
+                new BusinessVehicleType
+                {
+                    VehicleType = new VehicleType
+                    {
+                        Name = updateCarrierDto.Name,
+                        Description = updateCarrierDto.Description,
+                        ImageUrl = updateCarrierDto.ImageUrl,
+                        VIN = updateCarrierDto.VIN,
+                        LicensePlate = updateCarrierDto.LicensePlate,
+                        Make = updateCarrierDto.Make,
+                        Model = updateCarrierDto.Model,
+                        Year = updateCarrierDto.Year,
+                        Color = updateCarrierDto.Color,
+                        HasInsurance = updateCarrierDto.HasInsurance,
+                        HasRegistration = updateCarrierDto.HasRegistration,
+                        HasInspection = updateCarrierDto.HasInspection
+                    },
+                    Quantity = updateCarrierDto.Quantity,
+                    BusinessProfile = businessProfile
+                }
+            };
+            return user;
+        }
+
+        public static BusinessProfileDto AsBusinessProfileDto(this BusinessProfile businessProfile)
+        {
+            return new BusinessProfileDto(
+                businessProfile.UserId,
+                businessProfile.CompanyName,
+                businessProfile.MotorCarrierNumber,
+                businessProfile.DOTNumber,
+                businessProfile.EquipmentType,
+                businessProfile.AvailableCapacity,
+                businessProfile.IDCardOrDriverLicenceNumber,
+                businessProfile.InsuranceName,
+                businessProfile.BusinessType,
+                businessProfile.CarrierRole,
+                businessProfile.ShipperRole,
+                businessProfile.BusinessRegistrationNumber,
+                businessProfile.BusinessVehicleTypes?.Select(bvt => bvt.AsVehicleDto()).ToList() ?? new List<VehicleTypeDto>()
+            );
+        }
+
+        public static VehicleTypeDto AsVehicleDto(this BusinessVehicleType businessVehicleType)
+        {
+            if (businessVehicleType?.VehicleType == null)
+            {
+                return null;
             }
-        };
-    }
 
-    public static ShipperDto asShipperDto(this User user)
-    {
-        return new ShipperDto(
-            UserId: user.UserId,
-            Email: user.Email,
-            FirstName: user.FirstName,
-            MiddleName: user.MiddleName,
-            LastName: user.LastName,
-            Phone: user.Phone,
-            UserType: user.UserType,
-            BusinessType: user.BusinessProfile?.BusinessType,
-            BusinessRegistrationNumber: user.BusinessProfile?.BusinessRegistrationNumber,
-            CompanyName: user.BusinessProfile?.CompanyName,
-            ShipperRole: user.BusinessProfile?.ShipperRole ?? user.BusinessProfile?.ShipperRole ?? 0,
-            BusinessProfile: user.BusinessProfile?.asDto()
-        );
-    }
+            return new VehicleTypeDto(
+                businessVehicleType.VehicleType.Name,
+                businessVehicleType.VehicleType.Description,
+                businessVehicleType.VehicleType.ImageUrl,
+                businessVehicleType.VehicleType.VIN,
+                businessVehicleType.VehicleType.LicensePlate,
+                businessVehicleType.VehicleType.Make,
+                businessVehicleType.VehicleType.Model,
+                businessVehicleType.VehicleType.Year,
+                businessVehicleType.VehicleType.Color,
+                businessVehicleType.VehicleType.HasInsurance,
+                businessVehicleType.VehicleType.HasRegistration,
+                businessVehicleType.VehicleType.HasInspection,
+                businessVehicleType.Quantity
+            );
+        }
 
-    public static CarrierDto asCarrierDto(this User user)
-    {
-        return new CarrierDto(
-            UserId: user.UserId,
-            Email: user.Email,
-            FirstName: user.FirstName,
-            MiddleName: user.MiddleName,
-            LastName: user.LastName,
-            Phone: user.Phone,
-            UserType: user.UserType,
-            DOTNumber: user.BusinessProfile?.DOTNumber,
-            MotorCarrierNumber: user.BusinessProfile?.MotorCarrierNumber,
-            EquipmentType: user.BusinessProfile?.EquipmentType,
-            AvailableCapacity: user.BusinessProfile?.AvailableCapacity,
-            CompanyName: user.BusinessProfile?.CompanyName,
-            VehicleTypes: user.BusinessProfile?.BusinessVehicleTypes?.Select(vt => vt.asDto()).ToArray(),
-            CarrierRole: user.BusinessProfile?.CarrierRole ?? user.BusinessProfile?.CarrierRole ?? 0,
-            BusinessProfile: user.BusinessProfile?.asDto()
-        );
-    }
-
-    public static UserDto asUserDto(this User user)
-    {
-        return new UserDto(
-            user.UserId,
-            user.Email,
-            user.FirstName,
-            user.LastName,
-            user.MiddleName,
-            user.Phone,
-            user.UserType,
-            user.BusinessProfile?.asDto()
-        );
-    }
-
-    public static BusinessProfileDto asDto(this BusinessProfile businessProfile)
-    {
-        return new BusinessProfileDto
+        public static User AsUser(this CreateUserDto createUserDto)
         {
-            UserId = businessProfile.UserId,
-            CompanyName = businessProfile.CompanyName,
-            MotorCarrierNumber = businessProfile.MotorCarrierNumber,
-            DOTNumber = businessProfile.DOTNumber,
-            EquipmentType = businessProfile.EquipmentType,
-            AvailableCapacity = businessProfile.AvailableCapacity,
-            IDCardOrDriverLicenceNumber = businessProfile.IDCardOrDriverLicenceNumber,
-            InsuranceName = businessProfile.InsuranceName,
-            BusinessType = businessProfile.BusinessType,
-            CarrierRole = businessProfile.CarrierRole,
-            ShipperRole = businessProfile.ShipperRole,
-            BusinessRegistrationNumber = businessProfile.BusinessRegistrationNumber,
-            VehicleTypes = businessProfile.BusinessVehicleTypes?.Select(bvt => bvt.asDto()).ToList()
-        };
-    }
+            var businessProfile = new BusinessProfile
+            {
+                UserId = createUserDto.UserId,
+                CompanyName = createUserDto.CompanyName,
+                MotorCarrierNumber = createUserDto.MotorCarrierNumber,
+                DOTNumber = createUserDto.DOTNumber,
+                EquipmentType = createUserDto.EquipmentType,
+                AvailableCapacity = createUserDto.AvailableCapacity,
+                CarrierRole = createUserDto.CarrierRole,
+                ShipperRole = createUserDto.ShipperRole
+            };
 
-    public static VehicleTypeDto asDto(this BusinessVehicleType businessVehicleType)
-    {
-        return new VehicleTypeDto
+            var businessVehicleTypes = createUserDto.VehicleTypes?.Select(vt => new BusinessVehicleType
+            {
+                VehicleType = new VehicleType
+                {
+                    Name = vt.Name,
+                    Description = vt.Description,
+                    ImageUrl = vt.ImageUrl,
+                    VIN = vt.VIN,
+                    LicensePlate = vt.LicensePlate,
+                    Make = vt.Make,
+                    Model = vt.Model,
+                    Year = vt.Year,
+                    Color = vt.Color,
+                    HasInsurance = vt.HasInsurance,
+                    HasRegistration = vt.HasRegistration,
+                    HasInspection = vt.HasInspection
+                },
+                Quantity = vt.Quantity,
+                BusinessProfile = businessProfile
+            }).ToList();
+
+            if (businessVehicleTypes != null)
+            {
+                businessProfile.BusinessVehicleTypes = businessVehicleTypes;
+            }
+
+            var user = new User
+            {
+                UserId = createUserDto.UserId,
+                Email = createUserDto.Email,
+                FirstName = createUserDto.FirstName,
+                MiddleName = createUserDto.MiddleName,
+                LastName = createUserDto.LastName,
+                Phone = createUserDto.Phone,
+                UserType = createUserDto.UserType,
+                BusinessProfile = businessProfile
+            };
+
+            return user;
+        }
+
+        public static User AsUser(this ShipperDto shipperDto)
         {
-            Name = businessVehicleType.VehicleType.Name,
-            Quantity = businessVehicleType.Quantity,
-            HasInsurance = businessVehicleType.VehicleType.HasInsurance,
-            HasRegistration = businessVehicleType.VehicleType.HasRegistration,
-            HasInspection = businessVehicleType.VehicleType.HasInspection,
-            Description = businessVehicleType.VehicleType.Description,
-            ImageUrl = businessVehicleType.VehicleType.ImageUrl,
-            VIN = businessVehicleType.VehicleType.VIN,
-            LicensePlate = businessVehicleType.VehicleType.LicensePlate,
-            Make = businessVehicleType.VehicleType.Make,
-            Model = businessVehicleType.VehicleType.Model,
-            Year = businessVehicleType.VehicleType.Year,
-            Color = businessVehicleType.VehicleType.Color
-        };
+            var businessProfile = new BusinessProfile
+            {
+                UserId = shipperDto.UserId,
+                CompanyName = shipperDto.CompanyName,
+                BusinessType = shipperDto.BusinessType,
+                BusinessRegistrationNumber = shipperDto.BusinessRegistrationNumber,
+                ShipperRole = shipperDto.ShipperRole
+            };
+
+            var user = new User
+            {
+                UserId = shipperDto.UserId,
+                Email = shipperDto.Email,
+                FirstName = shipperDto.FirstName,
+                MiddleName = shipperDto.MiddleName,
+                LastName = shipperDto.LastName,
+                Phone = shipperDto.Phone,
+                UserType = "Shipper",
+                BusinessProfile = businessProfile
+            };
+            return user;
+        }
+
+        public static User AsCarrierUser(this CarrierDto carrierDto)
+        {
+            var businessProfile = new BusinessProfile
+            {
+                UserId = carrierDto.UserId,
+                CompanyName = carrierDto.CompanyName,
+                MotorCarrierNumber = carrierDto.MotorCarrierNumber,
+                DOTNumber = carrierDto.DOTNumber,
+                EquipmentType = carrierDto.EquipmentType,
+                AvailableCapacity = carrierDto.AvailableCapacity,
+                CarrierRole = carrierDto.CarrierRole
+            };
+
+            var businessVehicleTypes = carrierDto.VehicleTypes?.Select(vt => new BusinessVehicleType
+            {
+                VehicleType = new VehicleType
+                {
+                    Name = vt.Name,
+                    Description = vt.Description,
+                    ImageUrl = vt.ImageUrl,
+                    VIN = vt.VIN,
+                    LicensePlate = vt.LicensePlate,
+                    Make = vt.Make,
+                    Model = vt.Model,
+                    Year = vt.Year,
+                    Color = vt.Color,
+                    HasInsurance = vt.HasInsurance,
+                    HasRegistration = vt.HasRegistration,
+                    HasInspection = vt.HasInspection
+                },
+                Quantity = vt.Quantity,
+                BusinessProfile = businessProfile
+            }).ToList();
+
+            if (businessVehicleTypes != null)
+            {
+                businessProfile.BusinessVehicleTypes = businessVehicleTypes;
+            }
+
+            var user = new User
+            {
+                UserId = carrierDto.UserId,
+                Email = carrierDto.Email,
+                FirstName = carrierDto.FirstName,
+                MiddleName = carrierDto.MiddleName,
+                LastName = carrierDto.LastName,
+                Phone = carrierDto.Phone,
+                UserType = "Carrier",
+                BusinessProfile = businessProfile
+            };
+
+            return user;
+        }
+
+        public static LoadDto AsLoadDto(this Load load)
+        {
+            return new LoadDto(
+                load.LoadId,
+                load.ShipperUserId,
+                load.Shipper.AsShipperDto(), // Transform User entity to ShipperDto
+                load.Origin,
+                load.Destination,
+                load.PickupDate,
+                load.DeliveryDate,
+                load.Commodity,
+                load.Weight,
+                load.OfferAmount,
+                load.LoadDetails,
+                load.LoadStatus,
+                load.CreatedAt,
+                load.ModifiedAt,
+                load.ModifiedBy
+            );
+        }
+
+        public static Load AsCreateLoad(this CreateLoadDto createLoadDto)
+        {
+            return new Load
+            {
+                ShipperUserId = createLoadDto.ShipperUserId,
+                Origin = createLoadDto.Origin,
+                Destination = createLoadDto.Destination,
+                PickupDate = createLoadDto.PickupDate,
+                DeliveryDate = createLoadDto.DeliveryDate,
+                Commodity = createLoadDto.Commodity,
+                Weight = createLoadDto.Weight,
+                OfferAmount = createLoadDto.OfferAmount,
+                LoadDetails = createLoadDto.LoadDetails,
+                LoadStatus = createLoadDto.LoadStatus,
+                CreatedAt = createLoadDto.CreatedAt,
+                Shipper = createLoadDto.CreatedBy.AsUser()
+            };
+        }
+
+        public static Load AsLoad(this LoadDto loadDto)
+        {
+            return new Load
+            {
+                LoadId = loadDto.LoadId,
+                ShipperUserId = loadDto.ShipperUserId,
+                Origin = loadDto.Origin,
+                Destination = loadDto.Destination,
+                PickupDate = loadDto.PickupDate,
+                DeliveryDate = loadDto.DeliveryDate,
+                Commodity = loadDto.Commodity,
+                Weight = loadDto.Weight,
+                OfferAmount = loadDto.OfferAmount,
+                LoadDetails = loadDto.LoadDetails,
+                LoadStatus = loadDto.LoadStatus,
+                CreatedAt = (DateTime)loadDto.CreatedAt,
+                ModifiedAt = loadDto.ModifiedAt,
+                ModifiedBy = loadDto.ModifiedBy,
+                Shipper = loadDto.CreatedBy.AsUser()
+            };
+        }
+
+        public static BidDto AsBidDto(this Bid bid)
+        {
+            return new BidDto(
+                bid.Id,
+                bid.LoadId,
+                bid.CarrierId,
+                bid.BidAmount,
+                bid.BidStatus,
+                bid.BiddingTime,
+                bid.UpdatedAt,
+                bid.UpdatedBy,
+                bid.Load.AsLoadDto(),     // Transform Load entity to LoadDto
+                bid.Carrier.AsCarrierDto()   // Transform User entity (acting as Carrier) to CarrierDto
+            );
+        }
     }
 }

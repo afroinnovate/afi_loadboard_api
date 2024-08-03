@@ -15,9 +15,8 @@ public record CarrierDto
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    VehicleTypeDto[]? VehicleTypes,
-    CarrierRoleType? CarrierRole,
-    BusinessProfileDto? BusinessProfile
+    VehicleTypeDto[] VehicleTypes,
+    CarrierRoleType CarrierRole
 );
 
 public record CreateCarrierDto
@@ -34,9 +33,20 @@ public record CreateCarrierDto
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    CarrierRoleType? CarrierRole,
-    VehicleTypeDto[]? VehicleTypes,
-    BusinessProfileDto? BusinessProfile
+    string Name,
+    int Quantity,
+    bool? HasInsurance,
+    bool? HasRegistration,
+    bool? HasInspection,
+    string? Description,
+    string? ImageUrl,
+    string? VIN,
+    string? LicensePlate,
+    string? Make,
+    string? Model,
+    string? Year,
+    string? Color,
+    CarrierRoleType CarrierRole
 );
 
 public record UpdateCarrierDto
@@ -53,7 +63,18 @@ public record UpdateCarrierDto
     string? EquipmentType,
     double? AvailableCapacity,
     string? CompanyName,
-    CarrierRoleType? CarrierRole,
-    VehicleTypeDto[]? VehicleTypes,
-    BusinessProfileDto? BusinessProfile
+    string Name,
+    int Quantity,
+    bool? HasInsurance,
+    bool? HasRegistration,
+    bool? HasInspection,
+    string? Description,
+    string? ImageUrl,
+    string? VIN,
+    string? LicensePlate,
+    string? Make,
+    string? Model,
+    string? Year,
+    string? Color,
+    CarrierRoleType CarrierRole
 );

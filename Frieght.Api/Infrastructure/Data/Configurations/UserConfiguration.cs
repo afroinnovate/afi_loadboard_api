@@ -30,7 +30,7 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(user => user.BusinessProfile)
-                .WithOne(bp => bp.User)
+                .WithOne()
                 .HasForeignKey<BusinessProfile>(bp => bp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

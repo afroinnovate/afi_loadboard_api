@@ -1,5 +1,6 @@
 ﻿using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
+using Frieght.Api.Extensions;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
 
@@ -23,7 +24,7 @@ public static class BidEndpoints
 
         #region GetBidEndpoints
         groups.MapGet("/", async (IBidRepository repository) =>
-            (await repository.GetBids()).Select(bid => bid.asBidDto()));
+            (await repository.GetBids()).Select(bid => bid.AsBidDto()));
         #endregion
 
         #region GetBidByIdEndpoint
@@ -33,7 +34,7 @@ public static class BidEndpoints
             {
                 logger.LogInformation("Getting Bid by Id {Id}", id);
                 var bid = await repository.GetBid(id);
-                return bid != null ? Results.Ok(bid.asBidDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(bid.AsBidDto()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -50,7 +51,7 @@ public static class BidEndpoints
             {
                 logger.LogInformation("Getting Bid by Load Id and carrier id {loadId} with carrierId {carrierId}", loadId, carrierId);
                 var bid = await repository.GetBidByLoadIdAndCarrierId(loadId, carrierId);
-                return bid != null ? Results.Ok(bid.asBidDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(bid.AsBidDto()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -87,7 +88,6 @@ public static class BidEndpoints
                     EquipmentType = bidDto.CreatedBy.EquipmentType,
                     AvailableCapacity = bidDto.CreatedBy.AvailableCapacity,
                     CarrierRole = bidDto.CreatedBy.CarrierRole,
-                    User = user
                 };
 
                 // Fetch the carrier if exists, otherwise create a new one
@@ -103,7 +103,7 @@ public static class BidEndpoints
                 {
                     LoadId = bidDto.LoadId,
                     CarrierId = bidDto.CarrierId,
-                    Load = bidDto.LoadDto.asLoad(),
+                    Load = bidDto.LoadDto.AsLoad(),
                     BidAmount = bidDto.BidAmount,
                     BidStatus = bidDto.BidStatus,
                     BiddingTime = DateTimeOffset.UtcNow,  // Set server-side for consistency
@@ -113,7 +113,7 @@ public static class BidEndpoints
 
                 await repository.CreateBid(bid, user);
                 logger.LogInformation("Bid Created: {Bid}", bid);
-                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, bid.asBidDto());
+                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, bid.AsBidDto());
             }
             catch (Exception ex)
             {

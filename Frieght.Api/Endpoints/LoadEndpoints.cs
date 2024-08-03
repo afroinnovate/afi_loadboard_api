@@ -1,5 +1,6 @@
 ﻿using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
+using Frieght.Api.Extensions;
 using Frieght.Api.Infrastructure.Notifications;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
@@ -33,7 +34,7 @@ public static class LoadEndpoints
             try
             {
                 var loads = await repository.GetLoads();
-                return Results.Ok(loads.Select(load => load.asDto()));
+                return Results.Ok(loads.Select(load => load.AsLoadDto()));
             }
             catch (Exception ex)
             {
@@ -56,7 +57,7 @@ public static class LoadEndpoints
             {
                 var load = await repository.GetLoad(id);
                 logger.LogInformation("Load found: {0}", load);
-                return load != null ? Results.Ok(load.asDto()) : Results.NotFound();
+                return load != null ? Results.Ok(load.AsLoadDto()) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -97,7 +98,6 @@ public static class LoadEndpoints
                     ShipperRole = loadDto.CreatedBy.ShipperRole,
                     BusinessType = loadDto.CreatedBy.BusinessType,
                     BusinessRegistrationNumber = loadDto.CreatedBy.BusinessRegistrationNumber,
-                    User = shipper
                 };
 
                 var load = new Load
@@ -127,7 +127,7 @@ public static class LoadEndpoints
                 // await NotifyCarriers(carrierRepository, messageSender, load, logger);
                 // logger.LogInformation("Carriers Notified");
             
-                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, load.asDto());
+                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, load.AsLoadDto());
             }
             catch (Exception ex)
             {

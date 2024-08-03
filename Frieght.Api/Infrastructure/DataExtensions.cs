@@ -36,7 +36,8 @@ public static  class DataExtensions
             .AddScoped<ICarrierRepository, CarrierRepository>()
             .AddScoped<IMessageSender, MessageSender>()
             .AddScoped<IBidRepository, BidRepository>()
-            .AddScoped<IBusinessProfileRepository, BusinessProfileRepository>();
+            .AddScoped<IBusinessProfileRepository, BusinessProfileRepository>()
+            .AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

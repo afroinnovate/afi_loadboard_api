@@ -13,9 +13,8 @@ public record BidDto
     DateTimeOffset BiddingTime,
     DateTimeOffset UpdatedAt,
     string? UpdatedBy,
-
     LoadDto Load,    // Include associated Load details
-    UserDto Carrier // Include associated Carrier details
+    CarrierDto Carrier // Include associated Carrier details
 );
 
 public record UpdateBidDto

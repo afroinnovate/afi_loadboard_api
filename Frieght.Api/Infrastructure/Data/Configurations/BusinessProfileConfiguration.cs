@@ -25,8 +25,20 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
             builder.Property(bp => bp.CompanyName)
                 .HasMaxLength(255);
 
-            builder.HasOne(bp => bp.User)
-                .WithOne(u => u.BusinessProfile)
+            builder.Property(bp => bp.BusinessRegistrationNumber)
+                .HasMaxLength(100);
+
+            builder.Property(bp => bp.IDCardOrDriverLicenceNumber)
+                .HasMaxLength(50);
+
+            builder.Property(bp => bp.InsuranceName)
+                .HasMaxLength(255);
+
+            builder.Property(bp => bp.BusinessType)
+                .HasMaxLength(100);
+
+            builder.HasOne<User>()
+                .WithOne()
                 .HasForeignKey<BusinessProfile>(bp => bp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
