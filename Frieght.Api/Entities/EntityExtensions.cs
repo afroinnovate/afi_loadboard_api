@@ -421,6 +421,19 @@ namespace Frieght.Api.Extensions
             );
         }
 
+        public static UserDto AsUserDto(this User user)
+        {
+            return new UserDto(
+                UserId: user.UserId,
+                Email: user.Email,
+                FirstName: user.FirstName,
+                MiddleName: user.MiddleName,
+                LastName: user.LastName,
+                Phone: user.Phone,
+                UserType: user.UserType,
+                BusinessProfile: user.BusinessProfile?.AsBusinessProfileDto() 
+            );
+        }
         public static BidDtoResponse AsBidResponse(this Bid bid)
         {
             return new BidDtoResponse(

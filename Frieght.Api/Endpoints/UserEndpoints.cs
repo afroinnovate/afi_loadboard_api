@@ -31,7 +31,8 @@ namespace Frieght.Api.Endpoints
                 logger.LogInformation("Fetching all users");
                 var users = await repository.GetUsers();
 
-                var result = users.Select<User, object>(user => user.UserType == "Carrier" ? (object)user.AsCarrierResponse() : (object)user.AsShipperDto());
+                // var result = users.Select<User, object>(user => user.UserType == "Carrier" ? (object)user.AsCarrierResponse() : (object)user.AsShipperDto());
+                var result = users.Select(user => user.AsUserDto());
                 return Results.Ok(result);
             }).WithName(GetAllUsersEndpointName);
 
@@ -39,7 +40,7 @@ namespace Frieght.Api.Endpoints
             {
                 logger.LogInformation($"Fetching user with id {id}");
                 User? user = await repository.GetUser(id);
-                return user is not null ? Results.Ok(user.UserType == "Carrier" ? user.AsCarrierDto() : user.AsShipperDto()) : Results.NotFound();
+                return user is not null ? Results.Ok(user.AsUserDto()) : Results.NotFound();
             }).WithName(GetUserEndpointName);
 
             group.MapPost("/", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, [FromServices] IValidator<CreateUserDto> validator, [FromBody] CreateUserDto createDto) =>
