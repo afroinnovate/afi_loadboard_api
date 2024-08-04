@@ -9,6 +9,11 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
     public void Configure(EntityTypeBuilder<VehicleType> builder)
     {
       builder.HasKey(vt => vt.Id);
+      builder.HasAlternateKey(vt => vt.VIN);
+
+      // add index for faster lookup and enforce uniqueness
+      builder.HasIndex(vt => vt.VIN)
+          .IsUnique();
 
       builder.Property(vt => vt.Name)
           .IsRequired()

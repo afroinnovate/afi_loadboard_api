@@ -110,7 +110,7 @@ public static class BidEndpoints
                     Load = load,
                     BiddingTime = DateTimeOffset.UtcNow,  // Set server-side for consistency
                     UpdatedAt = DateTimeOffset.UtcNow,    // Initial set at creation
-                    Carrier = trackedCarrier              // Assign the user correctly
+                    Carrier = trackedCarrier != null? trackedCarrier : bidDto.CreatedBy.AsUser() // Assign the user correctly
                 };
                 
                 // check if a load is already bid by the carrier

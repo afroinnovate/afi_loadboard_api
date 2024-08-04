@@ -27,9 +27,11 @@ namespace Frieght.Api.Endpoints
 
             group.MapGet("/", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger) =>
             {
+
                 logger.LogInformation("Fetching all users");
                 var users = await repository.GetUsers();
-                var result = users.Select<User, object>(user => user.UserType == "Carrier" ? (object)user.AsCarrierDto() : (object)user.AsShipperDto());
+
+                var result = users.Select<User, object>(user => user.UserType == "Carrier" ? (object)user.AsCarrierResponse() : (object)user.AsShipperDto());
                 return Results.Ok(result);
             }).WithName(GetAllUsersEndpointName);
 
@@ -72,7 +74,6 @@ namespace Frieght.Api.Endpoints
                     return Results.Problem("An error occurred while creating the user. Please try again later.");
                 }
             }).WithName(CreateUserEndpointName);
-
 
             group.MapPut("/{id}", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, [FromServices] IValidator<CreateUserDto> validator, string id, [FromBody] CreateUserDto updateDto) =>
             {
