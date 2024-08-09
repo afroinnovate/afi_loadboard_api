@@ -30,8 +30,8 @@ public class BusinessProfileRepository : IBusinessProfileRepository
     try
     {
       var profile = await context.BusinessProfiles
-          .Include(bp => bp.BusinessVehicleTypes)
-          .ThenInclude(bvt => bvt.VehicleType)
+          .Include(bp => bp.CarrierVehicles)
+            .ThenInclude(bvt => bvt.VehicleType)
           .AsNoTracking()
           .FirstOrDefaultAsync(bp => bp.UserId == userId);
 

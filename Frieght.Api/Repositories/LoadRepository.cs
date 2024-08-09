@@ -18,28 +18,42 @@ namespace Frieght.Api.Repositories
             this.context = context;
             _logger = logger;
         }
-        
+
+        #region CreateLoad
+        /// <summary>
+        /// Create a new Load
+        /// </summary>
+        /// <param name="load"></param>
+        /// <param name="shipper"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="DuplicateLoadException"></exception> <summary>
+        /// 
+        /// </summary>
+        /// <param name="load"></param>
+        /// <param name="shipper"></param>
+        /// <returns></returns>
         public async Task CreateLoad(Load load, User shipper)
         {
+            if (shipper == null)
+            {
+                _logger.LogError("Shipper information is missing in the request.");
+                throw new ArgumentNullException(nameof(shipper), "Shipper information is required to create a new load.");
+            }
+
             _logger.LogInformation("Attempting to create load for ShipperUserId: {ShipperUserId}", load.ShipperUserId);
 
             try
             {
-                // Start transaction to ensure atomicity
-                using var transaction = context.Database.BeginTransaction();
+                using var transaction = await context.Database.BeginTransactionAsync();
 
                 // Check if the Shipper already exists
                 var trackedShipper = await context.Users
-                            .FirstOrDefaultAsync(u => u.UserId == shipper.UserId);
+                                    .FirstOrDefaultAsync(u => u.UserId == shipper.UserId);
 
                 if (trackedShipper == null)
                 {
                     _logger.LogInformation("Shipper not found, creating a new one.");
-                    if (shipper == null)
-                    {
-                        _logger.LogError("Shipper information is missing in the request.");
-                        throw new ArgumentNullException("Shipper", "Shipper information is required to create a new load.");
-                    }
 
                     // Add the new shipper if not tracked
                     context.Users.Add(shipper);
@@ -72,6 +86,7 @@ namespace Frieght.Api.Repositories
                 throw; // Rethrow to ensure the error is handled or logged at a higher level
             }
         }
+        #endregion
 
         public async Task DeleteLoad(int id)
         {
@@ -123,6 +138,15 @@ namespace Frieght.Api.Repositories
                 throw;  // Rethrow the exception to allow further handling up the stack if necessary
             }
         }
+        
+        #region GetAllLoads
+        /// <summary>
+        /// Get all Loads
+        /// </summary>
+        /// <returns></returns> <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<Load>> GetLoads()
         {
             _logger.LogInformation("Attempting to retrieve all Loads");
@@ -149,7 +173,18 @@ namespace Frieght.Api.Repositories
                 return new List<Load>();  // Return an empty list instead of null to maintain consistency
             }
         }
+        #endregion
 
+        #region UpdateLoad
+        /// <summary>
+        /// Update a Load
+        /// </summary>
+        /// <param name="load"></param>
+        /// <returns></returns> <summary>
+        /// 
+        /// </summary>
+        /// <param name="load"></param>
+        /// <returns></returns>
         public async Task UpdateLoad(Load load)
         {
             _logger.LogInformation("Updating Load with ID: {LoadId}", load.LoadId);
@@ -170,5 +205,6 @@ namespace Frieght.Api.Repositories
                 throw; // General error handling, rethrow to maintain stack trace and allow further handling
             }
         }
+        #endregion
     }
 }

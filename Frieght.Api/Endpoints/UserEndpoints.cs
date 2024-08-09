@@ -5,8 +5,7 @@ using Frieght.Api.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Frieght.Api.Extensions;
-using System.Linq;
+using AutoMapper;
 
 namespace Frieght.Api.Endpoints
 {
@@ -20,27 +19,24 @@ namespace Frieght.Api.Endpoints
         const string UpdateUserEndpointName = "UserEndpoints_UpdateUser";
         const string DeleteUserEndpointName = "UserEndpoints_DeleteUser";
 
-        public static RouteGroupBuilder MapUserEndpoints(this IEndpointRouteBuilder routes)
+        public static RouteGroupBuilder MapUserEndpoints(this IEndpointRouteBuilder routes, IMapper mapper)
         {
             var group = routes.MapGroup("/users")
                 .WithParameterValidation();
 
             group.MapGet("/", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger) =>
             {
-
                 logger.LogInformation("Fetching all users");
                 var users = await repository.GetUsers();
-
-                // var result = users.Select<User, object>(user => user.UserType == "Carrier" ? (object)user.AsCarrierResponse() : (object)user.AsShipperDto());
-                var result = users.Select(user => user.AsUserDto());
+                var result = users.Select(user => mapper.Map<UserDto>(user));
                 return Results.Ok(result);
             }).WithName(GetAllUsersEndpointName);
 
             group.MapGet("/{id}", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, string id) =>
             {
                 logger.LogInformation($"Fetching user with id {id}");
-                User? user = await repository.GetUser(id);
-                return user is not null ? Results.Ok(user.AsUserDto()) : Results.NotFound();
+                var user = await repository.GetUser(id);
+                return user is not null ? Results.Ok(mapper.Map<UserDto>(user)) : Results.NotFound();
             }).WithName(GetUserEndpointName);
 
             group.MapPost("/", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, [FromServices] IValidator<CreateUserDto> validator, [FromBody] CreateUserDto createDto) =>
@@ -62,12 +58,15 @@ namespace Frieght.Api.Endpoints
 
                     logger.LogInformation("Creating a new user with UserId: {UserId}", createDto.UserId);
 
-                    var user = createDto.AsUser();
+                    var user = mapper.Map<User>(createDto);
 
                     await repository.CreateUser(user);
 
                     logger.LogInformation("User {UserId} created successfully", user.UserId);
-                    return Results.CreatedAtRoute(GetUserEndpointName, new { id = user.UserId }, user.UserType == "Carrier" ? user.AsCarrierDto() : user.AsShipperDto());
+                    var responseDto = createDto.UserType.Equals("Carrier", StringComparison.OrdinalIgnoreCase)
+                        ? (object)mapper.Map<CarrierDto>(user)
+                        : (object)mapper.Map<ShipperDto>(user);
+                    return Results.CreatedAtRoute(GetUserEndpointName, new { id = user.UserId }, responseDto);
                 }
                 catch (Exception ex)
                 {
@@ -79,7 +78,7 @@ namespace Frieght.Api.Endpoints
             group.MapPut("/{id}", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, [FromServices] IValidator<CreateUserDto> validator, string id, [FromBody] CreateUserDto updateDto) =>
             {
                 logger.LogInformation($"Updating user with id {id}");
-                User? existingUser = await repository.GetUser(id);
+                var existingUser = await repository.GetUser(id);
                 if (existingUser is null)
                 {
                     logger.LogWarning($"User with id {id} not found");
@@ -92,48 +91,7 @@ namespace Frieght.Api.Endpoints
                     return Results.BadRequest(validationResult.Errors);
                 }
 
-                existingUser.FirstName = updateDto.FirstName;
-                existingUser.LastName = updateDto.LastName;
-                existingUser.Email = updateDto.Email;
-                existingUser.Phone = updateDto.Phone;
-                existingUser.UserType = updateDto.UserType;
-
-                existingUser.BusinessProfile.CompanyName = updateDto.CompanyName;
-                existingUser.BusinessProfile.MotorCarrierNumber = updateDto.MotorCarrierNumber;
-                existingUser.BusinessProfile.DOTNumber = updateDto.DOTNumber;
-                existingUser.BusinessProfile.EquipmentType = updateDto.EquipmentType;
-                existingUser.BusinessProfile.AvailableCapacity = updateDto.AvailableCapacity;
-                existingUser.BusinessProfile.CarrierRole = updateDto.CarrierRole;
-                existingUser.BusinessProfile.ShipperRole = updateDto.ShipperRole;
-
-                // Update or clear BusinessVehicleTypes
-                if (updateDto.VehicleTypes != null)
-                {
-                    existingUser.BusinessProfile.BusinessVehicleTypes = updateDto.VehicleTypes.Select(vt => new BusinessVehicleType
-                    {
-                        VehicleType = new VehicleType
-                        {
-                            Name = vt.Name,
-                            Description = vt.Description,
-                            ImageUrl = vt.ImageUrl,
-                            VIN = vt.VIN,
-                            LicensePlate = vt.LicensePlate,
-                            Make = vt.Make,
-                            Model = vt.Model,
-                            Year = vt.Year,
-                            Color = vt.Color,
-                            HasInsurance = vt.HasInsurance,
-                            HasRegistration = vt.HasRegistration,
-                            HasInspection = vt.HasInspection
-                        },
-                        Quantity = vt.Quantity,
-                        BusinessProfile = existingUser.BusinessProfile
-                    }).ToList();
-                }
-                else
-                {
-                    existingUser.BusinessProfile.BusinessVehicleTypes.Clear();
-                }
+                mapper.Map(updateDto, existingUser);
 
                 await repository.UpdateUser(existingUser);
                 logger.LogInformation($"User {id} updated successfully");
@@ -143,10 +101,12 @@ namespace Frieght.Api.Endpoints
             group.MapDelete("/{id}", async ([FromServices] IUserRepository repository, [FromServices] ILogger<UserLogger> logger, string id) =>
             {
                 logger.LogInformation($"Deleting user with id {id}");
-                User? user = await repository.GetUser(id);
-                if (user != null) await repository.DeleteUser(user);
-
-                logger.LogInformation($"User {id} deleted successfully");
+                var user = await repository.GetUser(id);
+                if (user != null)
+                {
+                    await repository.DeleteUser(user);
+                    logger.LogInformation($"User {id} deleted successfully");
+                }
                 return Results.NoContent();
             }).WithName(DeleteUserEndpointName);
 

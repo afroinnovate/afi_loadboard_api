@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using FluentValidation.AspNetCore;
 using FluentValidation;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,8 @@ builder.Services.AddFluentValidationAutoValidation()
                 .AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 // Build the application
 var app = builder.Build();
 
@@ -96,9 +99,9 @@ var app = builder.Build();
 await app.Services.InitializeDbAsync();
 
 // Map Endpoints
-app.MapLoadsEndpoints().RequireAuthorization();
-app.MapUserEndpoints().RequireAuthorization();
-app.MapBidsEndpoints().RequireAuthorization();
+app.MapLoadsEndpoints(app.Services.GetRequiredService<IMapper>()).RequireAuthorization();
+app.MapUserEndpoints(app.Services.GetRequiredService<IMapper>()).RequireAuthorization();
+app.MapBidsEndpoints(app.Services.GetRequiredService<IMapper>()).RequireAuthorization();
 app.MapHealthEndpoints();
 
 // Configure the HTTP request pipeline.

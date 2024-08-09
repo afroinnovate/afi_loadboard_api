@@ -398,7 +398,8 @@ public static class AuthEndpoints
                     PhoneNumber = user.PhoneNumber,
                     Roles = await userManager.GetRolesAsync(user),
                     Confirmed = user.Confirmed,
-                    Status = user.Status
+                    Status = user.Status,
+                    UserType = user.UserType
                 },
                 // refreshToken = "Your generated refresh token here"
             });

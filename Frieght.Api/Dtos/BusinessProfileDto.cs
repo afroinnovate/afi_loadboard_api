@@ -16,6 +16,6 @@ namespace Frieght.Api.Dtos
     CarrierRoleType? CarrierRole,
     ShipperRoleType? ShipperRole,
     string? BusinessRegistrationNumber,
-    List<VehicleTypeDto>? VehicleTypes
+    List<VehicleDto>? CarrierVehicles
   );
 }

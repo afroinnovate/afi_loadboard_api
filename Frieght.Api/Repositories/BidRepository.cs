@@ -31,13 +31,41 @@ public class BidRepository : IBidRepository
 
             // Ensure the carrier is tracked and attach if necessary
             var trackedCarrier = await context.Users
+                .Include(u => u.BusinessProfile)
+                .ThenInclude(bp => bp.CarrierVehicles)
                 .FirstOrDefaultAsync(u => u.UserId == bid.CarrierId);
 
             if (trackedCarrier == null)
             {
                 _logger.LogWarning("Carrier not found, creating a new one.");
-                context.Users.Add(bid.Carrier);
+
+                if (bid.Carrier.BusinessProfile != null && bid.Carrier.BusinessProfile.CarrierVehicles != null)
+                {
+                    foreach (var vehicle in bid.Carrier.BusinessProfile.CarrierVehicles)
+                    {
+                        // Check if the VehicleType exists or create a new one
+                        var vehicleType = await context.VehicleTypes.FirstOrDefaultAsync(vt => vt.Name == vehicle.Name);
+                        if (vehicleType == null)
+                        {
+                            _logger.LogInformation("VehicleType '{VehicleName}' not found. Creating a new VehicleType.", vehicle.Name);
+                            vehicleType = new VehicleType
+                            {
+                                Name = vehicle.Name
+                            };
+                            context.VehicleTypes.Add(vehicleType);
+                            await context.SaveChangesAsync();  // Save to generate the VehicleTypeId
+                        }
+
+                        // Assign the VehicleTypeId to the vehicle
+                        vehicle.VehicleTypeId = vehicleType.Id;
+                        _logger.LogInformation($"VehicleType '{vehicle.Name}' created with Id: {vehicleType.Id}");
+
+                        context.CarrierVehicle.Add(vehicle);
+                    }
+                }
                 _logger.LogInformation("New Carrier created with UserId: {UserId}", bid.Carrier.UserId);
+
+                context.Users.Add(bid.Carrier);
             }
             else
             {
@@ -46,7 +74,7 @@ public class BidRepository : IBidRepository
             }
 
             bid.Load = null;
-            
+
             _logger.LogInformation("Committing the Bid to the database.");
             context.Bids.Add(bid);
             await context.SaveChangesAsync();

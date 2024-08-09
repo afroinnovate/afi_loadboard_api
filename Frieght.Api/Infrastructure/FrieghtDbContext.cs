@@ -17,7 +17,7 @@ namespace Frieght.Api.Infrastructure
         public DbSet<Bid> Bids { get; set; }
         public DbSet<BusinessProfile> BusinessProfiles { get; set; }
         public DbSet<VehicleType> VehicleTypes { get; set; }
-        public DbSet<BusinessVehicleType> BusinessVehicleTypes { get; set; }
+        public DbSet<Vehicle> CarrierVehicle { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

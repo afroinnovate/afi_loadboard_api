@@ -20,9 +20,6 @@ namespace Frieght.Api.Validators
         RuleFor(x => x.DOTNumber).NotEmpty().WithMessage("DOT Number is required for Carriers");
         RuleFor(x => x.EquipmentType).NotEmpty().WithMessage("Equipment Type is required for Carriers");
         RuleFor(x => x.CarrierRole).NotNull().WithMessage("Carrier Role is required for Carriers");
-
-        // Validate VehicleTypes if provided
-        RuleForEach(x => x.VehicleTypes).SetValidator(new VehicleTypeDtoValidator());
       });
 
       When(x => x.UserType.Equals("Shipper", StringComparison.OrdinalIgnoreCase), () =>

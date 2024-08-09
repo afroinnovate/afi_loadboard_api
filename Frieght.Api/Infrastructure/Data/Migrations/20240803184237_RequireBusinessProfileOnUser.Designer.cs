@@ -270,13 +270,13 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<bool?>("HasInspection")
+                    b.Property<bool>("HasInspection")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("HasInsurance")
+                    b.Property<bool>("HasInsurance")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("HasRegistration")
+                    b.Property<bool>("HasRegistration")
                         .HasColumnType("boolean");
 
                     b.Property<string>("ImageUrl")

@@ -25,7 +25,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(user => user.Bids)
             .WithOne(bid => bid.Carrier)
             .HasForeignKey(bid => bid.CarrierId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(user => user.BusinessProfile)
             .WithOne()

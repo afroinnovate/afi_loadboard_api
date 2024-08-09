@@ -36,7 +36,7 @@ public record CreateUserDto
     // Shipper specific
     ShipperRoleType? ShipperRole,
     // Vehicle information
-    IEnumerable<VehicleTypeDto>? VehicleTypes
+    BusinessProfileDto? BusinessProfile
 );
 
 public record UpdateUserDto
@@ -52,5 +52,8 @@ public record UpdateUserDto
     string? EquipmentType,
     double? AvailableCapacity,
     CarrierRoleType? CarrierRole,
-    ShipperRoleType? ShipperRole
+    ShipperRoleType? ShipperRole,
+    string? BusinessType, // For shippers independent business owner, corporation, etc.
+    string? BusinessRegistrationNumber,
+    BusinessProfileDto? BusinessProfile
 );

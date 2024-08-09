@@ -17,6 +17,6 @@ namespace Frieght.Api.Entities
     public string? BusinessType { get; set; } // For shippers
     public CarrierRoleType? CarrierRole { get; set; } // For carriers
     public ShipperRoleType? ShipperRole { get; set; } // For shippers
-    public virtual ICollection<BusinessVehicleType> BusinessVehicleTypes { get; set; } = new List<BusinessVehicleType>();
+    public virtual ICollection<Vehicle>? CarrierVehicles { get; set; }
   }
 }

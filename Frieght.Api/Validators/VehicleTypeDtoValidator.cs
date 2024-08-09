@@ -8,7 +8,6 @@ namespace Frieght.Api.Validators
     public VehicleTypeDtoValidator()
     {
       RuleFor(x => x.Name).NotEmpty().WithMessage("Vehicle Name is required");
-      RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Vehicle Quantity must be greater than zero");
     }
   }
 }

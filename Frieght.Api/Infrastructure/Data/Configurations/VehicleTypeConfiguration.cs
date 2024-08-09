@@ -9,20 +9,22 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
     public void Configure(EntityTypeBuilder<VehicleType> builder)
     {
       builder.HasKey(vt => vt.Id);
-      builder.HasAlternateKey(vt => vt.VIN);
 
       // add index for faster lookup and enforce uniqueness
-      builder.HasIndex(vt => vt.VIN)
-          .IsUnique();
-
+      builder.HasIndex(vt => new{
+        vt.Id,
+        vt.Name
+      }).IsUnique();
+  
       builder.Property(vt => vt.Name)
           .IsRequired()
           .HasMaxLength(50);
-
-      builder.HasMany(vt => vt.BusinessVehicleTypes)
-          .WithOne(bvt => bvt.VehicleType)
-          .HasForeignKey(bvt => bvt.VehicleTypeId)
-          .OnDelete(DeleteBehavior.Cascade);
+      
+      // one vehicle type can have many vehicles but a vehicle can only belong to one vehicle type
+      builder.HasMany(vt => vt.Vehicles)
+          .WithOne(v => v.VehicleType)
+          .HasForeignKey(v => v.VehicleTypeId)
+          .OnDelete(DeleteBehavior.Restrict);
     }
   }
 }

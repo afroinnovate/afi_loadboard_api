@@ -37,14 +37,16 @@ namespace Frieght.Api.Infrastructure.Data.Configurations
             builder.Property(bp => bp.BusinessType)
                 .HasMaxLength(100);
 
+            // Define one-to-one relationship between User and BusinessProfile
             builder.HasOne<User>()
                 .WithOne()
                 .HasForeignKey<BusinessProfile>(bp => bp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(bp => bp.BusinessVehicleTypes)
-                .WithOne(bvt => bvt.BusinessProfile)
-                .HasForeignKey(bvt => bvt.BusinessProfileId)
+            // Define one-to-many relationship between BusinessProfile and Vehicle
+            builder.HasMany(bp => bp.CarrierVehicles)
+                .WithOne(v => v.BusinessProfile)
+                .HasForeignKey(v => v.BusinessProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

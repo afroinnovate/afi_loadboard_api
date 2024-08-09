@@ -44,13 +44,12 @@ public record UpdateBidDto
     string UpdatedBy            // Ensure this is required if updates are made
 );
 
-public record CreateBidDto
-(
-    int LoadId,
-    string CarrierId,
-    LoadDto LoadDto,
-    decimal BidAmount,
-    BidStatus BidStatus,
-    DateTimeOffset BiddingTime,
-    CreateCarrierDto CreatedBy
-);
+public class CreateBidDto
+{
+    public int LoadId { get; set; }
+    public required string CarrierId { get; set; }
+    public decimal BidAmount { get; set; }
+    public int BidStatus { get; set; }
+    public DateTimeOffset BiddingTime { get; set; }
+    public required CreateCarrierDto CreatedBy { get; set; }
+}
