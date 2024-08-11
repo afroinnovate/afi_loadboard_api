@@ -16,16 +16,18 @@ namespace Frieght.Api.Validators
 
       When(x => x.UserType.Equals("Carrier", StringComparison.OrdinalIgnoreCase), () =>
       {
-        RuleFor(x => x.MotorCarrierNumber).NotEmpty().WithMessage("Motor Carrier Number is required for Carriers");
-        RuleFor(x => x.DOTNumber).NotEmpty().WithMessage("DOT Number is required for Carriers");
-        RuleFor(x => x.EquipmentType).NotEmpty().WithMessage("Equipment Type is required for Carriers");
-        RuleFor(x => x.CarrierRole).NotNull().WithMessage("Carrier Role is required for Carriers");
+        // RuleFor(x => x.MotorCarrierNumber).NotEmpty().WithMessage("Motor Carrier Number is required for Carriers");
+        // RuleFor(x => x.DOTNumber).NotEmpty().WithMessage("DOT Number is required for Carriers");
+        // RuleFor(x => x.EquipmentType).NotEmpty().WithMessage("Equipment Type is required for Carriers");
+        RuleFor(x => x.BusinessProfile).NotNull().WithMessage("Business Profile is required for Carriers");
+        RuleFor(x => x.BusinessProfile.CarrierRole).NotNull().WithMessage("Carrier Role is required for Carriers");
       });
 
       When(x => x.UserType.Equals("Shipper", StringComparison.OrdinalIgnoreCase), () =>
       {
-        RuleFor(x => x.ShipperRole).NotNull().WithMessage("Shipper Role is required for Shippers");
+        RuleFor(x => x.BusinessProfile).NotNull().WithMessage("Business Profile is required for Shippers");
         // No need to validate VehicleTypes for Shippers
+        RuleFor(x => x.BusinessProfile.ShipperRole).NotNull().WithMessage("Shipper Role is required for Shippers");
       });
     }
   }

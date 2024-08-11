@@ -3,16 +3,16 @@ using Frieght.Api.Enuns;
 namespace Frieght.Api.Dtos;
 
 public record UserDto
-(
-    string UserId,
-    string Email,
-    string FirstName,
-    string LastName,
-    string? MiddleName,
-    string? Phone,
-    string UserType, // "Carrier" or "Shipper"
-    BusinessProfileDto? BusinessProfile
-);
+{
+    public required string UserId { get; init; }
+    public required string Email { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public string? MiddleName { get; init; }
+    public string? Phone { get; init; }
+    public required string UserType { get; init; }
+    public BusinessProfileDto? BusinessProfile { get; init; }
+}
 
 public record CreateUserDto
 (
@@ -24,17 +24,6 @@ public record CreateUserDto
     string? Phone,
     string UserType, // "Carrier" or "Shipper"
                     // Common fields for both
-    string? CompanyName,
-    // Carrier specific
-    string? MotorCarrierNumber,
-    string? DOTNumber,
-    string? EquipmentType,
-    double? AvailableCapacity,
-    string? BusinessType, // For shippers independent business owner, corporation, etc.
-    string? BusinessRegistrationNumber,
-    CarrierRoleType? CarrierRole,
-    // Shipper specific
-    ShipperRoleType? ShipperRole,
     // Vehicle information
     BusinessProfileDto? BusinessProfile
 );

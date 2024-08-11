@@ -63,7 +63,7 @@ public class BidRepository : IBidRepository
                         context.CarrierVehicle.Add(vehicle);
                     }
                 }
-                _logger.LogInformation("New Carrier created with UserId: {UserId}", bid.Carrier.UserId);
+                _logger.LogInformation("New Carrier Vehicle created with UserId: {UserId}", bid.Carrier.UserId);
 
                 context.Users.Add(bid.Carrier);
             }

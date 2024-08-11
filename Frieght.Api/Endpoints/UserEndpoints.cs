@@ -43,6 +43,7 @@ namespace Frieght.Api.Endpoints
             {
                 try
                 {
+                    logger.LogInformation("creating a new user");
                     var validationResult = await validator.ValidateAsync(createDto);
                     if (!validationResult.IsValid)
                     {
@@ -58,14 +59,20 @@ namespace Frieght.Api.Endpoints
 
                     logger.LogInformation("Creating a new user with UserId: {UserId}", createDto.UserId);
 
+                    // check if a user with the same UserId already exists
+                    var existingUser = await repository.GetUser(createDto.UserId);
+                    if (existingUser != null)
+                    {
+                        logger.LogWarning("User with UserId {UserId} already exists", createDto.UserId);
+                        return Results.Conflict($"User with UserId {createDto.UserId} already exists");
+                    }
+
                     var user = mapper.Map<User>(createDto);
 
                     await repository.CreateUser(user);
 
                     logger.LogInformation("User {UserId} created successfully", user.UserId);
-                    var responseDto = createDto.UserType.Equals("Carrier", StringComparison.OrdinalIgnoreCase)
-                        ? (object)mapper.Map<CarrierDto>(user)
-                        : (object)mapper.Map<ShipperDto>(user);
+                    var responseDto = mapper.Map<UserDto>(user);
                     return Results.CreatedAtRoute(GetUserEndpointName, new { id = user.UserId }, responseDto);
                 }
                 catch (Exception ex)
