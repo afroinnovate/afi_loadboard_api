@@ -31,8 +31,8 @@ It's implemented using .NET entity Framework and docker.
     docker run -p 5000:7000 auth-api:0.0.1-alpha
     ```
 
-The API should now be running at `http://localhost:5000`.
-You can visit the API documentation on `http://localhost:5000/swagger/index.html`
+The API should now be running at `http://localhost:8080`.
+You can visit the API documentation on `http://localhost:8080/swagger/index.html`
 
 ## Database Setup
 

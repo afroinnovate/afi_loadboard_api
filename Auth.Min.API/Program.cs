@@ -49,14 +49,14 @@ builder.Services.AddSwaggerGen(options =>
 
 
 // setitngs for docker container
-// var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
-// // Add DB context injection for docker container
-// builder.Services.AddDbContext<AppDbContext>(option => 
-// option.UseNpgsql(defaultConnection));
-
-// Add DB context injection for dotnet run in appsettings.json
+var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+// Add DB context injection for docker container
 builder.Services.AddDbContext<AppDbContext>(option => 
-        option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+option.UseNpgsql(defaultConnection));
+
+// // Add DB context injection for dotnet run in appsettings.Development.json
+// builder.Services.AddDbContext<AppDbContext>(option => 
+//         option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     
 // Register the EmailSender service as transient to create a new instance each time it's needed
 builder.Services.AddTransient<IEmailConfigService, EmailService>();

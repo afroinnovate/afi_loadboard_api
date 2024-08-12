@@ -134,7 +134,7 @@ public static class AuthEndpoints
             {
                 logger.LogError($"error sending email: {ex.Message}");
                 // Log the error, handle it, or inform the user as necessary
-                return Results.Problem("The user was created but there was an issue sending the confirmation email.");
+                return Results.BadRequest("The user was created but there was an issue sending the confirmation email.");
             }
             // You might want to check the emailResult for specific error messages
             logger.LogInformation("Confirmation email sent to {Email}", user.Email);
