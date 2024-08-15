@@ -8,6 +8,7 @@
 *.userosscache
 *.sln.docstates
 .env
+global.json
 
 # Windows image file caches
 Thumbs.db
