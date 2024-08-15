@@ -1,9 +1,9 @@
 base:
-  version: latest
-  name: Auth.Min.API
-  description: Auth.Min.API
+  version: 2024.8.1
+  name:  Frieght.API
+  description:  Frieght.API
 
-dev:
-  version: frieght-0.0.1
-  name: Auth.Min.API
-  description: Auth.Min.API
+frieght:
+  version: 2024.8.1
+  name: Frieght.API
+  description: Frieght.API

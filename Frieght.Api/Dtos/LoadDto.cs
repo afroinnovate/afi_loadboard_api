@@ -22,6 +22,25 @@ public record LoadDto
     string? ModifiedBy
 );
 
+public record LoadDtoResponse
+(
+    int LoadId = 0,
+    string ShipperUserId = "",
+    ShipperDtoResponse? CreatedBy = null,
+    string Origin = "",
+    string Destination = "",
+    DateTime PickupDate = default,
+    DateTime DeliveryDate = default,
+    string Commodity = "",
+    double Weight = 0,
+    decimal OfferAmount = 0,
+    string LoadDetails = "",
+    string LoadStatus = "",
+    DateTime? CreatedAt = null,
+    DateTime? ModifiedAt = null,
+    string? ModifiedBy = null
+);
+
 public record CreateLoadDto
 (
     string ShipperUserId, // User creating the load

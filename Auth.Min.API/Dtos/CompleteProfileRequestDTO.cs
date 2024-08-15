@@ -17,4 +17,6 @@ public class CompleteProfileRequest
     public required string Email { get; set; }
 
     public required string PhoneNumber { get; set; }
+    public bool Status { get; set; }
+    public string? UserType { get; set; }
 }

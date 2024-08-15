@@ -1,4 +1,5 @@
-﻿using Frieght.Api.Dtos;
+﻿using AutoMapper;
+using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
@@ -7,7 +8,7 @@ namespace Frieght.Api.Endpoints;
 
 public static class BidEndpoints
 {
-    public class LoggerCategory 
+    public class LoggerCategory
     {
         // This class is used to define the category for the logger
     }
@@ -15,7 +16,7 @@ public static class BidEndpoints
     const string GetBidEndpointName = "GetBid";
     const string GetBidByLoadAndCarrierEndpointName = "GetBidByLoadAndCarrier";
 
-    public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes, IMapper mapper)
     {
 
         var groups = routes.MapGroup("/bids")
@@ -23,17 +24,18 @@ public static class BidEndpoints
 
         #region GetBidEndpoints
         groups.MapGet("/", async (IBidRepository repository) =>
-            (await repository.GetBids()).Select(bid => bid.asDto()));
+            (await repository.GetBids()).Select(bid => mapper.Map<BidDtoResponse>(bid)));
         #endregion
 
         #region GetBidByIdEndpoint
-        groups.MapGet("/{id}", async (IBidRepository repository, int id,  ILogger<LoggerCategory> logger) =>
+        groups.MapGet("/{id}", async (IBidRepository repository, int id, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Getting Bid by Id {Id}", id);
                 var bid = await repository.GetBid(id);
-                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
+                if (bid == null) logger.LogInformation("Bid not found with Id {Id}", id);
+                return bid != null ? Results.Ok(mapper.Map<BidDtoResponse>(bid)) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -44,13 +46,13 @@ public static class BidEndpoints
         #endregion
 
         #region GetBidByLoadAndCarrierEndpoint
-        groups.MapGet("/{loadId}/{carrierId}", async (IBidRepository repository, int loadId, string carrierId,  ILogger<LoggerCategory> logger) =>
+        groups.MapGet("/{loadId}/{carrierId}", async (IBidRepository repository, int loadId, string carrierId, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Getting Bid by Load Id and carrier id {loadId} with carrierId {carrierId}", loadId, carrierId);
                 var bid = await repository.GetBidByLoadIdAndCarrierId(loadId, carrierId);
-                return bid != null ? Results.Ok(bid.asDto()) : Results.NotFound();
+                return bid != null ? Results.Ok(mapper.Map<BidDtoResponse>(bid)) : Results.NotFound();
             }
             catch (Exception ex)
             {
@@ -59,52 +61,86 @@ public static class BidEndpoints
             }
         }).WithName(GetBidByLoadAndCarrierEndpointName);
         #endregion
-
+        
         #region CreateBidEndpoint
-        groups.MapPost("/", async (IBidRepository repository, ICarrierRepository carrierRepo, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
+        groups.MapPost("/", async (IBidRepository repository, IUserRepository userRepo, ILoadRepository loadRepo, IMapper mapper, CreateBidDto bidDto, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Creating Bid");
-                // First findout if the same person is trying to bid on the same load twice
-                // logger.LogInformation("Checking if the same carrier is trying to bid on the same load twice");
-                // var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
-                
-                // if (existingBid != null) {
-                //     logger.LogError("Bid already exists for the same load and carrier");
-                //     return Results.Conflict("Bid already exists for the same load and carrier");
-                // }
 
-                var bid = new Bid
+                // Check if the load exists
+                var load = await loadRepo.GetLoad(bidDto.LoadId);
+                if (load == null) return Results.NotFound("Load not found");
+
+                // Check if the user (carrier) exists
+                var trackedCarrier = await userRepo.GetUser(bidDto.CarrierId);
+                if (trackedCarrier == null)
                 {
-                    LoadId = bidDto.LoadId,
-                    CarrierId = bidDto.CarrierId,
-                    BidAmount = bidDto.BidAmount,
-                    BidStatus = bidDto.BidStatus,
-                    BiddingTime = DateTimeOffset.UtcNow,  // Set server-side for consistency
-                    UpdatedAt = DateTimeOffset.UtcNow  // Initial set at creation
-                };
+                    logger.LogWarning("Carrier not found. Creating a new user");
+                    // Create a new user if not found
+                    trackedCarrier = new User
+                    {
+                        UserId = bidDto.CarrierId,
+                        FirstName = bidDto.CreatedBy.FirstName,
+                        MiddleName = bidDto.CreatedBy.MiddleName,
+                        LastName = bidDto.CreatedBy.LastName,
+                        Email = bidDto.CreatedBy.Email,
+                        Phone = bidDto.CreatedBy.Phone,
+                        UserType = "Carrier",
+                        BusinessProfile = new BusinessProfile
+                        {
+                            UserId = bidDto.CarrierId,
+                            CompanyName = bidDto.CreatedBy.CompanyName,
+                            DOTNumber = bidDto.CreatedBy.DotNumber,
+                            MotorCarrierNumber = bidDto.CreatedBy.MotorCarrierNumber,
+                            EquipmentType = bidDto.CreatedBy.EquipmentType,
+                            AvailableCapacity = bidDto.CreatedBy.AvailableCapacity,
+                            CarrierRole = bidDto.CreatedBy.CarrierRole,
+                            CarrierVehicles = new List<Vehicle>
+                            {
+                                new Vehicle
+                                {
+                                    Name = bidDto.CreatedBy.Name,
+                                    Description = bidDto.CreatedBy.Description,
+                                    ImageUrl = bidDto.CreatedBy.ImageUrl,
+                                    VIN = bidDto.CreatedBy.Vin,
+                                    LicensePlate = bidDto.CreatedBy.LicensePlate,
+                                    Make = bidDto.CreatedBy.Make,
+                                    Model = bidDto.CreatedBy.Model,
+                                    Year = bidDto.CreatedBy.Year,
+                                    Color = bidDto.CreatedBy.Color,
+                                    HasInsurance = bidDto.CreatedBy.HasInsurance,
+                                    HasRegistration = bidDto.CreatedBy.HasRegistration,
+                                    HasInspection = bidDto.CreatedBy.HasInspection
+                                }
+                            }
+                        }
+                    };
+                }
 
-                var carrier = new User
+                var bid = mapper.Map<Bid>(bidDto);
+                bid.Load = load;
+                bid.Carrier = trackedCarrier;
+
+                // Set timestamps
+                bid.BiddingTime = DateTimeOffset.UtcNow;
+                bid.UpdatedAt = DateTimeOffset.UtcNow;
+
+                // Check if a load is already bid on by the carrier
+                logger.LogInformation("Checking if bid already exists for LoadId {LoadId} and CarrierId {CarrierId}", bidDto.LoadId, bidDto.CarrierId);
+                var existingBid = await repository.GetBidByLoadIdAndCarrierId(bidDto.LoadId, bidDto.CarrierId);
+                if (existingBid != null)
                 {
-                    UserId = bidDto.CarrierId,
-                    FirstName = bidDto.CreatedBy.FirstName,
-                    LastName = bidDto.CreatedBy.LastName,
-                    Email = bidDto.CreatedBy.Email,
-                    Phone = bidDto.CreatedBy.PhoneNumber,
-                    MotorCarrierNumber = bidDto.CreatedBy.MotorCarrierNumber,
-                    DOTNumber = bidDto.CreatedBy.DOTNumber,
-                    EquipmentType = bidDto.CreatedBy.EquipmentType,
-                    AvailableCapacity = bidDto.CreatedBy.AvailableCapacity,
-                    CompanyName = bidDto.CreatedBy.CompanyName,
-                    UserType = "carrier"
-                };
+                    logger.LogWarning("Bid already exists for LoadId {LoadId} and CarrierId {CarrierId}", bidDto.LoadId, bidDto.CarrierId);
+                    return Results.Conflict("Bid already exists for LoadId and CarrierId");
+                }
 
-                logger.LogInformation("Persisting bids in the db for carrier: {Carrier}", carrier);
-                await repository.CreateBid(bid, carrier);
-                logger.LogInformation("Bid Created: {Bid}", bid);
-                logger.LogInformation("returing creation response for bid: {0}", bid);
-                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, bid.asDto());
+                await repository.CreateBid(bid);
+                logger.LogInformation("Bid created successfully with BidId: {BidId}", bid.Id);
+                var response = mapper.Map<BidDtoResponse>(bid);
+
+                return Results.CreatedAtRoute(GetBidEndpointName, new { id = bid.Id }, response);
             }
             catch (Exception ex)
             {
@@ -120,13 +156,18 @@ public static class BidEndpoints
             try
             {
                 logger.LogInformation("Updating Bid by Id {Id}", id);
+
+                logger.LogInformation("Retrieving Bid by Id {Id}", id);
                 var existingBid = await repository.GetBid(id);
-                if (existingBid == null) return Results.NotFound();
+                if (existingBid == null){
+                    logger.LogInformation("Bid not found with Id {Id}", id);
+                    return Results.NotFound($"Bid with Id: {id} not found");
+                }
 
                 existingBid.LoadId = updatedBidDto.LoadId;
                 existingBid.CarrierId = updatedBidDto.CarrierId;
                 existingBid.BidAmount = updatedBidDto.BidAmount;
-                existingBid.BidStatus = updatedBidDto.BidStatus;  
+                existingBid.BidStatus = updatedBidDto.BidStatus;
                 existingBid.UpdatedAt = DateTimeOffset.UtcNow;  // Set server-side
                 existingBid.UpdatedBy = updatedBidDto.UpdatedBy;
 

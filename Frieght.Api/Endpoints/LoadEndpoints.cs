@@ -1,24 +1,25 @@
 ﻿using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
+using Frieght.Api.Infrastructure.Exceptions;
 using Frieght.Api.Infrastructure.Notifications;
 using Frieght.Api.Repositories;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using AutoMapper;
 
 namespace Frieght.Api.Endpoints;
 
 public static class LoadEndpoints
 {
-    public class LoggerCategory 
+    public class LoggerCategory
     {
         // This class is used to define the category for the logger
     }
     const string GetLoadEndpointName = "GetLoad";
 
-    public static RouteGroupBuilder MapLoadsEndpoints(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapLoadsEndpoints(this IEndpointRouteBuilder routes, IMapper mapper)
     {
-
         var groups = routes.MapGroup("/loads")
             .WithParameterValidation();
 
@@ -28,12 +29,50 @@ public static class LoadEndpoints
         /// </summary>
         /// <param name="repository"></param>
         /// <returns></returns>
-        groups.MapGet("/", async (ILoadRepository repository, ILogger<LoggerCategory> logger) => 
+        groups.MapGet("/", async (ILoadRepository repository, IMapper mapper, ILogger<LoggerCategory> logger) =>
         {
             try
             {
+                logger.LogInformation("Retrieving all loads from the repository.");
+
                 var loads = await repository.GetLoads();
-                return Results.Ok(loads.Select(load => load.asDto()));
+
+                if (loads == null || !loads.Any())
+                {
+                    logger.LogInformation("No loads found.");
+                    return Results.Ok(new List<LoadDtoResponse>());
+                }
+
+                logger.LogInformation("Mapping loads to LoadDtoResponse.");
+
+                var loadDtos = loads.Select(load =>
+                {
+                    if (load.Shipper == null)
+                    {
+                        logger.LogWarning("Load {LoadId} has no Shipper associated with it.", load.LoadId);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Shipping found for ShipperId {ShipperId}.", load.Shipper.UserId);
+                    }
+
+                    // Map the Load entity to LoadDtoResponse
+                    var mappedDto = mapper.Map<LoadDtoResponse>(load);
+
+                    // Reinitialize the LoadDtoResponse with CreatedBy set
+                    var loadDtoWithCreatedBy = mappedDto with { CreatedBy = mapper.Map<ShipperDtoResponse>(load.Shipper) };
+
+                    if (loadDtoWithCreatedBy.CreatedBy == null)
+                    {
+                        logger.LogWarning("Mapped LoadDtoResponse {LoadId} has a null CreatedBy.", load.LoadId);
+                    }
+
+                    return loadDtoWithCreatedBy;
+                });
+
+                logger.LogInformation("Successfully mapped {Count} loads.", loadDtos.Count());
+
+                return Results.Ok(loadDtos);
             }
             catch (Exception ex)
             {
@@ -41,6 +80,7 @@ public static class LoadEndpoints
                 return Results.Problem("An error occurred while retrieving loads", statusCode: 500);
             }
         });
+
         #endregion
 
         #region GetLoadById
@@ -50,13 +90,24 @@ public static class LoadEndpoints
         /// <param name="repository"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        groups.MapGet("/{id}", async (ILoadRepository repository, int id, ILogger<LoggerCategory> logger) =>
+        groups.MapGet("/{id}", async (ILoadRepository repository, int id, IMapper mapper, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 var load = await repository.GetLoad(id);
-                logger.LogInformation("Load found: {0}", load);
-                return load != null ? Results.Ok(load.asDto()) : Results.NotFound();
+                if (load == null)
+                {
+                    return Results.NotFound();
+                }
+
+                // Map the Load entity to LoadDtoResponse
+                var loadDto = mapper.Map<LoadDtoResponse>(load);
+
+                // Reinitialize the LoadDtoResponse with CreatedBy set
+                var loadDtoWithCreatedBy = loadDto with { CreatedBy = mapper.Map<ShipperDtoResponse>(load.Shipper) };
+
+                logger.LogInformation("Load found: {0}", loadDtoWithCreatedBy);
+                return Results.Ok(loadDtoWithCreatedBy);
             }
             catch (Exception ex)
             {
@@ -75,58 +126,35 @@ public static class LoadEndpoints
         /// <param name="carrierRepository"></param>
         /// <param name="messageSender"></param>
         /// <returns></returns>
-        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, ICarrierRepository carrierRepository, IMessageSender messageSender, ILogger<LoggerCategory> logger) =>
+        groups.MapPost("/", async (ILoadRepository repository, CreateLoadDto loadDto, IUserRepository userRepository, IMessageSender messageSender, ILogger<LoggerCategory> logger) =>
         {
             logger.LogInformation("Creating Load");
             try
             {
-                var load = new Load
-                {
-                    ShipperUserId = loadDto.ShipperUserId,
-                    Origin = loadDto.Origin,
-                    Destination = loadDto.Destination,
-                    PickupDate = loadDto.PickupDate,
-                    DeliveryDate = loadDto.DeliveryDate,
-                    Commodity = loadDto.Commodity,
-                    Weight = loadDto.Weight,
-                    OfferAmount = loadDto.OfferAmount,
-                    LoadDetails = loadDto.LoadDetails,
-                    LoadStatus = loadDto.LoadStatus,
-                    CreatedAt = DateTime.UtcNow,
-                    Shipper = new User
-                    {
-                        UserId = loadDto.ShipperUserId,
-                        Email = loadDto.CreatedBy.Email,
-                        CompanyName = loadDto.CreatedBy.CompanyName,
-                        DOTNumber = loadDto.CreatedBy.DOTNumber,
-                        FirstName = loadDto.CreatedBy.FirstName,
-                        LastName = loadDto.CreatedBy.LastName,
-                    }
-                };
+                logger.LogInformation("Creating Load");
 
-                var shipper = new User
-                {
-                    UserId = loadDto.ShipperUserId,
-                    Email = loadDto.CreatedBy.Email,
-                    CompanyName = loadDto.CreatedBy.CompanyName,
-                    DOTNumber = loadDto.CreatedBy.DOTNumber,
-                    FirstName = loadDto.CreatedBy.FirstName,
-                    LastName = loadDto.CreatedBy.LastName,
-                    UserType = "shipper"
-                };
+                // Map the DTO to the Load entity
+                var load = mapper.Map<Load>(loadDto);
 
-                await repository.CreateLoad(load, shipper);
+                // Create the load with the Shipper (CreatedBy in the DTO)
+                await repository.CreateLoad(load, mapper.Map<User>(loadDto.CreatedBy));
                 logger.LogInformation("Load Created Successfully");
 
-                // TODO: Uncomment the following code to notify carriers and implemente the NotifyCarriers method
+                // TODO: Uncomment the following code to notify carriers and implement the NotifyCarriers method
                 // This should be done by getting User info from the User table and use them to Notify the carrier.
 
                 // logger.LogInformation("Notifying Carriers");
-           
+
                 // await NotifyCarriers(carrierRepository, messageSender, load, logger);
                 // logger.LogInformation("Carriers Notified");
-            
-                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, load.asDto());
+
+                var createdLoadDto = mapper.Map<LoadDtoResponse>(load);
+                return Results.CreatedAtRoute(GetLoadEndpointName, new { id = load.LoadId }, createdLoadDto);
+            }
+            catch (DuplicateLoadException ex)
+            {
+                logger.LogWarning(ex, "Duplicate load creation attempt.");
+                return Results.BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -146,27 +174,27 @@ public static class LoadEndpoints
         /// <param name="load"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        async Task<string> NotifyCarriers(ICarrierRepository carrierRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
+        async Task<string> NotifyCarriers(IUserRepository userRepository, IMessageSender messageSender, Load load, ILogger<LoggerCategory> logger)
         {
             logger.LogInformation("Getting Carriers");
-            var carriers = await carrierRepository.GetCarrierByUserType("carrier");
-            if(carriers is not null)
+            IEnumerable<User> carriers = await userRepository.GetUserByUserType("carrier");
+            if (carriers is not null)
             {
                 logger.LogInformation("Carriers found: {0}", carriers.Count());
                 foreach (var carrier in carriers)
                 {
-                   try 
-                   {
+                    try
+                    {
                         await messageSender.SendEmailAsync(carrier.Email, $"From {load.Origin} to {load.Destination}", load.LoadDetails);
-                        logger.LogInformation("Carrier {0} notified", carrier.CompanyName);
+                        logger.LogInformation("Carrier {0} notified", carrier.BusinessProfile?.CompanyName);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "An error occurred while notifying carrier {0}", carrier.CompanyName);
+                        logger.LogError(ex, "An error occurred while notifying carrier {0}", carrier.BusinessProfile?.CompanyName);
                     }
                 }
             }
-            return  "All carriers have been notified";
+            return "All carriers have been notified";
         }
         #endregion
 
@@ -178,7 +206,7 @@ public static class LoadEndpoints
         /// <param name="id"></param>
         /// <param name="updatedLoadDto"></param>
         /// <returns></returns>
-        groups.MapPut("/{id}", async (ILoadRepository repository, int id, UpdateLoadDto updatedLoadDto, ILogger<LoggerCategory> logger) =>
+        groups.MapPut("/{id}", async (ILoadRepository repository, int id, UpdateLoadDto updateLoadDto, ILogger<LoggerCategory> logger) =>
         {
             logger.LogInformation("Updating Load with ID: {Id}", id);
             try
@@ -190,19 +218,11 @@ public static class LoadEndpoints
                     return Results.NotFound("Load not found");
                 }
 
-                // Map updatedLoadDto to existingLoad
-                existingLoad.ShipperUserId = updatedLoadDto.ShipperUserId;
-                existingLoad.Origin = updatedLoadDto.Origin;
-                existingLoad.Destination = updatedLoadDto.Destination;
-                existingLoad.PickupDate = updatedLoadDto.PickupDate;
-                existingLoad.DeliveryDate = updatedLoadDto.DeliveryDate;
-                existingLoad.Commodity = updatedLoadDto.Commodity;
-                existingLoad.Weight = updatedLoadDto.Weight;
-                existingLoad.OfferAmount = updatedLoadDto.OfferAmount;
-                existingLoad.LoadDetails = updatedLoadDto.LoadDetails;
-                existingLoad.LoadStatus = updatedLoadDto.LoadStatus;
+                // Map the incoming DTO to the existing entity
+                mapper.Map(updateLoadDto, existingLoad);
+
                 existingLoad.ModifiedAt = DateTime.UtcNow;
-                existingLoad.ModifiedBy = updatedLoadDto.ModifiedBy;
+                existingLoad.ModifiedBy = updateLoadDto.ModifiedBy;
 
                 await repository.UpdateLoad(existingLoad);
                 logger.LogInformation("Load with ID: {Id} updated successfully", id);

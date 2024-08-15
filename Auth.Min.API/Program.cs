@@ -54,7 +54,7 @@ var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(option => 
 option.UseNpgsql(defaultConnection));
 
-// Add DB context injection for dotnet run in appsettings.json
+// // Add DB context injection for dotnet run in appsettings.Development.json
 // builder.Services.AddDbContext<AppDbContext>(option => 
 //         option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     

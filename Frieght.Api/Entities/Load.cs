@@ -25,11 +25,11 @@ public class Load
     public required string LoadDetails { get; set; }
     [Required]
     [StringLength(20)]
-    public required string LoadStatus { get; set;}
+    public required string LoadStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ModifiedAt { get; set; }
     public string? ModifiedBy { get; set; }
 
     // Navigation property to Shipper
-    public User Shipper { get; set; }
+    public required User Shipper { get; set; }
 }

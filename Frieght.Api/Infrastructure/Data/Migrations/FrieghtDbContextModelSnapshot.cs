@@ -53,9 +53,6 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserType")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CarrierId");
@@ -63,6 +60,68 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("LoadId");
 
                     b.ToTable("Bids");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.BusinessProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double?>("AvailableCapacity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("BusinessRegistrationNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("BusinessType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("CarrierRole")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("DOTNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("EquipmentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IDCardOrDriverLicenceNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("InsuranceName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("MotorCarrierNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("ShipperRole")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("BusinessProfiles");
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
@@ -126,9 +185,10 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("LoadId");
 
-                    b.HasIndex("ShipperUserId");
-
                     b.HasIndex("Origin", "Destination");
+
+                    b.HasIndex("ShipperUserId", "Origin", "Destination", "PickupDate", "DeliveryDate", "Commodity", "LoadDetails")
+                        .IsUnique();
 
                     b.ToTable("Loads");
                 });
@@ -138,20 +198,8 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.Property<double?>("AvailableCapacity")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DOTNumber")
-                        .HasColumnType("text");
-
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EquipmentType")
                         .HasColumnType("text");
 
                     b.Property<string>("FirstName")
@@ -162,13 +210,14 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("MotorCarrierNumber")
+                    b.Property<string>("MiddleName")
                         .HasColumnType("text");
 
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
                     b.Property<string>("UserType")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("UserId");
@@ -182,12 +231,105 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Frieght.Api.Entities.Vehicle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("HasInspection")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasInsurance")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasRegistration")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Make")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VIN")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("VehicleTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Year")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessProfileId");
+
+                    b.HasIndex("VehicleTypeId");
+
+                    b.HasIndex("LicensePlate", "VIN")
+                        .IsUnique();
+
+                    b.ToTable("CarrierVehicle");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.VehicleType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id", "Name")
+                        .IsUnique();
+
+                    b.ToTable("VehicleTypes");
+                });
+
             modelBuilder.Entity("Frieght.Api.Entities.Bid", b =>
                 {
                     b.HasOne("Frieght.Api.Entities.User", "Carrier")
                         .WithMany("Bids")
                         .HasForeignKey("CarrierId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Frieght.Api.Entities.Load", "Load")
@@ -201,6 +343,15 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Navigation("Load");
                 });
 
+            modelBuilder.Entity("Frieght.Api.Entities.BusinessProfile", b =>
+                {
+                    b.HasOne("Frieght.Api.Entities.User", null)
+                        .WithOne("BusinessProfile")
+                        .HasForeignKey("Frieght.Api.Entities.BusinessProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
                 {
                     b.HasOne("Frieght.Api.Entities.User", "Shipper")
@@ -212,11 +363,43 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.Navigation("Shipper");
                 });
 
+            modelBuilder.Entity("Frieght.Api.Entities.Vehicle", b =>
+                {
+                    b.HasOne("Frieght.Api.Entities.BusinessProfile", "BusinessProfile")
+                        .WithMany("CarrierVehicles")
+                        .HasForeignKey("BusinessProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Frieght.Api.Entities.VehicleType", "VehicleType")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("VehicleTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BusinessProfile");
+
+                    b.Navigation("VehicleType");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.BusinessProfile", b =>
+                {
+                    b.Navigation("CarrierVehicles");
+                });
+
             modelBuilder.Entity("Frieght.Api.Entities.User", b =>
                 {
                     b.Navigation("Bids");
 
+                    b.Navigation("BusinessProfile")
+                        .IsRequired();
+
                     b.Navigation("Loads");
+                });
+
+            modelBuilder.Entity("Frieght.Api.Entities.VehicleType", b =>
+                {
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }
