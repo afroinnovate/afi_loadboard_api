@@ -147,7 +147,7 @@ jobs:
 
     outputs:
       image_digest: ${{ env.RELEASE_TAG }}
-      status: ${{ steps.build.outputs.status }}
+      status: ${{ steps.build.conclusion }}
   
   checkout_tag:
     needs: [prepare, build]
