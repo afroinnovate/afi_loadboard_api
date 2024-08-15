@@ -58,43 +58,7 @@ public static class AuthEndpoints
                     return Results.BadRequest(new { Errors = errors });
                 }
 
-                #region Update User Role
                 logger.LogInformation("User details updated successfully for user {Username}", request.Email);
-                // // Assign the role to the user
-                // if (request.UserType != null)
-                // {
-                //     logger.LogInformation("Assigning role {Role} to user {Username}", request.UserType, request.Email);
-                //     // check if the roles is valid 
-                //     // Check if the role is in the predefined roles
-                //     if (!IsRoleValid(request.UserType, roleConfig))
-                //     {
-                //         logger.LogWarning("Invalid role {Role}", request.UserType);
-                //         return Results.BadRequest("Invalid role.");
-                //     }
-
-                //     // Check if the role exists in the database, create if not
-                //     if (!await roleManager.RoleExistsAsync(request.UserType))
-                //     {
-                //         logger.LogInformation("Role {Role} does not exist, creating it", request.UserType);
-                //         await roleManager.CreateAsync(new IdentityRole(request.UserType));
-                //     }
-
-                //     // Check if the role is valid
-                //     if (!await roleManager.RoleExistsAsync(request.UserType))
-                //     {
-                //         logger.LogWarning("Invalid role {Role}", request.UserType);
-                //         return Results.BadRequest("Invalid role.");
-                //     }
-
-                //     logger.LogInformation("Assigning role {Role} to user {Username}", request.UserType, request.Email);
-                //     var roleResult = await userManager.AddToRoleAsync(user, request.UserType);
-                //     if (!roleResult.Succeeded)
-                //     {
-                //         logger.LogError("Error assigning role {Role} to user {Username}", request.UserType, request.Email);
-                //         return Results.BadRequest(roleResult.Errors);
-                //     }
-                // }
-                #endregion
 
                 logger.LogInformation("sending email with token");
                 // Generate email confirmation token

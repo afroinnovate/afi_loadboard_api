@@ -98,23 +98,23 @@ public static class BidEndpoints
                             AvailableCapacity = bidDto.CreatedBy.AvailableCapacity,
                             CarrierRole = bidDto.CreatedBy.CarrierRole,
                             CarrierVehicles = new List<Vehicle>
-                    {
-                        new Vehicle
-                        {
-                            Name = bidDto.CreatedBy.Name,
-                            Description = bidDto.CreatedBy.Description,
-                            ImageUrl = bidDto.CreatedBy.ImageUrl,
-                            VIN = bidDto.CreatedBy.Vin,
-                            LicensePlate = bidDto.CreatedBy.LicensePlate,
-                            Make = bidDto.CreatedBy.Make,
-                            Model = bidDto.CreatedBy.Model,
-                            Year = bidDto.CreatedBy.Year,
-                            Color = bidDto.CreatedBy.Color,
-                            HasInsurance = bidDto.CreatedBy.HasInsurance,
-                            HasRegistration = bidDto.CreatedBy.HasRegistration,
-                            HasInspection = bidDto.CreatedBy.HasInspection
-                        }
-                    }
+                            {
+                                new Vehicle
+                                {
+                                    Name = bidDto.CreatedBy.Name,
+                                    Description = bidDto.CreatedBy.Description,
+                                    ImageUrl = bidDto.CreatedBy.ImageUrl,
+                                    VIN = bidDto.CreatedBy.Vin,
+                                    LicensePlate = bidDto.CreatedBy.LicensePlate,
+                                    Make = bidDto.CreatedBy.Make,
+                                    Model = bidDto.CreatedBy.Model,
+                                    Year = bidDto.CreatedBy.Year,
+                                    Color = bidDto.CreatedBy.Color,
+                                    HasInsurance = bidDto.CreatedBy.HasInsurance,
+                                    HasRegistration = bidDto.CreatedBy.HasRegistration,
+                                    HasInspection = bidDto.CreatedBy.HasInspection
+                                }
+                            }
                         }
                     };
                 }
