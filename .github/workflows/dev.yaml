@@ -134,6 +134,7 @@ jobs:
 
       - name: Build and push Docker image
         if: env.PULL_SUCCEEDED == 'false'
+        id: build
         run: |
           cd ${{ github.event.inputs.project }}/
           echo ${{ env.RELEASE_TAG }}
@@ -146,6 +147,7 @@ jobs:
 
     outputs:
       image_digest: ${{ env.RELEASE_TAG }}
+      status: ${{ steps.build.outputs.status }}
   
   checkout_tag:
     needs: [prepare, build]
@@ -160,7 +162,7 @@ jobs:
 
   deploy:
     needs: [checkout_tag, build]
-    if: github.event_name == 'workflow_dispatch' && always()
+    if: github.event_name == 'workflow_dispatch' && needs.build.outputs.status == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout files
