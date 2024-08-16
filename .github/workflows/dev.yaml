@@ -145,14 +145,16 @@ jobs:
       - name: Set Status
         if: 
         run: |
-          if [ "${{ steps.build.conclusion }}" == "success" || "${{ steps.build.conclusion }}" == "skipped" ]; then
+          if [ "${{ steps.build.conclusion }}" == "success" || "${{ env.PULL_SUCCEEDED }}" == 'true' ]; then
             echo "STATUS=success" >> $GITHUB_ENV
           else
             echo "STATUS=failure" >> $GITHUB_ENV
           fi
 
       - name: Display tag in the Summary
-        run: echo "::notice title=Pushing tag::${{env.RELEASE_TAG}}"
+        run: |
+          echo "::notice title=Pushing tag::${{env.RELEASE_TAG}}"
+          echo "::notice title=Build Status::${{env.STATUS}}"
 
     outputs:
       image_digest: ${{ env.RELEASE_TAG }}
