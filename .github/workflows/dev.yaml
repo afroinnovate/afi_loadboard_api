@@ -143,9 +143,8 @@ jobs:
           docker push $DOCKER_IMAGE
 
       - name: Set Status
-        if: 
         run: |
-          if [ "${{ steps.build.conclusion }}" == "success" || "${{ env.PULL_SUCCEEDED }}" == 'true' ]; then
+          if [[ "${{ steps.build.conclusion }}" == "success" || "${{ env.PULL_SUCCEEDED }}" == 'true' ]]; then
             echo "STATUS=success" >> $GITHUB_ENV
           else
             echo "STATUS=failure" >> $GITHUB_ENV
