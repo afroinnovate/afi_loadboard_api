@@ -1,9 +1,9 @@
 base:
-  version: 2024.8.1
+  version: 2024.8.2
   name:  Frieght.API
   description:  Frieght.API
 
 frieght:
-  version: 2024.8.1
+  version: 2024.8.2
   name: Frieght.API
   description: Frieght.API
