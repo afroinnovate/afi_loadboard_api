@@ -146,9 +146,9 @@ jobs:
         if: 
         run: |
           if [ "${{ steps.build.conclusion }}" == "success" || "${{ steps.build.conclusion }}" == "skipped" ]; then
-            echo "STATUS=conclusion::success"
+            echo "STATUS=success" >> $GITHUB_ENV
           else
-            echo "STATUS=conclusion::failure"
+            echo "STATUS=failure" >> $GITHUB_ENV
           fi
 
       - name: Display tag in the Summary
