@@ -42,8 +42,8 @@ public record CreateShipperDto
     string BusinessType,
     string BusinessRegistrationNumber,
     string CompanyName,
-    ShipperRoleType ShipperRole, 
-    BusinessProfileDto? BusinessProfile
+    string? idCardOrDriverLicenceNumber,
+    ShipperRoleType ShipperRole
 );
 
 public record UpdateShipperDto

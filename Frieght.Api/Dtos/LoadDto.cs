@@ -36,6 +36,7 @@ public record LoadDtoResponse
     decimal OfferAmount = 0,
     string LoadDetails = "",
     string LoadStatus = "",
+    double EstimatedDistance = 0,
     DateTime? CreatedAt = null,
     DateTime? ModifiedAt = null,
     string? ModifiedBy = null
@@ -53,8 +54,9 @@ public record CreateLoadDto
     decimal OfferAmount,
     [Required][StringLength(500)] string LoadDetails,
     [Required][StringLength(20)] string LoadStatus,
+    double EstimatedDistance,
     DateTime CreatedAt,
-    ShipperDto CreatedBy
+    CreateShipperDto CreatedBy
 );
 
 public record UpdateLoadDto
@@ -69,6 +71,7 @@ public record UpdateLoadDto
     decimal OfferAmount,
     [Required][StringLength(500)] string LoadDetails,
     [Required][StringLength(20)] string LoadStatus,
+    double EstimatedDistance,
     DateTime ModifiedAt,
     string ModifiedBy
 );

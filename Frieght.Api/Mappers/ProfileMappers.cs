@@ -19,6 +19,7 @@ namespace Frieght.Api.Mappings
       CreateMap<UpdateCarrierDto, User>();
       CreateMap<CreateUserDto, User>();
       CreateMap<ShipperDto, User>();
+      CreateMap<CreateShipperDto, User>();
       CreateMap<CarrierDto, User>().ForMember(dest => dest.BusinessProfile, opt => opt.MapFrom(src => src));
 
       // BusinessProfile mappings
