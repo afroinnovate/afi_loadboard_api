@@ -15,6 +15,12 @@ namespace Frieght.Api.Dtos
         string Color,
         bool HasInsurance,
         bool HasRegistration,
-        bool HasInspection
+        bool HasInspection,
+        DateTimeOffset? CreatedAt,
+        DateTimeOffset? UpdatedAt,
+        string? CreatedBy,
+        string? UpdatedBy,
+        string? TruckLength,
+        string? TruckHeight
     );
 }

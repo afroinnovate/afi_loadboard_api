@@ -164,10 +164,16 @@ public static class BidEndpoints
                     return Results.NotFound($"Bid with Id: {id} not found");
                 }
 
-                existingBid.LoadId = updatedBidDto.LoadId;
-                existingBid.CarrierId = updatedBidDto.CarrierId;
-                existingBid.BidAmount = updatedBidDto.BidAmount;
-                existingBid.BidStatus = updatedBidDto.BidStatus;
+                if (updatedBidDto.UpdatedBy == null || updatedBidDto.UpdatedBy == "" || updatedBidDto.UpdatedBy == "string")
+                {
+                    logger.LogWarning("UpdatedBy is required to update bid");
+                    return Results.BadRequest("UpdatedBy is required to update bid");
+                }
+
+                existingBid.LoadId = existingBid.LoadId;
+                existingBid.CarrierId = existingBid.CarrierId;
+                existingBid.BidAmount = updatedBidDto.BidAmount == 0 ? existingBid.BidAmount : updatedBidDto.BidAmount;
+                existingBid.BidStatus = updatedBidDto.BidStatus == 0 ? existingBid.BidStatus : updatedBidDto.BidStatus;
                 existingBid.UpdatedAt = DateTimeOffset.UtcNow;  // Set server-side
                 existingBid.UpdatedBy = updatedBidDto.UpdatedBy;
 
