@@ -17,6 +17,10 @@ namespace Frieght.Api.Entities
         public bool HasInsurance { get; set; }
         public bool HasRegistration { get; set; }
         public bool HasInspection { get; set; }
+        // public DateTimeOffset? CreatedAt { get; set; }
+        // public DateTimeOffset? UpdatedAt { get; set; }
+        // public string? CreatedBy { get; set; }
+        // public string? UpdatedBy { get; set; }
 
         // Navigation properties
         public virtual BusinessProfile? BusinessProfile { get; set; }

@@ -49,7 +49,15 @@ namespace Frieght.Api.Mappings
       // Bid mappings
       CreateMap<Bid, BidDto>();
       CreateMap<CreateBidDto, Bid>();
-      CreateMap<UpdateBidDto, Bid>();
+      CreateMap<UpdateBidDto, Bid>()
+        .ForMember(dest => dest.Load, opt => opt.Ignore())
+        .ForMember(dest => dest.Carrier, opt => opt.Ignore())
+        .ForMember(dest => dest.BidAmount, opt => opt.MapFrom(src => src.BidAmount))
+        .ForMember(dest => dest.BidStatus, opt => opt.MapFrom(src => src.BidStatus))
+        .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTimeOffset.Now))
+        .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedBy))
+        .ForMember(dest => dest.Id, opt => opt.Ignore())
+        .ForMember(dest => dest.BiddingTime, opt => opt.Ignore());
       CreateMap<Bid, BidDtoResponse>()
           .ForMember(dest => dest.Load, opt => opt.MapFrom(src => src.Load))
           .ForMember(dest => dest.Carrier, opt => opt.MapFrom(src => src.Carrier));

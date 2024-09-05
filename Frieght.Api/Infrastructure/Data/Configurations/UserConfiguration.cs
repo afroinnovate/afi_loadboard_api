@@ -20,7 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(user => user.Loads)
             .WithOne(load => load.Shipper)
             .HasForeignKey(load => load.ShipperUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(user => user.Bids)
             .WithOne(bid => bid.Carrier)

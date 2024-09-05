@@ -33,14 +33,8 @@ public record BidDtoResponse
 
 public record UpdateBidDto
 (
-    int Id,
-    int LoadId,
-    string CarrierId,
     decimal BidAmount,
-    LoadDto Load,
     BidStatus BidStatus,
-    DateTimeOffset BiddingTime, // Review if updates to BiddingTime are allowed
-    DateTimeOffset UpdatedAt,   // This should likely be set automatically to now in the backend
     string UpdatedBy            // Ensure this is required if updates are made
 );
 

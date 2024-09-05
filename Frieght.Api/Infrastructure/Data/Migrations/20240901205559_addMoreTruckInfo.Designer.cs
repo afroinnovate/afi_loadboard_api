@@ -3,6 +3,7 @@ using System;
 using Frieght.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Frieght.Api.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FrieghtDbContext))]
-    partial class FrieghtDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240901205559_addMoreTruckInfo")]
+    partial class addMoreTruckInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,6 +152,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<double>("EstimatedDistance")
+                        .HasPrecision(10, 2)
                         .HasColumnType("double precision");
 
                     b.Property<string>("LoadDetails")
@@ -286,9 +290,6 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TruckLength")
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
