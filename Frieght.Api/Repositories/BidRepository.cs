@@ -194,6 +194,32 @@ public class BidRepository : IBidRepository
     }
     #endregion
 
+    #region GetBidsByCarrier
+    /// <summary>
+    /// Get all the bids by carrier
+    /// </summary>
+    /// <param name="carrierId"></param>
+    /// <returns>IEnumerable<Bid></returns>
+    public async Task<IEnumerable<Bid>> GetBidsByCarrier(string carrierId)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving all Bids by CarrierId: {CarrierId}", carrierId);
+            return await context.Bids
+                .Include(b => b.Load)
+                    .ThenInclude(l => l.Shipper)
+                .Include(b => b.Carrier)
+                .Where(b => b.Carrier.UserId == carrierId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving bids by carrier");
+            throw;
+        }
+    }
+    #endregion
     #region UpdateBid
     /// <summary>
     /// Update a bid

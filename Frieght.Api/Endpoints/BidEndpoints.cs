@@ -15,7 +15,7 @@ public static class BidEndpoints
 
     const string GetBidEndpointName = "GetBid";
     const string GetBidByLoadAndCarrierEndpointName = "GetBidByLoadAndCarrier";
-
+    const string GetBidByCarrierIdEndpointName = "GetBidByCarrierId";
     public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes, IMapper mapper)
     {
 
@@ -27,15 +27,62 @@ public static class BidEndpoints
             (await repository.GetBids()).Select(bid => mapper.Map<BidDtoResponse>(bid)));
         #endregion
 
+        #region GetBidByCarrierIdEndpoint
+
+        groups.MapGet("/carrier/{carrierId}", async (IBidRepository repository, string carrierId, ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Getting Bids by CarrierId {CarrierId}", carrierId);
+                var bids = await repository.GetBidsByCarrier(carrierId);
+                if (bids == null || !bids.Any()) return Results.NotFound();
+
+                var bidDtos = new List<BidDtoResponse>();
+                foreach (var bid in bids)
+                {
+                    var bidDto = mapper.Map<BidDtoResponse>(bid);
+                    if (bid.Load != null)
+                    {
+                        var loadDto = mapper.Map<LoadDtoResponse>(bid.Load);
+                        if (bid.Load.Shipper != null)
+                        {
+                            loadDto = loadDto with { CreatedBy = mapper.Map<ShipperDtoResponse>(bid.Load.Shipper) };
+                        }
+                        bidDto = bidDto with { Load = loadDto };
+                    }
+                    bidDtos.Add(bidDto);
+                }
+                return Results.Ok(bidDtos);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting bids by carrier id {0}", carrierId);
+                return Results.Problem("An error occurred while getting bids by carrier id", statusCode: 500);
+            }
+        }).WithName(GetBidByCarrierIdEndpointName);
+        #endregion
+
         #region GetBidByIdEndpoint
-        groups.MapGet("/{id}", async (IBidRepository repository, int id, ILogger<LoggerCategory> logger) =>
+        groups.MapGet("/{id:int}", async (IBidRepository repository, int id, ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Getting Bid by Id {Id}", id);
                 var bid = await repository.GetBid(id);
                 if (bid == null) logger.LogInformation("Bid not found with Id {Id}", id);
-                return bid != null ? Results.Ok(mapper.Map<BidDtoResponse>(bid)) : Results.NotFound();
+                var bidDto = mapper.Map<BidDtoResponse>(bid);
+
+                if (bidDto.Load != null)
+                {
+                    var loadDto = mapper.Map<LoadDtoResponse>(bid.Load);
+                    if (bid.Load.Shipper != null)
+                    {
+                        loadDto = loadDto with { CreatedBy = mapper.Map<ShipperDtoResponse>(bid.Load.Shipper) };
+                    }
+                    bidDto = bidDto with { Load = loadDto };
+                }
+
+                return bidDto != null ? Results.Ok(bidDto) : Results.NotFound();
             }
             catch (Exception ex)
             {
