@@ -139,6 +139,41 @@ namespace Frieght.Api.Repositories
             }
         }
         
+        #region GetLoadsByShipper
+        /// <summary>
+        /// Get all Loads by Shipper
+        /// </summary>
+        /// <param name="shipperId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Load?>> GetLoadsByShipper(string shipperId)
+        {
+            _logger.LogInformation("Attempting to retrieve Loads by Shipper with ID: {ShipperId}", shipperId);
+            try
+            {
+                var loads = await context.Loads
+                    .Include(l => l.Shipper)  // Eager load the Shipper associated with each Load
+                        .ThenInclude(s => s.BusinessProfile)
+                    .AsNoTracking()           // Use AsNoTracking for better performance in read-only operations
+                    .Where(l => l.ShipperUserId == shipperId)
+                    .ToListAsync();
+
+                if (loads == null || !loads.Any())
+                {
+                    _logger.LogInformation("No Loads found for Shipper with ID: {ShipperId}", shipperId);
+                    return new List<Load>();  // Return an empty list instead of null
+                }
+
+                _logger.LogInformation("Successfully retrieved {Count} Loads for Shipper with ID: {ShipperId}", loads.Count, shipperId);
+                return loads;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving Loads by Shipper with ID: {ShipperId}", shipperId);
+                return new List<Load>();  // Return an empty list instead of null to maintain consistency
+            }
+        }
+        #endregion
+
         #region GetAllLoads
         /// <summary>
         /// Get all Loads
