@@ -80,8 +80,55 @@ public static class LoadEndpoints
                 return Results.Problem("An error occurred while retrieving loads", statusCode: 500);
             }
         });
-
         #endregion
+        #region GetLoadsByShipper
+        /// <summary>
+        /// Get loads by shipper
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="shipperId"></param>
+        /// <returns></returns>
+        groups.MapGet("/shipper/{shipperId}", async (ILoadRepository repository, string shipperId, IMapper mapper, ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Retrieving loads by shipper with ID: {ShipperId}", shipperId);
+                var loads = await repository.GetLoadsByShipper(shipperId);
+
+                if (loads == null || !loads.Any())
+                {
+                    logger.LogInformation("No loads found for shipper with ID: {ShipperId}", shipperId);
+        
+                    return Results.Ok(new List<LoadDtoResponse>());
+                }
+
+                logger.LogInformation("Mapping loads to LoadDtoResponse.");
+
+                var loadDtos = loads.Select(load =>
+                {
+                    var mappedDto = mapper.Map<LoadDtoResponse>(load);
+                    var loadDtoWithCreatedBy = mappedDto with { CreatedBy = mapper.Map<ShipperDtoResponse>(load.Shipper) };
+
+                    if (loadDtoWithCreatedBy.CreatedBy == null)
+                    {
+                        logger.LogWarning("Mapped LoadDtoResponse {LoadId} has a null CreatedBy.", load.LoadId);
+                    }
+
+                    return loadDtoWithCreatedBy;
+                });
+
+                logger.LogInformation("Successfully mapped {Count} loads for shipper with ID: {ShipperId}", loadDtos.Count(), shipperId);
+
+                return Results.Ok(loadDtos);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to retrieve loads by shipper with ID: {ShipperId}", shipperId);
+                return Results.Problem("An error occurred while retrieving loads by shipper", statusCode: 500);
+            }
+        });
+        #endregion
+
 
         #region GetLoadById
         /// <summary>
