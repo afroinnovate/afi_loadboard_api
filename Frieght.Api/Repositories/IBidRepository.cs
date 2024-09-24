@@ -9,6 +9,7 @@ namespace Frieght.Api.Repositories
         Task<Bid?> GetBid(int id);
         Task<IEnumerable<Bid>> GetBidsByCarrier(string carrierId);
         Task<Bid?> GetBidByLoadIdAndCarrierId(int loadId, string carrierId);
+        Task<IEnumerable<Bid?>> GetBidsByLoadId(int loadId);
         Task<IEnumerable<Bid>> GetBids();
         Task UpdateBid(Bid bid);
     }

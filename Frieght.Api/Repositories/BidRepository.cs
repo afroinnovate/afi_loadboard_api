@@ -6,7 +6,6 @@ namespace Frieght.Api.Repositories;
 
 public class BidRepository : IBidRepository
 {
-
     ILogger<LoadRepository> _logger;
     private readonly FrieghtDbContext context;
 
@@ -194,6 +193,34 @@ public class BidRepository : IBidRepository
     }
     #endregion
 
+    #region GetBidsByLoadId
+    /// <summary>
+    /// Get all the bids by loadId
+    /// </summary>
+    /// <param name="loadId"></param>
+    /// <returns>IEnumerable<Bid?></returns>
+    public async Task<IEnumerable<Bid?>> GetBidsByLoadId(int loadId)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving all Bids by LoadId: {LoadId}", loadId);
+            var bids = await context.Bids
+                .Where(b => b.LoadId == loadId)
+                .Include(b => b.Carrier)
+                .AsNoTracking()
+                .ToListAsync();
+            
+            _logger.LogInformation("Retrieved {BidCount} bids by LoadId: {LoadId}", bids.Count, loadId);
+            return bids;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while retrieving bids by loadId, error: {Error}", ex.Message);
+            throw;
+        }
+    }
+    #endregion
+
     #region GetBidsByCarrier
     /// <summary>
     /// Get all the bids by carrier
@@ -220,6 +247,7 @@ public class BidRepository : IBidRepository
         }
     }
     #endregion
+
     #region UpdateBid
     /// <summary>
     /// Update a bid

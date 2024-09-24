@@ -16,6 +16,7 @@ public static class BidEndpoints
     const string GetBidEndpointName = "GetBid";
     const string GetBidByLoadAndCarrierEndpointName = "GetBidByLoadAndCarrier";
     const string GetBidByCarrierIdEndpointName = "GetBidByCarrierId";
+    const string GetBidsByLoadIdEndpointName = "GetBidsByLoadId";
     public static RouteGroupBuilder MapBidsEndpoints(this IEndpointRouteBuilder routes, IMapper mapper)
     {
 
@@ -28,7 +29,6 @@ public static class BidEndpoints
         #endregion
 
         #region GetBidByCarrierIdEndpoint
-
         groups.MapGet("/carrier/{carrierId}", async (IBidRepository repository, string carrierId, ILogger<LoggerCategory> logger) =>
         {
             try
@@ -90,6 +90,31 @@ public static class BidEndpoints
                 return Results.Problem("An error occurred while getting bid by id", statusCode: 500);
             }
         }).WithName(GetBidEndpointName);
+        #endregion
+
+        #region GetBidsByLoadIdEndpoint
+        groups.MapGet("/load/{loadId}", async (IBidRepository repository, int loadId, ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                IEnumerable<BidDtoResponse> bidDtoResponses = new List<BidDtoResponse>();
+
+                logger.LogInformation("Getting Bids by LoadId {LoadId}", loadId);
+                IEnumerable<Bid?> bids = await repository.GetBidsByLoadId(loadId);
+                foreach (var bid in bids)
+                {
+                    var bidDto = mapper.Map<BidDtoResponse>(bid);
+                    bidDtoResponses = bidDtoResponses.Append(bidDto);
+                }
+                logger.LogInformation("Retrieved {BidCount} bids by LoadId {LoadId}", bids.Count(), loadId);
+                return Results.Ok(bidDtoResponses);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting bids by load id {0}", loadId);
+                return Results.Problem("An error occurred while getting bids by load id", statusCode: 500);
+            }
+        }).WithName(GetBidsByLoadIdEndpointName);
         #endregion
 
         #region GetBidByLoadAndCarrierEndpoint
