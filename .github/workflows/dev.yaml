@@ -400,6 +400,9 @@ jobs:
             docker pull $RELEASE_TAG
             docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;sslmode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -e "ASPNETCORE_URLS=http://+:8080" -p 8080:8080 $RELEASE_TAG
           EOF
+          echo "Cleaning up orphaned images and containers"
+          ./cleanup.sh
+          ./clean-images.sh
 
       - name: Deploy frieght to Droplet
         if: ${{ github.event.inputs.project == 'Frieght.Api' }}
@@ -426,14 +429,11 @@ jobs:
             docker run -d -e "DefaultConnection=Host=$DB_HOST;Port=25060;Database=$DB_NAME;Username=$DB_USERNAME;Password=$DB_PASSWORD;SslMode=Require;Trust Server Certificate=true;" -e "ApiSettings__JwtOptions__SecretKey=$JWT_SECRET" -e "EmailSettings__Password=$PASSWORD" -p 7070:80 $RELEASE_TAG
           EOF
 
+          echo "Cleaning up orphaned images and containers"
+          ./cleanup.sh
+          ./clean-images.sh
+
       - name: Post Deploy Notice
         run: |
           echo "::notice title=Deployment Complete::Deployment of ${{ github.event.inputs.project }} is complete"
 
-      - name: Cleanup
-        run: |
-          rm -f droplet_ssh_key
-          rm -f droplet_private_ssh_key
-          echo "Cleaning up orphaned images and containers"
-          ./cleanup.sh
-          ./clean-images.sh
