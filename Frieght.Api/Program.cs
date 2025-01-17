@@ -104,6 +104,10 @@ app.MapUserEndpoints(app.Services.GetRequiredService<IMapper>()).RequireAuthoriz
 app.MapBidsEndpoints(app.Services.GetRequiredService<IMapper>()).RequireAuthorization();
 app.MapHealthEndpoints();
 
+// Configure endpoints
+app.MapInvoiceEndpoints();
+app.MapPaymentMethodEndpoints();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
