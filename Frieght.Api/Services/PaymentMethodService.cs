@@ -18,14 +18,14 @@ public class PaymentMethodService : IPaymentMethodService
 
     public async Task<IEnumerable<PaymentMethodDto>> GetAllAsync()
     {
-        var invoices = await _repository.GetAllAsync();
-        return _mapper.Map<IEnumerable<PaymentMethodDto>>(invoices);
+        var payments = await _repository.GetAllAsync();
+        return _mapper.Map<IEnumerable<PaymentMethodDto>>(payments);
     }
 
     public async Task<PaymentMethodDto?> GetByIdAsync(int id)
     {
-        var invoice = await _repository.GetByIdAsync(id);
-        return _mapper.Map<PaymentMethodDto?>(invoice);
+        var payments = await _repository.GetByIdAsync(id);
+        return _mapper.Map<PaymentMethodDto?>(payments);
     }
 
     public async Task AddAsync(PaymentMethodDto paymentMethodDto)
@@ -36,11 +36,11 @@ public class PaymentMethodService : IPaymentMethodService
 
     public async Task UpdateAsync(int id, PaymentMethodDto paymentMethodDto)
     {
-        var invoice = await _repository.GetByIdAsync(id);
-        if (invoice != null)
+        var payment = await _repository.GetByIdAsync(id);
+        if (payment != null)
         {
-            _mapper.Map(paymentMethodDto, invoice);
-            await _repository.UpdateAsync(invoice);
+            _mapper.Map(paymentMethodDto, payment);
+            await _repository.UpdateAsync(payment);
         }
     }
 
