@@ -1,6 +1,7 @@
 ﻿using Frieght.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Frieght.Api.Infrastructure.Notifications;
+using Frieght.Api.Services;
 
 namespace Frieght.Api.Infrastructure;
 
@@ -38,7 +39,13 @@ public static  class DataExtensions
             .AddScoped<IMessageSender, MessageSender>()
             .AddScoped<IBidRepository, BidRepository>()
             .AddScoped<IBusinessProfileRepository, BusinessProfileRepository>()
-            .AddScoped<IUserRepository, UserRepository>();
+            .AddScoped<IUserRepository, UserRepository>()
+            //Invoice and payment method registration
+            .AddScoped<IInvoiceRepository, InvoiceRepository>()
+            .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>()
+            .AddScoped<IInvoiceService, InvoiceService>()
+            .AddScoped<IPaymentMethodService, PaymentMethodService>();
+
 
         return services;
     }

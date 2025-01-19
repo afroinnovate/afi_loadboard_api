@@ -19,9 +19,18 @@ namespace Frieght.Api.Infrastructure
         public DbSet<VehicleType> VehicleTypes { get; set; }
         public DbSet<Vehicle> CarrierVehicle { get; set; }
 
+        //Payment entities
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            modelBuilder.Entity<PaymentMethod>()
+                .HasOne(p => p.Invoice)
+                .WithOne(i => i.PaymentMethod)
+                .HasForeignKey<PaymentMethod>(p => p.InvoiceId);
         }
     }
 }

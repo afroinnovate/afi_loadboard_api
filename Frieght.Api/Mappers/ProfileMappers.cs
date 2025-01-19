@@ -34,8 +34,12 @@ namespace Frieght.Api.Mappings
       CreateMap<VehicleType, VehicleTypeDto>();
       CreateMap<VehicleTypeDto, VehicleType>();
 
-      // Load mappings
-      CreateMap<Load, LoadDto>();
+      //Payment mappings
+       CreateMap<Invoice, InvoiceDto>().ReverseMap();
+       CreateMap<PaymentMethod, PaymentMethodDto>().ReverseMap();
+
+            // Load mappings
+            CreateMap<Load, LoadDto>();
       CreateMap<Load, LoadDtoResponse>()
           .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.Shipper)); // Map Shipper to CreatedBy
       CreateMap<LoadDtoResponse, Load>()
