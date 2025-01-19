@@ -35,6 +35,12 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         .IsRequired()
         .HasMaxLength(50);
 
+    builder.Property(vehicle => vehicle.CreatedAt)
+        .HasColumnType("timestamp with time zone");
+
+    builder.Property(vehicle => vehicle.UpdatedAt)
+        .HasColumnType("timestamp with time zone");
+
     // Define one-to-many relationship between BusinessProfile and Vehicle
     builder.HasOne(vehicle => vehicle.BusinessProfile)
         .WithMany(bp => bp.CarrierVehicles)
