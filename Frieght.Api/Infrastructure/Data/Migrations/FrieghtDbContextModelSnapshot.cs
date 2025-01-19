@@ -59,7 +59,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasIndex("LoadId");
 
-                    b.ToTable("Bids");
+                    b.ToTable("Bids", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.BusinessProfile", b =>
@@ -121,7 +121,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("BusinessProfiles");
+                    b.ToTable("BusinessProfiles", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Invoice", b =>
@@ -175,7 +175,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Load", b =>
@@ -247,7 +247,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("ShipperUserId", "Origin", "Destination", "PickupDate", "DeliveryDate", "Commodity", "LoadDetails")
                         .IsUnique();
 
-                    b.ToTable("Loads");
+                    b.ToTable("Loads", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.PaymentMethod", b =>
@@ -297,7 +297,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("InvoiceId")
                         .IsUnique();
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("PaymentMethods", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.User", b =>
@@ -335,7 +335,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Vehicle", b =>
@@ -413,7 +413,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("LicensePlate", "VIN")
                         .IsUnique();
 
-                    b.ToTable("CarrierVehicle");
+                    b.ToTable("CarrierVehicle", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.VehicleType", b =>
@@ -434,7 +434,7 @@ namespace Frieght.Api.Infrastructure.Data.Migrations
                     b.HasIndex("Id", "Name")
                         .IsUnique();
 
-                    b.ToTable("VehicleTypes");
+                    b.ToTable("VehicleTypes", (string)null);
                 });
 
             modelBuilder.Entity("Frieght.Api.Entities.Bid", b =>

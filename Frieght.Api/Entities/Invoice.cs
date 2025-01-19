@@ -7,7 +7,7 @@ public class Invoice
     public DateTime IssueDate { get; set; }
     public DateTime DueDate { get; set; } = DateTime.Today;
     public string Status { get; set; } = "Pending"; // Pending, Paid, Overdue
-    public int ShipperId { get; set; }
+    public string ShipperId { get; set; }  // Changed from int to string to match User.UserId
     public decimal AmountDue { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal TotalVat { get; set; }
@@ -19,4 +19,5 @@ public class Invoice
 
     // Navigation Property
     public PaymentMethod PaymentMethod { get; set; }
+    public User Shipper { get; set; }  // Add navigation property to User
 }
