@@ -1,0 +1,26 @@
+name: Cleanup Docker Images
+
+on:
+  workflow_dispatch:
+
+env:
+  REPOSITORY: 'tangotew/afi-loadboard-api'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Run Cleanup Script
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_REPO: ${{ env.REPOSITORY }}
+          DOCKERHUB_ACCESS_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          chmod +x ./cleanup_docker_images.sh
+          ./cleanup_docker_images.sh

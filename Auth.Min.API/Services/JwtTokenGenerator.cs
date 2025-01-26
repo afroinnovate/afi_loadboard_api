@@ -26,7 +26,11 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = string.IsNullOrEmpty(_jwtOptions.SecretKey) ? null : Encoding.ASCII.GetBytes(_jwtOptions.SecretKey);
+            var key = string.IsNullOrEmpty(_jwtOptions.SecretKey) ? null : Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
+            if (key != null && key.Length < 32)
+            {
+                Array.Resize(ref key, 32); // Ensure key is at least 32 bytes long
+            }
 
             var claims = new List<Claim>
             {

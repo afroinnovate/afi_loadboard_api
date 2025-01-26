@@ -30,9 +30,6 @@ namespace Auth.Min.API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("text");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -45,9 +42,6 @@ namespace Auth.Min.API.Migrations
 
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DotNumber")
-                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -91,12 +85,18 @@ namespace Auth.Min.API.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
+                    b.Property<bool>("Status")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<string>("UserType")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

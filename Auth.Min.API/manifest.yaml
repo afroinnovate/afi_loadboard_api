@@ -3,7 +3,7 @@ base:
   name: Auth.Min.API
   description: Auth.Min.API
 
-dev:
-  version: 0.0.1
+auth:
+  version: 2024.8.1
   name: Auth.Min.API
   description: Auth.Min.API

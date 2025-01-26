@@ -1,11 +1,11 @@
 # Use the ASP.NET Core runtime as the base image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:8.0.302 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 443
 
 # Use the ASP.NET Core SDK as the build image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.302 AS build
 WORKDIR /src
 COPY ["Auth.Min.API.csproj", "."]
 RUN dotnet restore "Auth.Min.API.csproj"
@@ -17,7 +17,7 @@ FROM build AS publish
 RUN dotnet publish "Auth.Min.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Use the ASP.NET Core SDK as the final image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
+FROM mcr.microsoft.com/dotnet/sdk:8.0.302 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
@@ -28,10 +28,10 @@ COPY Migrations /app/Migrations
 COPY . /app/
 
 # Remove the appsettings.json file
-RUN rm -f appsettings.json
+RUN rm -f appsettings.Development.json
 
 # If you have an appsettings.Production.json without sensitive data
-COPY ["appsettings.Development.json", "/app/"]
+COPY ["appsettings.json", "/app/"]
 
 # Set the ASP.NET Core environment to Development
 ENV ASPNETCORE_ENVIRONMENT=Development

@@ -23,10 +23,23 @@ The Auth.API was created off of .NET 7 and has the following core dependencies:
 The Auth.Min.API was created off of .NET 8 with minimal API and has the following core dependencies:
 
 - `.NET Core SDK 3.1`: The software development kit for .NET Core.
-- `.NET 8`: 
+- `.NET 7`: 
 - `Entity framework`: A micro ORM for .NET. It simplifies data access and is highly performant.
+    ```dotnet tool install --global dotnet-ef --version 7.0.13```
 - `Npgsql`: .NET data provider for PostgreSQL.
 - ... _(Include other specific packages or libraries as necessary)_
+
+## Getting Started to contribute
+
+1. **Clone the Repository**
+    ```bash
+    git clone https://github.com/<your-github-username>/afi_loadboad_api.git
+    ```
+
+2. **Navigate to the Project Directory**
+    ```bash
+    cd afi_loadboad_api
+    ```
 
 ## How to run the app using docker.
 ### Dependencies.
@@ -54,7 +67,7 @@ Access the apis
 
 
 ### Run it locally without docker
-- Make sure you create appsettings.json file in the service you're trying to run, example in Auth.Min.API I can fill in the contents like.
+- Make sure you create appsettings.Development.json file in the service you're trying to run, example in Auth.Min.API I can fill in the contents like.
 ```{
     "Logging": {
         "LogLevel": {
@@ -77,17 +90,29 @@ Access the apis
     }
 }
 ```
-## Getting Started to contribute
-
-1. **Clone the Repository**
-    ```bash
-    git clone https://github.com/<your-github-username>/afi_loadboad_api.git
-    ```
-
-2. **Navigate to the Project Directory**
-    ```bash
-    cd afi_loadboad_api
-    ```
+2. Change the context to load the appsetings.Development.json instead of the docker as below
+    - For Freight.API:
+        - Go to Freight.API/Infrastructure/DataExtension if you're working on /frieght and 
+        comment out the first line for docker and uncomment the next line for local env as bellow
+        ```
+          // setitngs for docker container
+          // var connString = Environment.GetEnvironmentVariable("DefaultConnection"); // to retrieve connection from docker container environment variable   
+        
+          var connString = configuration.GetConnectionString("DefaultConnection"); // to retrieve connection from configuration file like appsettings.json
+        ```
+    - For Auth.Min.API
+        - Go to Auth.Min.API/Program.cs and do the same, if you're working on Auth.Min.API
+            ```
+                // var defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+                // Add DB context injection for docker container
+                // builder.Services.AddDbContext<AppDbContext>(option => 
+                // option.UseNpgsql(defaultConnection));
+                // 
+                
+                // Add DB context injection for dotnet run in appsettings.Development.json
+                builder.Services.AddDbContext<AppDbContext>(option => 
+                    option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        ```
 
 ## Running the apis
 1. Run ```dotnet restore```
@@ -97,7 +122,7 @@ Access the apis
 1. Create migration: 
     ```dotnet ef migrations add <migrationName>```
 2. Update the database
-    ```dotnet database update```
+    ```dotnet ef database update```
 
 ## Contributing
 

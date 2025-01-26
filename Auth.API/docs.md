@@ -31,8 +31,8 @@ It's implemented using .NET entity Framework and docker.
     docker run -p 5000:7000 auth-api:0.0.1-alpha
     ```
 
-The API should now be running at `http://localhost:5000`.
-You can visit the API documentation on `http://localhost:5000/swagger/index.html`
+The API should now be running at `http://localhost:8080`.
+You can visit the API documentation on `http://localhost:8080/swagger/index.html`
 
 ## Database Setup
 
@@ -40,7 +40,7 @@ This API uses PostgreSQL. To set it up:
 
 1. **Install PostgreSQL** if not already installed.
    
-3. **Update Connection String** in `appsettings.json` to point to your local PostgreSQL instance.
+3. **Update Connection String** in `appsettings.Development.json` to point to your local PostgreSQL instance.
 
 ## Useful Docker Commands
 

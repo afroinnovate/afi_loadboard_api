@@ -12,8 +12,13 @@ namespace Frieght.Api.Infrastructure
         {
 
         }
-        public DbSet<Load> Loads => Set<Load>();
-        public DbSet<Carrier> Carriers => Set<Carrier>();
+        public DbSet<Load> Loads { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Bid> Bids { get; set; }
+        public DbSet<BusinessProfile> BusinessProfiles { get; set; }
+        public DbSet<VehicleType> VehicleTypes { get; set; }
+        public DbSet<Vehicle> CarrierVehicle { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

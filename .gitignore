@@ -3,9 +3,12 @@
 *.rsuser
 *.suo
 *.user
+.vs_code/
+.vscode/
 *.userosscache
 *.sln.docstates
 .env
+global.json
 
 # Windows image file caches
 Thumbs.db
@@ -64,8 +67,8 @@ artifacts/
 .idea/
 
 # ASP.NET Core
-appsettings.json
-!appsettings.Development.json
+!appsettings.json
+appsettings.Development.json
 
 # Windows image file caches
 Thumbs.db
