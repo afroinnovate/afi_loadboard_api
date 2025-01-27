@@ -20,7 +20,14 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<Invoice?> GetByIdAsync(int id)
     {
-        return await _context.Invoices.FindAsync(id);
+        return await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id);
+    }
+
+    public async Task<IEnumerable<Invoice>> GetByCarrierIdAsync(string carrierId)
+    {
+        return await _context.Invoices
+            .Where(i => i.CarrierId == carrierId)
+            .ToListAsync();
     }
 
     public async Task AddAsync(Invoice invoice)
@@ -43,13 +50,6 @@ public class InvoiceRepository : IInvoiceRepository
             _context.Invoices.Remove(invoice);
             await _context.SaveChangesAsync();
         }
-    }
-
-    public async Task<IEnumerable<Invoice>> GetByCarrierIdAsync(string carrierId)
-    {
-        return await _context.Invoices
-            .Where(i => i.ShipperId == carrierId)
-            .ToListAsync();
     }
 
     public async Task<Invoice?> GetByInvoiceNumberAsync(string invoiceNumber)

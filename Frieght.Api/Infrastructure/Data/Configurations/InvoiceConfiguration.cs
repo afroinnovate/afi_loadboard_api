@@ -17,10 +17,12 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         .IsRequired()
         .HasMaxLength(50);
 
-    builder.Property(invoice => invoice.ShipperId)
-        .IsRequired();
+        builder.Property(invoice => invoice.CarrierId)
+            .IsRequired();
 
-    builder.Property(invoice => invoice.Status)
+        builder.HasIndex(invoice => invoice.CarrierId);
+
+        builder.Property(invoice => invoice.Status)
         .IsRequired()
         .HasMaxLength(20);
 
@@ -45,11 +47,5 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
     builder.Property(invoice => invoice.ServiceFees)
         .HasPrecision(18, 2);
-
-    // Define relationship with PaymentMethod
-    builder.HasOne(invoice => invoice.PaymentMethod)
-        .WithMany()
-        .IsRequired()
-        .OnDelete(DeleteBehavior.Restrict);
-  }
+    }
 }

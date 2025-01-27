@@ -3,7 +3,7 @@
 public class PaymentMethod
 {
     public int Id { get; set; }
-    public string PaymentType { get; set; } // Debit, Bank, Mobile Payment
+    public required string PaymentType { get; set; } // Debit, Bank, Mobile Payment
     public string? BankName { get; set; }
     public string? BankAccount { get; set; }
     public string? AccountHolderName { get; set; }
@@ -14,7 +14,6 @@ public class PaymentMethod
     public string? LastFourDigits { get; set; }
     public string? BillingAddress { get; set; }
 
-    // Foreign Key
-    public int InvoiceId { get; set; }
-    public Invoice Invoice { get; set; }
+    // Changed from ShipperId to CarrierId
+    public required string CarrierId { get; set; }
 }
