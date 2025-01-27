@@ -44,4 +44,23 @@ public class InvoiceRepository : IInvoiceRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IEnumerable<Invoice>> GetByCarrierIdAsync(string carrierId)
+    {
+        return await _context.Invoices
+            .Where(i => i.ShipperId == carrierId)
+            .ToListAsync();
+    }
+
+    public async Task<Invoice?> GetByInvoiceNumberAsync(string invoiceNumber)
+    {
+        return await _context.Invoices
+            .FirstOrDefaultAsync(i => i.InvoiceNumber == invoiceNumber);
+    }
+
+    public async Task<Invoice?> GetByLoadIdAsync(int loadId)
+    {
+        return await _context.Invoices
+            .FirstOrDefaultAsync(i => i.LoadId == loadId);
+    }
 }

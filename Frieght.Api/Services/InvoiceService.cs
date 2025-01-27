@@ -48,5 +48,23 @@ public class InvoiceService : IInvoiceService
     {
         await _repository.DeleteAsync(id);
     }
+
+    public async Task<IEnumerable<InvoiceDto>> GetByCarrierIdAsync(string carrierId)
+    {
+        var invoices = await _repository.GetByCarrierIdAsync(carrierId);
+        return _mapper.Map<IEnumerable<InvoiceDto>>(invoices);
+    }
+
+    public async Task<InvoiceDto?> GetByInvoiceNumberAsync(string invoiceNumber)
+    {
+        var invoice = await _repository.GetByInvoiceNumberAsync(invoiceNumber);
+        return _mapper.Map<InvoiceDto?>(invoice);
+    }
+
+    public async Task<InvoiceDto?> GetByLoadIdAsync(int loadId)
+    {
+        var invoice = await _repository.GetByLoadIdAsync(loadId);
+        return _mapper.Map<InvoiceDto?>(invoice);
+    }
 }
 

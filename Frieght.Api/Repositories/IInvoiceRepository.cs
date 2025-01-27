@@ -9,4 +9,7 @@ public interface IInvoiceRepository
     Task AddAsync(Invoice invoice);
     Task UpdateAsync(Invoice invoice);
     Task DeleteAsync(int id);
+    Task<IEnumerable<Invoice>> GetByCarrierIdAsync(string carrierId);
+    Task<Invoice?> GetByInvoiceNumberAsync(string invoiceNumber);
+    Task<Invoice?> GetByLoadIdAsync(int loadId);
 }

@@ -2,6 +2,7 @@
 using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
 using Frieght.Api.Repositories;
+using Frieght.Api.Services;
 
 namespace Frieght.Api.Endpoints;
 
@@ -48,6 +49,24 @@ public static class InvoiceEndpoints
 
             await repo.DeleteAsync(id);
             return Results.NoContent();
+        });
+
+        group.MapGet("/carrier/{carrierId}", async (string carrierId, IInvoiceService service) =>
+        {
+            var invoices = await service.GetByCarrierIdAsync(carrierId);
+            return invoices.Any() ? Results.Ok(invoices) : Results.NotFound();
+        });
+
+        group.MapGet("/number/{invoiceNumber}", async (string invoiceNumber, IInvoiceService service) =>
+        {
+            var invoice = await service.GetByInvoiceNumberAsync(invoiceNumber);
+            return invoice != null ? Results.Ok(invoice) : Results.NotFound();
+        });
+
+        group.MapGet("/load/{loadId:int}", async (int loadId, IInvoiceService service) =>
+        {
+            var invoice = await service.GetByLoadIdAsync(loadId);
+            return invoice != null ? Results.Ok(invoice) : Results.NotFound();
         });
     }
 }
