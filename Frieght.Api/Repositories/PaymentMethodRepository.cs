@@ -39,4 +39,28 @@ public class PaymentMethodRepository : IPaymentMethodRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<PaymentMethod?> GetByPaymentMethodIdAsync(string paymentMethodId)
+    {
+        return await _context.PaymentMethods
+            .FirstOrDefaultAsync(p => p.PaymentMethodId == paymentMethodId);
+    }
+
+    public async Task<PaymentMethod?> GetByBankAccountAsync(string bankAccount)
+    {
+        return await _context.PaymentMethods
+            .FirstOrDefaultAsync(p => p.BankAccount == bankAccount);
+    }
+
+    public async Task<PaymentMethod?> GetByLastFourDigitsAsync(string lastFourDigits)
+    {
+        return await _context.PaymentMethods
+            .FirstOrDefaultAsync(p => p.LastFourDigits == lastFourDigits);
+    }
+
+    public async Task<PaymentMethod?> GetByPhoneNumberAsync(string phoneNumber)
+    {
+        return await _context.PaymentMethods
+            .FirstOrDefaultAsync(p => p.PhoneNumber == phoneNumber);
+    }
 }

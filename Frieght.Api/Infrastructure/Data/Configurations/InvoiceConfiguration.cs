@@ -10,7 +10,10 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
   {
     builder.HasKey(invoice => invoice.Id);
 
-    builder.HasIndex(invoice => invoice.InvoiceNumber)
+        builder.Property(invoice => invoice.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.HasIndex(invoice => invoice.InvoiceNumber)
         .IsUnique();
 
     builder.Property(invoice => invoice.InvoiceNumber)
@@ -47,5 +50,11 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
     builder.Property(invoice => invoice.ServiceFees)
         .HasPrecision(18, 2);
+
+        builder.Property(invoice => invoice.PaymentMethodId)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.HasIndex(invoice => invoice.PaymentMethodId);
     }
 }

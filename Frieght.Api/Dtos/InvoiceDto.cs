@@ -2,7 +2,7 @@
 
 public class InvoiceDto
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
     public required string InvoiceNumber { get; set; }
     public int LoadId { get; set; }
     public DateTime IssueDate { get; set; }

@@ -9,4 +9,8 @@ public interface IPaymentMethodRepository
     Task AddAsync(PaymentMethod paymentMethod);
     Task UpdateAsync(PaymentMethod paymentMethod);
     Task DeleteAsync(int id);
+    Task<PaymentMethod?> GetByPaymentMethodIdAsync(string paymentMethodId);
+    Task<PaymentMethod?> GetByBankAccountAsync(string bankAccount);
+    Task<PaymentMethod?> GetByLastFourDigitsAsync(string lastFourDigits);
+    Task<PaymentMethod?> GetByPhoneNumberAsync(string phoneNumber);
 }

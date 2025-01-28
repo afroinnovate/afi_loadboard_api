@@ -17,4 +17,5 @@ public class Invoice
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string? Note { get; set; }
     public required string TransactionId { get; set; }
+    public required string PaymentMethodId { get; set; }
 }

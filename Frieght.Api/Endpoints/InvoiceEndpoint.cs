@@ -34,7 +34,11 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapGet("/{id:int}", async (int id, IInvoiceRepository repo, ILogger<LoggerCategory> logger) =>
+        group.MapGet("/{id:int}", async (int id,
+            IInvoiceRepository repo,
+            IPaymentMethodRepository paymentRepo,
+            IMapper mapper,
+            ILogger<LoggerCategory> logger) =>
         {
             try
             {
@@ -45,8 +49,16 @@ public static class InvoiceEndpoints
                     logger.LogWarning("Invoice with ID: {Id} not found", id);
                     return Results.NotFound();
                 }
+
+                // Get associated payment method
+                var paymentMethod = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+
+                // Create response DTO with payment information
+                var responseDto = mapper.Map<InvoiceDto>(invoice);
+                responseDto.PaymentMethod = mapper.Map<PaymentMethodDto>(paymentMethod);
+
                 logger.LogInformation("Successfully retrieved invoice with ID: {Id}", id);
-                return Results.Ok(invoice);
+                return Results.Ok(responseDto);
             }
             catch (Exception ex)
             {
@@ -55,13 +67,60 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapPost("/", async (InvoiceDto invoiceDto, IInvoiceRepository repo, IMapper mapper, ILogger<LoggerCategory> logger) =>
+        group.MapPost("/", async (InvoiceDto invoiceDto,
+            IInvoiceRepository repo,
+            IPaymentMethodRepository paymentRepo,
+            IMapper mapper,
+            ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Creating new invoice");
+
+                if (invoiceDto.PaymentMethod == null)
+                {
+                    logger.LogError("Payment method information is required for invoice creation");
+                    return Results.BadRequest("Payment method information is required");
+                }
+
+                // First check for existing payment method based on payment details
+                PaymentMethod? existingPayment = null;
+                string paymentMethodId;
+
+                switch (invoiceDto.PaymentMethod.PaymentType)
+                {
+                    case "Bank" when !string.IsNullOrEmpty(invoiceDto.PaymentMethod.BankAccount):
+                        existingPayment = await paymentRepo.GetByBankAccountAsync(invoiceDto.PaymentMethod.BankAccount);
+                        break;
+                    case "Card" when !string.IsNullOrEmpty(invoiceDto.PaymentMethod.LastFourDigits):
+                        existingPayment = await paymentRepo.GetByLastFourDigitsAsync(invoiceDto.PaymentMethod.LastFourDigits);
+                        break;
+                    case "Mobile" when !string.IsNullOrEmpty(invoiceDto.PaymentMethod.PhoneNumber):
+                        existingPayment = await paymentRepo.GetByPhoneNumberAsync(invoiceDto.PaymentMethod.PhoneNumber);
+                        break;
+                }
+
+                if (existingPayment != null)
+                {
+                    paymentMethodId = existingPayment.PaymentMethodId;
+                    logger.LogInformation("Using existing payment method with ID: {PaymentMethodId}", paymentMethodId);
+                }
+                else
+                {
+                    paymentMethodId = $"PA-{invoiceDto.LoadId}-{DateTime.Now:MMdd}";
+                    logger.LogInformation("Creating new payment method");
+                    var paymentMethod = mapper.Map<PaymentMethod>(invoiceDto.PaymentMethod);
+                    paymentMethod.PaymentMethodId = paymentMethodId;
+                    paymentMethod.CarrierId = invoiceDto.CarrierId;
+                    await paymentRepo.AddAsync(paymentMethod);
+                    logger.LogInformation("Successfully created payment method with ID: {PaymentMethodId}", paymentMethodId);
+                }
+
+                // Create invoice with payment reference
                 var invoice = mapper.Map<Invoice>(invoiceDto);
+                invoice.PaymentMethodId = paymentMethodId;
                 await repo.AddAsync(invoice);
+
                 logger.LogInformation("Successfully created invoice with ID: {Id}", invoice.Id);
                 return Results.Created($"/api/invoices/{invoice.Id}", invoice);
             }
