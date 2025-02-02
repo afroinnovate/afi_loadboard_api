@@ -56,5 +56,18 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasMaxLength(50);
 
         builder.HasIndex(invoice => invoice.PaymentMethodId);
-    }
+
+    // Add configurations for carrier details
+    builder.Property(invoice => invoice.CarrierName)
+        .HasMaxLength(100);
+    
+    builder.Property(invoice => invoice.CarrierEmail)
+        .HasMaxLength(255);
+    
+    builder.Property(invoice => invoice.CarrierPhone)
+        .HasMaxLength(20);
+    
+    builder.Property(invoice => invoice.CarrierBusinessName)
+        .HasMaxLength(255);
+  }
 }

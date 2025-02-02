@@ -7,27 +7,33 @@ namespace Frieght.Api.Repositories;
 public class InvoiceRepository : IInvoiceRepository
 {
     private readonly FrieghtDbContext _context;
+    private readonly IPaymentMethodRepository _paymentRepo;
 
-    public InvoiceRepository(FrieghtDbContext context)
+    public InvoiceRepository(FrieghtDbContext context, IPaymentMethodRepository paymentRepo)
     {
         _context = context;
+        _paymentRepo = paymentRepo;
     }
 
     public async Task<IEnumerable<Invoice>> GetAllAsync()
     {
-        return await _context.Invoices.ToListAsync();
+        var invoices = await _context.Invoices.ToListAsync();
+        return invoices;
     }
 
     public async Task<Invoice?> GetByIdAsync(int id)
     {
-        return await _context.Invoices.FirstOrDefaultAsync(i => i.Id == id);
+        var invoice = await _context.Invoices
+            .FirstOrDefaultAsync(i => i.Id == id);
+        return invoice;
     }
 
     public async Task<IEnumerable<Invoice>> GetByCarrierIdAsync(string carrierId)
     {
-        return await _context.Invoices
+        var invoices = await _context.Invoices
             .Where(i => i.CarrierId == carrierId)
             .ToListAsync();
+        return invoices;
     }
 
     public async Task AddAsync(Invoice invoice)

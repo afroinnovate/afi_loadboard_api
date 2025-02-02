@@ -12,6 +12,8 @@ public record UserDto
     public string? Phone { get; init; }
     public required string UserType { get; init; }
     public BusinessProfileDto? BusinessProfile { get; init; }
+    public string? FullName { get; set; }
+    public string? Company { get; set; }
 }
 
 public record CreateUserDto

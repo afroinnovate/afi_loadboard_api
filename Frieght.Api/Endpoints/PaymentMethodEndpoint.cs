@@ -119,6 +119,29 @@ public static class PaymentMethodEndpoints
             }
         });
 
+        group.MapGet("/by-payment-id/{paymentMethodId}", async (string paymentMethodId,
+            IPaymentMethodRepository repo,
+            ILogger<LoggerCategory> logger) =>
+        {
+            try
+            {
+                logger.LogInformation("Retrieving payment method with payment ID: {PaymentMethodId}", paymentMethodId);
+                var paymentMethod = await repo.GetByPaymentMethodIdAsync(paymentMethodId);
+                if (paymentMethod == null)
+                {
+                    logger.LogWarning("Payment method with payment ID: {PaymentMethodId} not found", paymentMethodId);
+                    return Results.NotFound();
+                }
+                logger.LogInformation("Successfully retrieved payment method with payment ID: {PaymentMethodId}", paymentMethodId);
+                return Results.Ok(paymentMethod);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to retrieve payment method with payment ID: {PaymentMethodId}", paymentMethodId);
+                return Results.Problem("An error occurred while retrieving the payment method", statusCode: 500);
+            }
+        });
+
         return group;
     }
 }

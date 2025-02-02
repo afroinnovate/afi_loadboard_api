@@ -3,6 +3,7 @@ using Frieght.Api.Dtos;
 using Frieght.Api.Entities;
 using Frieght.Api.Repositories;
 using Frieght.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Frieght.Api.Endpoints;
 
@@ -18,14 +19,29 @@ public static class InvoiceEndpoints
         var group = routes.MapGroup("/api/invoices")
             .WithParameterValidation();
 
-        group.MapGet("/", async (IInvoiceRepository repo, ILogger<LoggerCategory> logger) =>
+        group.MapGet("/", async (
+            [FromServices] IInvoiceRepository repo,
+            [FromServices] IPaymentMethodRepository paymentRepo,
+            [FromServices] IMapper mapper,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
             try
             {
                 logger.LogInformation("Retrieving all invoices");
                 var invoices = await repo.GetAllAsync();
+
+                // Create response DTOs with payment information
+                var responseDtos = new List<InvoiceDto>();
+                foreach (var invoice in invoices)
+                {
+                    var dto = mapper.Map<InvoiceDto>(invoice);
+                    var payment = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                    dto.PaymentMethod = mapper.Map<PaymentMethodDto>(payment);
+                    responseDtos.Add(dto);
+                }
+
                 logger.LogInformation("Successfully retrieved {Count} invoices", invoices.Count());
-                return Results.Ok(invoices);
+                return Results.Ok(responseDtos);
             }
             catch (Exception ex)
             {
@@ -34,11 +50,12 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapGet("/{id:int}", async (int id,
-            IInvoiceRepository repo,
-            IPaymentMethodRepository paymentRepo,
-            IMapper mapper,
-            ILogger<LoggerCategory> logger) =>
+        group.MapGet("/{id:int}", async (
+            int id,
+            [FromServices] IInvoiceRepository repo,
+            [FromServices] IPaymentMethodRepository paymentRepo,
+            [FromServices] IMapper mapper,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
             try
             {
@@ -67,11 +84,13 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapPost("/", async (InvoiceDto invoiceDto,
-            IInvoiceRepository repo,
-            IPaymentMethodRepository paymentRepo,
-            IMapper mapper,
-            ILogger<LoggerCategory> logger) =>
+        group.MapPost("/", async (
+            InvoiceDto invoiceDto,
+            [FromServices] IInvoiceRepository repo,
+            [FromServices] IPaymentMethodRepository paymentRepo,
+            [FromServices] IExternalUserService userService,
+            [FromServices] IMapper mapper,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
             try
             {
@@ -82,6 +101,20 @@ public static class InvoiceEndpoints
                     logger.LogError("Payment method information is required for invoice creation");
                     return Results.BadRequest("Payment method information is required");
                 }
+
+                // Fetch carrier details from external service
+                var carrier = await userService.GetUserAsync(invoiceDto.CarrierId);
+                if (carrier == null)
+                {
+                    logger.LogError("Carrier not found with ID: {CarrierId}", invoiceDto.CarrierId);
+                    return Results.BadRequest("Invalid carrier ID");
+                }
+
+                // Store carrier details in the invoice
+                invoiceDto.CarrierName = carrier.FullName;
+                invoiceDto.CarrierEmail = carrier.Email;
+                invoiceDto.CarrierPhone = carrier.Phone;
+                invoiceDto.CarrierBusinessName = carrier.Company;
 
                 // First check for existing payment method based on payment details
                 PaymentMethod? existingPayment = null;
@@ -116,13 +149,17 @@ public static class InvoiceEndpoints
                     logger.LogInformation("Successfully created payment method with ID: {PaymentMethodId}", paymentMethodId);
                 }
 
-                // Create invoice with payment reference
+                // Create invoice with carrier details
                 var invoice = mapper.Map<Invoice>(invoiceDto);
                 invoice.PaymentMethodId = paymentMethodId;
                 await repo.AddAsync(invoice);
 
+                // For response, include the full carrier object
+                var responseDto = mapper.Map<InvoiceDto>(invoice);
+                responseDto.Carrier = carrier;
+
                 logger.LogInformation("Successfully created invoice with ID: {Id}", invoice.Id);
-                return Results.Created($"/api/invoices/{invoice.Id}", invoice);
+                return Results.Created($"/api/invoices/{invoice.Id}", responseDto);
             }
             catch (Exception ex)
             {
@@ -178,7 +215,13 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapGet("/carrier/{carrierId}", async (string carrierId, IInvoiceService service, ILogger<LoggerCategory> logger) =>
+        group.MapGet("/carrier/{carrierId}", async (
+            string carrierId,
+            [FromServices] IInvoiceService service,
+            [FromServices] IPaymentMethodRepository paymentRepo,
+            [FromServices] IExternalUserService userService,
+            [FromServices] IMapper mapper,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
             try
             {
@@ -189,6 +232,21 @@ public static class InvoiceEndpoints
                     logger.LogWarning("No invoices found for carrier with ID: {CarrierId}", carrierId);
                     return Results.NotFound();
                 }
+
+                // Get carrier information
+                var carrier = await userService.GetUserAsync(carrierId);
+
+                // Add payment and carrier information to each invoice
+                foreach (var invoice in invoices)
+                {
+                    if (invoice.PaymentMethodId != null)
+                    {
+                        var payment = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                        invoice.PaymentMethod = mapper.Map<PaymentMethodDto>(payment);
+                    }
+                    invoice.Carrier = carrier;
+                }
+
                 logger.LogInformation("Successfully retrieved {Count} invoices for carrier with ID: {CarrierId}", invoices.Count(), carrierId);
                 return Results.Ok(invoices);
             }

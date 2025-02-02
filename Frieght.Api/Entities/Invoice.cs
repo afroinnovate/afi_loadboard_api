@@ -18,4 +18,10 @@ public class Invoice
     public string? Note { get; set; }
     public required string TransactionId { get; set; }
     public required string PaymentMethodId { get; set; }
+    
+    // Add carrier details
+    public string? CarrierName { get; set; }
+    public string? CarrierEmail { get; set; }
+    public string? CarrierPhone { get; set; }
+    public string? CarrierBusinessName { get; set; }
 }
