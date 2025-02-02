@@ -8,24 +8,50 @@ namespace Frieght.Api.Services;
 public class InvoiceService : IInvoiceService
 {
     private readonly IInvoiceRepository _repository;
+    private readonly IPaymentMethodRepository _paymentRepo;
     private readonly IMapper _mapper;
 
-    public InvoiceService(IInvoiceRepository repository, IMapper mapper)
+    public InvoiceService(
+        IInvoiceRepository repository,
+        IPaymentMethodRepository paymentRepo,
+        IMapper mapper)
     {
         _repository = repository;
+        _paymentRepo = paymentRepo;
         _mapper = mapper;
     }
 
     public async Task<IEnumerable<InvoiceDto>> GetAllAsync()
     {
         var invoices = await _repository.GetAllAsync();
-        return _mapper.Map<IEnumerable<InvoiceDto>>(invoices);
+        var dtos = new List<InvoiceDto>();
+
+        foreach (var invoice in invoices)
+        {
+            var dto = _mapper.Map<InvoiceDto>(invoice);
+            if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+            {
+                var payment = await _paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                dto.PaymentMethod = _mapper.Map<PaymentMethodDto>(payment);
+            }
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 
     public async Task<InvoiceDto?> GetByIdAsync(int id)
     {
         var invoice = await _repository.GetByIdAsync(id);
-        return _mapper.Map<InvoiceDto?>(invoice);
+        if (invoice == null) return null;
+
+        var dto = _mapper.Map<InvoiceDto>(invoice);
+        if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+        {
+            var payment = await _paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+            dto.PaymentMethod = _mapper.Map<PaymentMethodDto>(payment);
+        }
+        return dto;
     }
 
     public async Task AddAsync(InvoiceDto invoiceDto)
@@ -52,19 +78,48 @@ public class InvoiceService : IInvoiceService
     public async Task<IEnumerable<InvoiceDto>> GetByCarrierIdAsync(string carrierId)
     {
         var invoices = await _repository.GetByCarrierIdAsync(carrierId);
-        return _mapper.Map<IEnumerable<InvoiceDto>>(invoices);
+        var dtos = new List<InvoiceDto>();
+
+        foreach (var invoice in invoices)
+        {
+            var dto = _mapper.Map<InvoiceDto>(invoice);
+            if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+            {
+                var payment = await _paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                dto.PaymentMethod = _mapper.Map<PaymentMethodDto>(payment);
+            }
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 
     public async Task<InvoiceDto?> GetByInvoiceNumberAsync(string invoiceNumber)
     {
         var invoice = await _repository.GetByInvoiceNumberAsync(invoiceNumber);
-        return _mapper.Map<InvoiceDto?>(invoice);
+        if (invoice == null) return null;
+
+        var dto = _mapper.Map<InvoiceDto>(invoice);
+        if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+        {
+            var payment = await _paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+            dto.PaymentMethod = _mapper.Map<PaymentMethodDto>(payment);
+        }
+        return dto;
     }
 
     public async Task<InvoiceDto?> GetByLoadIdAsync(int loadId)
     {
         var invoice = await _repository.GetByLoadIdAsync(loadId);
-        return _mapper.Map<InvoiceDto?>(invoice);
+        if (invoice == null) return null;
+
+        var dto = _mapper.Map<InvoiceDto>(invoice);
+        if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+        {
+            var payment = await _paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+            dto.PaymentMethod = _mapper.Map<PaymentMethodDto>(payment);
+        }
+        return dto;
     }
 }
 

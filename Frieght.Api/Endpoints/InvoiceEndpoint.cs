@@ -35,8 +35,11 @@ public static class InvoiceEndpoints
                 foreach (var invoice in invoices)
                 {
                     var dto = mapper.Map<InvoiceDto>(invoice);
-                    var payment = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
-                    dto.PaymentMethod = mapper.Map<PaymentMethodDto>(payment);
+                    if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+                    {
+                        var payment = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                        dto.PaymentMethod = mapper.Map<PaymentMethodDto>(payment);
+                    }
                     responseDtos.Add(dto);
                 }
 
@@ -67,12 +70,18 @@ public static class InvoiceEndpoints
                     return Results.NotFound();
                 }
 
-                // Get associated payment method
-                var paymentMethod = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
-
-                // Create response DTO with payment information
+                // Create response DTO
                 var responseDto = mapper.Map<InvoiceDto>(invoice);
-                responseDto.PaymentMethod = mapper.Map<PaymentMethodDto>(paymentMethod);
+
+                // Get associated payment method if exists
+                if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
+                {
+                    var paymentMethod = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
+                    if (paymentMethod != null)
+                    {
+                        responseDto.PaymentMethod = mapper.Map<PaymentMethodDto>(paymentMethod);
+                    }
+                }
 
                 logger.LogInformation("Successfully retrieved invoice with ID: {Id}", id);
                 return Results.Ok(responseDto);
@@ -219,7 +228,6 @@ public static class InvoiceEndpoints
             string carrierId,
             [FromServices] IInvoiceService service,
             [FromServices] IPaymentMethodRepository paymentRepo,
-            [FromServices] IExternalUserService userService,
             [FromServices] IMapper mapper,
             [FromServices] ILogger<LoggerCategory> logger) =>
         {
@@ -233,18 +241,14 @@ public static class InvoiceEndpoints
                     return Results.NotFound();
                 }
 
-                // Get carrier information
-                var carrier = await userService.GetUserAsync(carrierId);
-
-                // Add payment and carrier information to each invoice
+                // Add payment information to each invoice
                 foreach (var invoice in invoices)
                 {
-                    if (invoice.PaymentMethodId != null)
+                    if (!string.IsNullOrEmpty(invoice.PaymentMethodId))
                     {
                         var payment = await paymentRepo.GetByPaymentMethodIdAsync(invoice.PaymentMethodId);
                         invoice.PaymentMethod = mapper.Map<PaymentMethodDto>(payment);
                     }
-                    invoice.Carrier = carrier;
                 }
 
                 logger.LogInformation("Successfully retrieved {Count} invoices for carrier with ID: {CarrierId}", invoices.Count(), carrierId);
@@ -257,16 +261,54 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapGet("/number/{invoiceNumber}", async (string invoiceNumber, IInvoiceService service) =>
+        group.MapGet("/number/{invoiceNumber}", async (
+            string invoiceNumber, 
+            [FromServices] IInvoiceService service,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
-            var invoice = await service.GetByInvoiceNumberAsync(invoiceNumber);
-            return invoice != null ? Results.Ok(invoice) : Results.NotFound();
+            try
+            {
+                logger.LogInformation("Retrieving invoice with number: {InvoiceNumber}", invoiceNumber);
+                var invoice = await service.GetByInvoiceNumberAsync(invoiceNumber);
+                if (invoice == null)
+                {
+                    logger.LogWarning("Invoice with number {InvoiceNumber} not found", invoiceNumber);
+                    return Results.NotFound();
+                }
+                
+                logger.LogInformation("Successfully retrieved invoice with number: {InvoiceNumber}", invoiceNumber);
+                return Results.Ok(invoice);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to retrieve invoice with number: {InvoiceNumber}", invoiceNumber);
+                return Results.Problem("An error occurred while retrieving the invoice", statusCode: 500);
+            }
         });
 
-        group.MapGet("/load/{loadId:int}", async (int loadId, IInvoiceService service) =>
+        group.MapGet("/load/{loadId:int}", async (
+            int loadId, 
+            [FromServices] IInvoiceService service,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
-            var invoice = await service.GetByLoadIdAsync(loadId);
-            return invoice != null ? Results.Ok(invoice) : Results.NotFound();
+            try
+            {
+                logger.LogInformation("Retrieving invoice for load ID: {LoadId}", loadId);
+                var invoice = await service.GetByLoadIdAsync(loadId);
+                if (invoice == null)
+                {
+                    logger.LogWarning("Invoice for load ID {LoadId} not found", loadId);
+                    return Results.NotFound();
+                }
+                
+                logger.LogInformation("Successfully retrieved invoice for load ID: {LoadId}", loadId);
+                return Results.Ok(invoice);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to retrieve invoice for load ID: {LoadId}", loadId);
+                return Results.Problem("An error occurred while retrieving the invoice", statusCode: 500);
+            }
         });
 
         return group;
