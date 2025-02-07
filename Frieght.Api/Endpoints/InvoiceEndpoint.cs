@@ -161,6 +161,13 @@ public static class InvoiceEndpoints
                 // Create invoice with carrier details
                 var invoice = mapper.Map<Invoice>(invoiceDto);
                 invoice.PaymentMethodId = paymentMethodId;
+                // Convert dates to UTC
+                invoice.IssueDate = invoice.IssueDate.ToUniversalTime();
+                invoice.DueDate = invoice.DueDate.ToUniversalTime();
+                if (invoice.TransactionDate.HasValue)
+                {
+                    invoice.TransactionDate = invoice.TransactionDate.Value.ToUniversalTime();
+                }
                 await repo.AddAsync(invoice);
 
                 // For response, include the full carrier object
@@ -177,7 +184,12 @@ public static class InvoiceEndpoints
             }
         });
 
-        group.MapPut("/{id:int}", async (int id, InvoiceDto invoiceDto, IInvoiceRepository repo, IMapper mapper, ILogger<LoggerCategory> logger) =>
+        group.MapPut("/{id:int}", async (
+            int id,
+            InvoiceDto invoiceDto,
+            [FromServices] IInvoiceRepository repo,
+            [FromServices] IMapper mapper,
+            [FromServices] ILogger<LoggerCategory> logger) =>
         {
             try
             {
@@ -189,7 +201,94 @@ public static class InvoiceEndpoints
                     return Results.NotFound();
                 }
 
-                mapper.Map(invoiceDto, existingInvoice);
+                // Validate immutable fields
+                if (existingInvoice.PaymentMethodId != invoiceDto.PaymentMethodId)
+                {
+                    logger.LogWarning("Attempt to modify payment method ID from {ExistingId} to {NewId} for invoice ID: {Id}",
+                        existingInvoice.PaymentMethodId, invoiceDto.PaymentMethodId, id);
+                    return Results.BadRequest("Payment method ID cannot be modified");
+                }
+
+                if (existingInvoice.CarrierId != invoiceDto.CarrierId)
+                {
+                    logger.LogWarning("Attempt to modify carrier ID from {ExistingId} to {NewId} for invoice ID: {Id}",
+                        existingInvoice.CarrierId, invoiceDto.CarrierId, id);
+                    return Results.BadRequest("Carrier ID cannot be modified");
+                }
+
+                // Check if any mutable fields have changed
+                bool hasChanges = false;
+
+                hasChanges |= existingInvoice.Status.ToLower() != invoiceDto.Status.ToLower();
+                hasChanges |= existingInvoice.Note != invoiceDto.Note;
+                hasChanges |= existingInvoice.TransactionStatus != invoiceDto.TransactionStatus;
+                hasChanges |= existingInvoice.DueDate.Date != invoiceDto.DueDate.Date;
+                hasChanges |= existingInvoice.AmountDue != invoiceDto.AmountDue;
+                hasChanges |= existingInvoice.TotalAmount != invoiceDto.TotalAmount;
+                hasChanges |= existingInvoice.TotalVat != invoiceDto.TotalVat;
+                hasChanges |= existingInvoice.Withholding != invoiceDto.Withholding;
+                hasChanges |= existingInvoice.ServiceFees != invoiceDto.ServiceFees;
+                hasChanges |= existingInvoice.TransactionId != invoiceDto.TransactionId;
+
+                // Check TransactionDate separately due to nullable DateTime
+                if (!string.IsNullOrEmpty(invoiceDto.TransactionDate))
+                {
+                    if (DateTime.TryParse(invoiceDto.TransactionDate, out DateTime parsedDate))
+                    {
+                        hasChanges |= existingInvoice.TransactionDate?.Date != parsedDate.Date;
+                    }
+                }
+                else
+                {
+                    hasChanges |= existingInvoice.TransactionDate != null;
+                }
+
+                if (!hasChanges)
+                {
+                    logger.LogInformation("No changes detected for invoice ID: {Id}", id);
+                    return Results.BadRequest("No changes detected in the update request");
+                }
+
+                // Validate status transitions
+                if (!IsValidStatusTransition(existingInvoice.Status, invoiceDto.Status))
+                {
+                    var normalizedCurrentStatus = existingInvoice.Status.ToLower();
+                    var normalizedNewStatus = invoiceDto.Status.ToLower();
+                    logger.LogWarning("Invalid status transition from {CurrentStatus} to {NewStatus} for invoice ID: {Id}",
+                        normalizedCurrentStatus, normalizedNewStatus, id);
+                    return Results.BadRequest($"Invalid status transition from {normalizedCurrentStatus} to {normalizedNewStatus}");
+                }
+
+                // Update all mutable fields
+                existingInvoice.Status = invoiceDto.Status.ToLower();
+                existingInvoice.Note = invoiceDto.Note;
+                existingInvoice.TransactionStatus = invoiceDto.TransactionStatus;
+                existingInvoice.DueDate = invoiceDto.DueDate.ToUniversalTime();
+                existingInvoice.AmountDue = invoiceDto.AmountDue;
+                existingInvoice.TotalAmount = invoiceDto.TotalAmount;
+                existingInvoice.TotalVat = invoiceDto.TotalVat;
+                existingInvoice.Withholding = invoiceDto.Withholding;
+                existingInvoice.ServiceFees = invoiceDto.ServiceFees;
+                existingInvoice.TransactionId = invoiceDto.TransactionId;
+
+                // Parse the transaction date if it's provided
+                if (!string.IsNullOrEmpty(invoiceDto.TransactionDate))
+                {
+                    if (DateTime.TryParse(invoiceDto.TransactionDate, out DateTime parsedDate))
+                    {
+                        existingInvoice.TransactionDate = parsedDate.ToUniversalTime();
+                    }
+                    else
+                    {
+                        logger.LogWarning("Invalid transaction date format provided for invoice ID: {Id}", id);
+                        return Results.BadRequest("Invalid transaction date format");
+                    }
+                }
+                else
+                {
+                    existingInvoice.TransactionDate = null;
+                }
+
                 await repo.UpdateAsync(existingInvoice);
                 logger.LogInformation("Successfully updated invoice with ID: {Id}", id);
                 return Results.NoContent();
@@ -312,5 +411,47 @@ public static class InvoiceEndpoints
         });
 
         return group;
+    }
+
+    // Helper method to validate status transitions
+    private static bool IsValidStatusTransition(string currentStatus, string newStatus)
+    {
+        // Normalize status strings to handle case-insensitive comparison
+        currentStatus = (currentStatus ?? "").ToLower().Trim();
+        newStatus = (newStatus ?? "").ToLower().Trim();
+
+        // Define valid status transitions (all lowercase)
+        var validTransitions = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        // Initialize the transitions with proper HashSet initialization
+        validTransitions["pending"] = new HashSet<string>(new[]
+            { "processing", "cancelled", "paid", "completed" },
+            StringComparer.OrdinalIgnoreCase);
+
+        validTransitions["processing"] = new HashSet<string>(new[]
+            { "completed", "failed", "paid" },
+            StringComparer.OrdinalIgnoreCase);
+
+        validTransitions["failed"] = new HashSet<string>(new[]
+            { "processing" },
+            StringComparer.OrdinalIgnoreCase);
+
+        validTransitions["completed"] = new HashSet<string>(Array.Empty<string>(),
+            StringComparer.OrdinalIgnoreCase);
+
+        validTransitions["cancelled"] = new HashSet<string>(Array.Empty<string>(),
+            StringComparer.OrdinalIgnoreCase);
+
+        validTransitions["paid"] = new HashSet<string>(Array.Empty<string>(),
+            StringComparer.OrdinalIgnoreCase);
+
+        // Check if the current status has any valid transitions
+        if (!validTransitions.ContainsKey(currentStatus))
+        {
+            return false;
+        }
+
+        // Check if the new status is a valid transition from the current status
+        return validTransitions[currentStatus].Contains(newStatus);
     }
 }

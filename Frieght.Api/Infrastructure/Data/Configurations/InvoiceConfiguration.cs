@@ -29,8 +29,11 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         .IsRequired()
         .HasMaxLength(20);
 
-    builder.Property(invoice => invoice.TransactionId)
-        .IsRequired();
+        builder.Property(invoice => invoice.TransactionId);
+
+        builder.Property(invoice => invoice.TransactionDate);
+
+        builder.Property(invoice => invoice.TransactionStatus);
 
         builder.Property(invoice => invoice.Note)
             .HasMaxLength(500);

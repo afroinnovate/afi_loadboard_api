@@ -1,0 +1,1 @@
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

@@ -17,6 +17,8 @@ public class Invoice
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string? Note { get; set; }
     public required string TransactionId { get; set; }
+    public DateTime? TransactionDate { get; set; }
+    public string? TransactionStatus { get; set; }
     public required string PaymentMethodId { get; set; }
     
     // Add carrier details

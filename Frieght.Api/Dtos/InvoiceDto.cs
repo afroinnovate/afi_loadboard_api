@@ -27,6 +27,8 @@ public class InvoiceDto
     public DateTime CreatedAt { get; set; }
     public string? Note { get; set; }
     public string? TransactionId { get; set; }
+    public string? TransactionDate { get; set; }
+    public string? TransactionStatus { get; set; }
     public string? PaymentMethodId { get; set; }
     public PaymentMethodDto? PaymentMethod { get; set; }
 }
