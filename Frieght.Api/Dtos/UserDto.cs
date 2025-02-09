@@ -2,7 +2,7 @@ using Frieght.Api.Enuns;
 
 namespace Frieght.Api.Dtos;
 
-public record UserDto
+public class UserDto
 {
     public required string UserId { get; init; }
     public required string Email { get; init; }

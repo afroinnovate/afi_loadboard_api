@@ -10,7 +10,15 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
   {
     builder.HasKey(p => p.Id);
 
-    builder.Property(p => p.PaymentType)
+        // Configure ID as auto-incrementing
+        builder.Property(p => p.Id)
+            .UseIdentityColumn();
+
+        // Ensure PaymentMethodId is unique
+        builder.HasIndex(p => p.PaymentMethodId)
+            .IsUnique();
+
+        builder.Property(p => p.PaymentType)
         .IsRequired()
         .HasMaxLength(50);
 
@@ -30,13 +38,12 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
     builder.Property(p => p.CardMethod)
         .HasMaxLength(50);
 
-    builder.Property(p => p.PaymentMethodId)
-        .HasMaxLength(100);
+        builder.HasKey(p => p.PaymentMethodId);
 
-    builder.Property(p => p.CardType)
-        .HasMaxLength(50);
+        builder.Property(p => p.CardType)
+    .HasMaxLength(50);
 
-    builder.Property(p => p.LastFourDigits)
+        builder.Property(p => p.LastFourDigits)
         .HasMaxLength(4);
 
     builder.Property(p => p.BillingAddress)

@@ -5,8 +5,8 @@ public class InvoiceDto
     public int? Id { get; set; }
     public required string InvoiceNumber { get; set; }
     public int LoadId { get; set; }
-    public DateTime IssueDate { get; set; }
-    public DateTime DueDate { get; set; } = DateTime.Today;
+    public string IssueDate { get; set; } = string.Empty;
+    public string DueDate { get; set; } = string.Empty;
     public string Status { get; set; } = "Pending";
     public required string CarrierId { get; set; }
     
@@ -15,10 +15,8 @@ public class InvoiceDto
     public string? CarrierEmail { get; set; }
     public string? CarrierPhone { get; set; }
     public string? CarrierBusinessName { get; set; }
-    
+
     // Keep the carrier reference for response mapping
-    public UserDto? Carrier { get; set; }
-    
     public decimal AmountDue { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal TotalVat { get; set; }

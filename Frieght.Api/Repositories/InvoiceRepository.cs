@@ -252,4 +252,32 @@ public class InvoiceRepository : IInvoiceRepository
             throw;
         }
     }
+
+    public async Task<IEnumerable<Invoice>> GetByShipperIdAsync(string shipperId)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching invoices for shipper ID: {ShipperId}", shipperId);
+
+            var invoices = await _context.Invoices
+                .Join(
+                    _context.Loads,
+                    invoice => invoice.LoadId,
+                    load => load.LoadId,
+                    (invoice, load) => new { Invoice = invoice, Load = load }
+                )
+                .Where(joined => joined.Load.ShipperUserId == shipperId)
+                .Select(joined => joined.Invoice)
+                .ToListAsync();
+
+            _logger.LogInformation("Retrieved {Count} invoices for shipper ID: {ShipperId}",
+                invoices.Count, shipperId);
+            return invoices;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching invoices for shipper ID: {ShipperId}", shipperId);
+            throw;
+        }
+    }
 }

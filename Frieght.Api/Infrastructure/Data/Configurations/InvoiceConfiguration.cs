@@ -8,15 +8,15 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 {
   public void Configure(EntityTypeBuilder<Invoice> builder)
   {
-    builder.HasKey(invoice => invoice.Id);
+        builder.HasKey(i => i.Id);
 
-        builder.Property(invoice => invoice.Id)
-            .ValueGeneratedOnAdd();
+        builder.Property(i => i.Id)
+            .UseIdentityColumn();
 
         builder.HasIndex(invoice => invoice.InvoiceNumber)
         .IsUnique();
 
-    builder.Property(invoice => invoice.InvoiceNumber)
+        builder.Property(invoice => invoice.InvoiceNumber)
         .IsRequired()
         .HasMaxLength(50);
 
@@ -26,7 +26,7 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.HasIndex(invoice => invoice.CarrierId);
 
         builder.Property(invoice => invoice.Status)
-        .IsRequired()
+            .IsRequired()
         .HasMaxLength(20);
 
         builder.Property(invoice => invoice.TransactionId);
@@ -38,8 +38,8 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(invoice => invoice.Note)
             .HasMaxLength(500);
 
-    // Money-related properties precision configuration
-    builder.Property(invoice => invoice.AmountDue)
+        // Money-related properties precision configuration
+        builder.Property(invoice => invoice.AmountDue)
         .HasPrecision(18, 2);
 
     builder.Property(invoice => invoice.TotalAmount)
@@ -54,14 +54,13 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
     builder.Property(invoice => invoice.ServiceFees)
         .HasPrecision(18, 2);
 
-        builder.Property(invoice => invoice.PaymentMethodId)
-            .IsRequired()
-            .HasMaxLength(50);
+        builder.Property(i => i.PaymentMethodId)
+            .IsRequired();
 
-        builder.HasIndex(invoice => invoice.PaymentMethodId);
+        builder.HasIndex(i => i.PaymentMethodId);
 
-    // Add configurations for carrier details
-    builder.Property(invoice => invoice.CarrierName)
+        // Add configurations for carrier details
+        builder.Property(invoice => invoice.CarrierName)
         .HasMaxLength(100);
     
     builder.Property(invoice => invoice.CarrierEmail)

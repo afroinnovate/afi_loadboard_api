@@ -6,6 +6,36 @@ namespace Frieght.Api.Mappings
 {
   public class ProfileMapper : Profile
   {
+    private class DateTimeValueResolver : IMemberValueResolver<InvoiceDto, Invoice, string, DateTime?>
+    {
+      public DateTime? Resolve(InvoiceDto source, Invoice destination, string sourceMember, DateTime? destMember, ResolutionContext context)
+      {
+        if (string.IsNullOrEmpty(sourceMember))
+          return null;
+
+        return DateTime.TryParse(sourceMember, out DateTime result) ? result : null;
+      }
+    }
+
+    private class RequiredDateTimeValueResolver : IMemberValueResolver<InvoiceDto, Invoice, string, DateTime>
+    {
+      private readonly int _defaultDaysToAdd;
+
+      public RequiredDateTimeValueResolver(int defaultDaysToAdd = 0)
+      {
+        _defaultDaysToAdd = defaultDaysToAdd;
+      }
+
+      public DateTime Resolve(InvoiceDto source, Invoice destination, string sourceMember, DateTime destMember, ResolutionContext context)
+      {
+        if (string.IsNullOrEmpty(sourceMember) || !DateTime.TryParse(sourceMember, out DateTime result))
+        {
+          return DateTime.UtcNow.AddDays(_defaultDaysToAdd);
+        }
+        return result;
+      }
+    }
+
     public ProfileMapper()
     {
       // User mappings
@@ -35,11 +65,24 @@ namespace Frieght.Api.Mappings
       CreateMap<VehicleTypeDto, VehicleType>();
 
       //Payment mappings
-       CreateMap<Invoice, InvoiceDto>().ReverseMap();
-       CreateMap<PaymentMethod, PaymentMethodDto>().ReverseMap();
+      CreateMap<InvoiceDto, Invoice>()
+          .ForMember(dest => dest.TransactionDate,
+              opt => opt.MapFrom<DateTimeValueResolver, string>(src => src.TransactionDate))
+          .ForMember(dest => dest.IssueDate,
+              opt => opt.MapFrom<RequiredDateTimeValueResolver, string>(src => src.IssueDate))
+          .ForMember(dest => dest.DueDate,
+              opt => opt.MapFrom<RequiredDateTimeValueResolver, string>(src => src.DueDate));
 
-            // Load mappings
-            CreateMap<Load, LoadDto>();
+      CreateMap<Invoice, InvoiceDto>()
+          .ForMember(dest => dest.TransactionDate, opt => opt.MapFrom(src =>
+              src.TransactionDate.HasValue ? src.TransactionDate.Value.ToString("O") : ""))
+          .ForMember(dest => dest.IssueDate, opt => opt.MapFrom(src =>
+              src.IssueDate.ToString("O")))
+          .ForMember(dest => dest.DueDate, opt => opt.MapFrom(src =>
+              src.DueDate.ToString("O")));
+
+      // Load mappings
+      CreateMap<Load, LoadDto>();
       CreateMap<Load, LoadDtoResponse>()
           .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.Shipper)); // Map Shipper to CreatedBy
       CreateMap<LoadDtoResponse, Load>()
@@ -104,6 +147,8 @@ namespace Frieght.Api.Mappings
       .ForCtorParam("CompanyName", opt => opt.MapFrom(src => src.BusinessProfile.CompanyName))
       .ForCtorParam("Vehicles", opt => opt.MapFrom(src => src.BusinessProfile.CarrierVehicles))
       .ForCtorParam("CarrierRole", opt => opt.MapFrom(src => src.BusinessProfile.CarrierRole));
+
+      CreateMap<PaymentMethod, PaymentMethodDto>().ReverseMap();
     }
   }
 }

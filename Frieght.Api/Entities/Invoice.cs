@@ -3,12 +3,12 @@
 public class Invoice
 {
     public int Id { get; set; }
-    public required string InvoiceNumber { get; set; }
+    public string InvoiceNumber { get; set; } = string.Empty;
     public int LoadId { get; set; }
-    public DateTime IssueDate { get; set; }
-    public DateTime DueDate { get; set; } = DateTime.Today;
-    public required string Status { get; set; }
-    public required string CarrierId { get; set; }
+    public DateTime IssueDate { get; set; }  // Required, defaults to current time
+    public DateTime DueDate { get; set; }    // Required, defaults to current time + 30 days
+    public string Status { get; set; } = string.Empty;
+    public string CarrierId { get; set; } = string.Empty;
     public decimal AmountDue { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal TotalVat { get; set; }
@@ -16,8 +16,8 @@ public class Invoice
     public decimal ServiceFees { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string? Note { get; set; }
-    public required string TransactionId { get; set; }
-    public DateTime? TransactionDate { get; set; }
+    public string? TransactionId { get; set; }
+    public DateTime? TransactionDate { get; set; }  // Optional
     public string? TransactionStatus { get; set; }
     public required string PaymentMethodId { get; set; }
     

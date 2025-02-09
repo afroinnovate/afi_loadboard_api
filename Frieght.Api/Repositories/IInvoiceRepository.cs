@@ -12,4 +12,5 @@ public interface IInvoiceRepository
     Task DeleteAsync(int id);
     Task<Invoice?> GetByInvoiceNumberAsync(string invoiceNumber);
     Task<Invoice?> GetByLoadIdAsync(int loadId);
+    Task<IEnumerable<Invoice>> GetByShipperIdAsync(string shipperId);
 }

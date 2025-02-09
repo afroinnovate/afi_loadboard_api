@@ -72,26 +72,37 @@ public static class PaymentMethodEndpoints
             }
         });
 
-        group.MapPut("/{id:int}", async (int id, PaymentMethodDto paymentMethodDto, IPaymentMethodRepository repo, IMapper mapper, ILogger<LoggerCategory> logger) =>
+        group.MapPut("/{paymentMethodId}", async (string paymentMethodId, PaymentMethodDto paymentMethodDto, IPaymentMethodRepository repo, IMapper mapper, ILogger<LoggerCategory> logger) =>
         {
             try
             {
-                logger.LogInformation("Updating payment method with ID: {Id}", id);
-                var existingPaymentMethod = await repo.GetByIdAsync(id);
+                logger.LogInformation("Updating payment method with ID: {PaymentMethodId}", paymentMethodId);
+                var existingPaymentMethod = await repo.GetByPaymentMethodIdAsync(paymentMethodId);
                 if (existingPaymentMethod == null)
                 {
-                    logger.LogWarning("Payment method with ID: {Id} not found", id);
+                    logger.LogWarning("Payment method with PaymentMethodId: {PaymentMethodId} not found", paymentMethodId);
                     return Results.NotFound();
                 }
 
-                mapper.Map(paymentMethodDto, existingPaymentMethod);
-                await repo.UpdateAsync(existingPaymentMethod);
-                logger.LogInformation("Successfully updated payment method with ID: {Id}", id);
-                return Results.NoContent();
+                // Preserve the existing IDs while mapping other properties
+                var updatedPaymentMethod = mapper.Map<PaymentMethod>(paymentMethodDto);
+                updatedPaymentMethod.Id = existingPaymentMethod.Id;
+                updatedPaymentMethod.PaymentMethodId = existingPaymentMethod.PaymentMethodId;
+
+                try
+                {
+                    await repo.UpdateAsync(updatedPaymentMethod);
+                    logger.LogInformation("Successfully updated payment method with PaymentMethodId: {PaymentMethodId}", paymentMethodId);
+                    return Results.NoContent();
+                }
+                catch (KeyNotFoundException)
+                {
+                    return Results.NotFound();
+                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to update payment method with ID: {Id}", id);
+                logger.LogError(ex, "Failed to update payment method with PaymentMethodId: {PaymentMethodId}", paymentMethodId);
                 return Results.Problem("An error occurred while updating the payment method", statusCode: 500);
             }
         });

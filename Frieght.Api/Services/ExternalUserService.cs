@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using Frieght.Api.Dtos;
+using Microsoft.Extensions.Configuration;
 
 namespace Frieght.Api.Services;
 
@@ -12,12 +13,16 @@ public interface IExternalUserService
 public class ExternalUserService : IExternalUserService
 {
     private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<ExternalUserService> _logger;
-    private const string BaseUrl = "https://api.auth.afroinnovate.com/user/";
 
-    public ExternalUserService(HttpClient httpClient, ILogger<ExternalUserService> logger)
+    public ExternalUserService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        ILogger<ExternalUserService> logger)
     {
         _httpClient = httpClient;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -25,18 +30,25 @@ public class ExternalUserService : IExternalUserService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BaseUrl}{userId}");
+            var baseUrl = _configuration["ExternalServices:UserApi:BaseUrl"];
+            var response = await _httpClient.GetAsync($"{baseUrl}/api/users/{userId}");
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<UserDto>(content);
+                return JsonSerializer.Deserialize<UserDto>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
             }
-            _logger.LogWarning("Failed to fetch user with ID {UserId}. Status code: {StatusCode}", userId, response.StatusCode);
+
+            _logger.LogWarning("Failed to get user with ID: {UserId}. Status code: {StatusCode}",
+                userId, response.StatusCode);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching user with ID {UserId} from external API", userId);
+            _logger.LogError(ex, "Error occurred while fetching user with ID: {UserId}", userId);
             return null;
         }
     }

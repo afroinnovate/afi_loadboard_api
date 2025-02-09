@@ -27,11 +27,11 @@ public static  class DataExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services, IConfiguration configuration)
     {
         // // setitngs for docker container
-        // var connString = Environment.GetEnvironmentVariable("DefaultConnection"); // to retrieve connection from docker container environment variable   
+        var connString = Environment.GetEnvironmentVariable("DefaultConnection"); // to retrieve connection from docker container environment variable   
 
         //Console.WriteLine($"Connection string: {connString}");
         
-        var connString = configuration.GetConnectionString("DefaultConnection"); // to retrieve connection from configuration file like appsettings.json
+        // var connString = configuration.GetConnectionString("DefaultConnection"); // to retrieve connection from configuration file like appsettings.json
 
         services.AddDbContext<FrieghtDbContext>(options =>
             options.UseNpgsql(connString)) // Changed to UseNpgsql
