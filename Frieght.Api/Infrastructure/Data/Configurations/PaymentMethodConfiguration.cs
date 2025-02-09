@@ -14,7 +14,9 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
         builder.Property(p => p.Id)
             .UseIdentityColumn();
 
-        // Ensure PaymentMethodId is unique
+        // PaymentMethodId should be unique but not a primary key
+        builder.Property(p => p.PaymentMethodId)
+            .IsRequired();
         builder.HasIndex(p => p.PaymentMethodId)
             .IsUnique();
 
@@ -37,8 +39,6 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 
     builder.Property(p => p.CardMethod)
         .HasMaxLength(50);
-
-        builder.HasKey(p => p.PaymentMethodId);
 
         builder.Property(p => p.CardType)
     .HasMaxLength(50);

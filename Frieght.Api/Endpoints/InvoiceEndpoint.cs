@@ -4,6 +4,8 @@ using Frieght.Api.Entities;
 using Frieght.Api.Repositories;
 using Frieght.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Frieght.Api.Endpoints;
 
@@ -110,10 +112,10 @@ public static class InvoiceEndpoints
                     return Results.BadRequest("Payment method information is required");
                 }
 
-                // Validate payment method details based on type
                 string paymentMethodId;
                 PaymentMethod? existingPayment = null;
 
+                // First generate the payment method ID based on type
                 switch (invoiceDto.PaymentMethod.PaymentType.ToLower())
                 {
                     case "mobile_money":
@@ -123,7 +125,6 @@ public static class InvoiceEndpoints
                             return Results.BadRequest("Phone number is required for mobile money payment");
                         }
                         paymentMethodId = $"PA-{invoiceDto.LoadId}-{invoiceDto.PaymentMethod.PhoneNumber}";
-                        existingPayment = await paymentRepo.GetByPaymentMethodIdAsync(paymentMethodId);
                         break;
 
                     case "bank":
@@ -136,7 +137,6 @@ public static class InvoiceEndpoints
                             ? invoiceDto.PaymentMethod.BankAccount[^4..]
                             : invoiceDto.PaymentMethod.BankAccount;
                         paymentMethodId = $"PA-{invoiceDto.LoadId}-{lastFourOfBank}";
-                        existingPayment = await paymentRepo.GetByPaymentMethodIdAsync(paymentMethodId);
                         break;
 
                     case "card":
@@ -146,7 +146,6 @@ public static class InvoiceEndpoints
                             return Results.BadRequest("Card last four digits are required for card payment");
                         }
                         paymentMethodId = $"PA-{invoiceDto.LoadId}-{invoiceDto.PaymentMethod.LastFourDigits}";
-                        existingPayment = await paymentRepo.GetByPaymentMethodIdAsync(paymentMethodId);
                         break;
 
                     default:
@@ -154,18 +153,41 @@ public static class InvoiceEndpoints
                         return Results.BadRequest($"Invalid payment type: {invoiceDto.PaymentMethod.PaymentType}");
                 }
 
+                // Check if payment method already exists
+                existingPayment = await paymentRepo.GetByPaymentMethodIdAsync(paymentMethodId);
+
                 if (existingPayment != null)
                 {
+                    // Verify the payment method belongs to the same carrier
+                    if (existingPayment.CarrierId != invoiceDto.CarrierId)
+                    {
+                        logger.LogError("Payment method ID {PaymentMethodId} already exists for a different carrier", paymentMethodId);
+                        return Results.BadRequest("Payment method already exists for a different carrier");
+                    }
                     logger.LogInformation("Using existing payment method with ID: {PaymentMethodId}", paymentMethodId);
                 }
                 else
                 {
-                    logger.LogInformation("Creating new payment method with ID: {PaymentMethodId}", paymentMethodId);
-                    var paymentMethod = mapper.Map<PaymentMethod>(invoiceDto.PaymentMethod);
-                    paymentMethod.PaymentMethodId = paymentMethodId;
-                    paymentMethod.CarrierId = invoiceDto.CarrierId;
-                    await paymentRepo.AddAsync(paymentMethod);
-                    logger.LogInformation("Successfully created payment method with ID: {PaymentMethodId}", paymentMethodId);
+                    try
+                    {
+                        logger.LogInformation("Creating new payment method with ID: {PaymentMethodId}", paymentMethodId);
+                        var paymentMethod = mapper.Map<PaymentMethod>(invoiceDto.PaymentMethod);
+                        paymentMethod.PaymentMethodId = paymentMethodId;
+                        paymentMethod.CarrierId = invoiceDto.CarrierId;
+                        await paymentRepo.AddAsync(paymentMethod);
+                        logger.LogInformation("Successfully created payment method with ID: {PaymentMethodId}", paymentMethodId);
+                    }
+                    catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+                    {
+                        // Handle race condition where payment method was created between our check and insert
+                        existingPayment = await paymentRepo.GetByPaymentMethodIdAsync(paymentMethodId);
+                        if (existingPayment == null || existingPayment.CarrierId != invoiceDto.CarrierId)
+                        {
+                            logger.LogError("Failed to create payment method - ID conflict");
+                            return Results.BadRequest("Failed to create payment method - please try again");
+                        }
+                        logger.LogInformation("Using existing payment method with ID: {PaymentMethodId} after concurrent creation", paymentMethodId);
+                    }
                 }
 
                 // Create invoice with carrier details from DTO
